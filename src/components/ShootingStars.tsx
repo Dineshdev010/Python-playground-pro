@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useProgress } from "@/contexts/ProgressContext";
 import { toast } from "sonner";
 import { pythonRiddles } from "@/data/pythonRiddles";
-import confetti from "canvas-confetti";
+import { fireRewardConfetti } from "@/lib/confetti";
 
 const ANSWERED_RIDDLES_KEY = "pymaster_answered_riddles";
 const LAST_RIDDLE_KEY = "pymaster_last_riddle";
@@ -106,6 +106,7 @@ export function ShootingStars() {
   const [stars, setStars] = useState<Star[]>([]);
   const [showRiddle, setShowRiddle] = useState<{ star: Star; answer: string } | null>(null);
   const [burstPos, setBurstPos] = useState<{ x: number; y: number } | null>(null);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const { progress, catchStar, addDailyStar } = useProgress();
   const idCounter = useRef(0);
   const starsCaughtRef = useRef(progress.starsCaught);
@@ -113,6 +114,16 @@ export function ShootingStars() {
   useEffect(() => {
     starsCaughtRef.current = progress.starsCaught;
   }, [progress.starsCaught]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === "visible");
+    };
+
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   const spawnStar = useCallback(() => {
     const riddle = getUnseenRiddle(starsCaughtRef.current);
@@ -132,9 +143,11 @@ export function ShootingStars() {
   }, []);
 
   useEffect(() => {
+    if (!isPageVisible) return;
+
     // Random spawn: initial delay 8-20s, then random intervals 60-180s
     const scheduleNext = () => {
-      const delay = Math.floor(Math.random() * 120000) + 60000; // 60-180 seconds
+      const delay = Math.floor(Math.random() * 150000) + 90000; // 90-240 seconds
       return setTimeout(() => {
         spawnStar();
         timeoutRef.current = scheduleNext();
@@ -142,7 +155,7 @@ export function ShootingStars() {
     };
     
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
-    const initialDelay = Math.floor(Math.random() * 12000) + 8000; // 8-20 seconds
+    const initialDelay = Math.floor(Math.random() * 15000) + 12000; // 12-27 seconds
     const initialTimeout = setTimeout(() => {
       spawnStar();
       timeoutRef.current = scheduleNext();
@@ -152,7 +165,7 @@ export function ShootingStars() {
       clearTimeout(initialTimeout);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [spawnStar]);
+  }, [isPageVisible, spawnStar]);
 
   const handleCatchStar = (star: Star, e: React.MouseEvent) => {
     setBurstPos({ x: e.clientX, y: e.clientY });
@@ -161,15 +174,7 @@ export function ShootingStars() {
   };
 
   const triggerBurst = (x: number, y: number) => {
-    confetti({
-      particleCount: 60, // Reduced from 80 for better performance, keeps visual impact
-      spread: 70,
-      origin: { x: x / window.innerWidth, y: y / window.innerHeight },
-      colors: ["#FFD700", "#3B82F6", "#22C55E", "#F59E0B"],
-      gravity: 1.2,
-      scalar: 1, // Kept at 1 for impact - stars are important
-      decay: 0.95, // Faster particle decay for better performance
-    });
+    fireRewardConfetti({ x: x / window.innerWidth, y: y / window.innerHeight });
   };
 
   const submitAnswer = () => {
@@ -210,16 +215,16 @@ export function ShootingStars() {
               initial={{ opacity: 0, scale: 0 }}
               animate={{
                 opacity: [0, 1, 1, 0.8],
-                scale: [0, 1.2, 1, 1.1],
+                scale: [0, 1.08, 1, 1.02],
                 x: [0, dx * 0.5, dx, dx + 5],
                 y: [0, dy * 0.5, dy, dy - 5],
               }}
               exit={{ opacity: 0, scale: 0 }}
-              transition={{ duration: 3, ease: "easeOut" }}
+              transition={{ duration: 2.4, ease: "easeOut" }}
               onClick={(e) => handleCatchStar(star, e)}
             >
               <div className="relative group">
-                <div className="absolute inset-0 w-12 h-12 -m-3 rounded-full bg-python-yellow/30 blur-xl animate-pulse" />
+                <div className="absolute inset-0 h-10 w-10 -m-2 rounded-full bg-python-yellow/20 blur-lg" />
                 <div className="relative text-5xl md:text-6xl filter drop-shadow-[0_0_20px_hsl(var(--python-yellow))]">
                   ⭐
                 </div>
@@ -228,14 +233,14 @@ export function ShootingStars() {
                 </div>
                 <motion.div
                   className="absolute w-1 h-1 rounded-full bg-python-yellow/60"
-                  animate={{ x: [0, 20], y: [0, 15], opacity: [0.8, 0] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
+                  animate={{ x: [0, 12], y: [0, 10], opacity: [0.6, 0] }}
+                  transition={{ duration: 0.9, repeat: Infinity }}
                   style={{ top: "50%", left: "50%" }}
                 />
                 <motion.div
                   className="absolute w-1 h-1 rounded-full bg-primary/60"
-                  animate={{ x: [0, -15], y: [0, 20], opacity: [0.6, 0] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+                  animate={{ x: [0, -10], y: [0, 12], opacity: [0.5, 0] }}
+                  transition={{ duration: 1.1, repeat: Infinity, delay: 0.3 }}
                   style={{ top: "50%", left: "50%" }}
                 />
               </div>

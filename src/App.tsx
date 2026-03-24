@@ -53,6 +53,8 @@ const CompleteProfilePage = lazy(() => import("./pages/CompleteProfilePage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const CertificatePage = lazy(() => import("./pages/CertificatePage"));
+const QuickPrepPage = lazy(() => import("./pages/QuickPrepPage"));
+const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // --- React Query Configuration ---
@@ -102,6 +104,8 @@ const App = () => (
                     <Route path="/reset-password" element={<Suspense fallback={<PageSkeleton />}><ResetPasswordPage /></Suspense>} />
                     <Route path="/complete-profile" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CompleteProfilePage /></Suspense></ProtectedRoute>} />
                     <Route path="/certificate" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CertificatePage /></Suspense></ProtectedRoute>} />
+                    <Route path="/quick-prep" element={<Suspense fallback={<PageSkeleton />}><QuickPrepPage /></Suspense>} />
+                    <Route path="/u/:userId" element={<Suspense fallback={<PageSkeleton />}><PublicProfilePage /></Suspense>} />
                     <Route path="/privacy" element={<Suspense fallback={<PageSkeleton />}><PrivacyPolicyPage /></Suspense>} />
                     {/* Catch-all: any unknown URL shows 404 */}
                     <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />

@@ -3,7 +3,7 @@
 // User dashboard with profile editing, stats overview, emoji
 // shop, star trophy progress, activity heatmap, and badges.
 // ============================================================
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useProgress } from "@/contexts/ProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,8 +16,10 @@ import { StreakFire } from "@/components/StreakFire";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Code, Flame, Wallet, Trophy, Target, Zap, Star, Award, Camera, Pencil, Check, ShoppingBag, Clock } from "lucide-react";
+import { BookOpen, Code, Flame, Wallet, Trophy, Target, Zap, Star, Award, Camera, Pencil, Check, ShoppingBag, Clock, Share2, Copy, Download, Palette, Medal, CheckCircle2, Crown, ArrowUpRight, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import html2canvas from "html2canvas";
 
 const trophyMilestones = [
 { stars: 20, emoji: "🥉", title: "Bronze Trophy", color: "bg-reward-gold/10 border-reward-gold/30" },
@@ -63,10 +65,40 @@ const howToClimb = [
 { emoji: "⭐", title: "Catch Stars", desc: "Grab shooting stars on the home page", link: "/" },
 { emoji: "🔥", title: "Keep Your Streak", desc: "Code every day for bonus rewards", link: "/compiler" }];
 
+type LeaderboardCompareRow = {
+  user_id: string;
+  display_name: string;
+  xp: number;
+  solved_count: number;
+  streak: number;
+  wallet: number;
+};
+
+const DASHBOARD_THEMES = [
+  {
+    id: "pymaster",
+    name: "PyMaster",
+    shell: "bg-gradient-to-br from-background via-background to-primary/5",
+    hero: "border-primary/20 bg-gradient-to-r from-primary/10 via-background to-python-yellow/10",
+  },
+  {
+    id: "mint",
+    name: "Mint",
+    shell: "bg-gradient-to-br from-background via-emerald-500/5 to-cyan-500/10",
+    hero: "border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-background to-cyan-500/10",
+  },
+  {
+    id: "sunset",
+    name: "Sunset",
+    shell: "bg-gradient-to-br from-background via-orange-500/5 to-rose-500/10",
+    hero: "border-orange-500/20 bg-gradient-to-r from-orange-500/10 via-background to-rose-500/10",
+  },
+];
+
 
 export default function DashboardPage() {
   const { progress, attemptStreakRecovery, canRecover, recoveryCost, addWallet } = useProgress();
-  const { profile, saveProfile } = useAuth();
+  const { user, profile, saveProfile } = useAuth();
   const title = getStreakTitle(progress.streak);
   const trophy = getTrophyForStars(progress.starsCaught);
   const navigate = useNavigate();
@@ -83,7 +115,11 @@ export default function DashboardPage() {
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem("pymaster_avatar") || "");
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(profileName);
+  const [dashboardTheme, setDashboardTheme] = useState(() => localStorage.getItem("pymaster_dashboard_theme") || "pymaster");
+  const [compareUsers, setCompareUsers] = useState<LeaderboardCompareRow[]>([]);
+  const [exportingShareCard, setExportingShareCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -95,6 +131,27 @@ export default function DashboardPage() {
       setProfilePic(profile.avatarUrl);
     }
   }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem("pymaster_dashboard_theme", dashboardTheme);
+  }, [dashboardTheme]);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase.rpc("get_leaderboard").then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        console.error("Compare leaderboard load failed", error);
+        return;
+      }
+      setCompareUsers((data || []) as LeaderboardCompareRow[]);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const saveName = async () => {
     const nextName = nameInput.trim() || profileName;
@@ -171,6 +228,173 @@ export default function DashboardPage() {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === dashboardTheme) || DASHBOARD_THEMES[0];
+  const dashboardUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : "/dashboard";
+  const publicProfileUrl = typeof window !== "undefined" && user?.uid ? `${window.location.origin}/u/${user.uid}` : dashboardUrl;
+  const solvedPct = problems.length ? Math.round(progress.solvedProblems.length / problems.length * 100) : 0;
+  const lessonPct = lessons.length ? Math.round(progress.completedLessons.length / lessons.length * 100) : 0;
+  const levelNumber = Math.floor(progress.xp / 500) + 1;
+  const xpIntoLevel = progress.xp % 500;
+  const xpToNextLevel = 500 - xpIntoLevel;
+  const certificateUnlocked = progress.xp >= 100;
+  const activeDays = Object.keys(progress.activityMap).sort();
+  const orderedActivityEntries = Object.entries(progress.activityMap).sort((a, b) => a[0].localeCompare(b[0]));
+  const strongestDay = orderedActivityEntries.reduce<[string, number] | null>((best, entry) => {
+    if (!best || entry[1] > best[1]) return [entry[0], entry[1]];
+    return best;
+  }, null);
+  const currentDate = new Date();
+  const isoForOffset = (offset: number) => {
+    const date = new Date();
+    date.setDate(currentDate.getDate() - offset);
+    return date.toLocaleDateString("en-CA");
+  };
+  const weeklyProblemGoal = Math.min(progress.solvedProblems.length, 5);
+  const weeklyXpValue = orderedActivityEntries
+    .filter(([day]) => day >= isoForOffset(6))
+    .reduce((sum, [, count]) => sum + count * 10, 0);
+  const weeklyStreakGoal = Math.min(progress.streak, 7);
+  const weeklyGoals = [
+    { label: "Solve 5 problems", current: weeklyProblemGoal, target: 5, helper: `${progress.solvedProblems.length} solved overall` },
+    { label: "Earn 100 XP", current: Math.min(weeklyXpValue, 100), target: 100, helper: `${weeklyXpValue} XP from recent activity` },
+    { label: "Keep a 7-day streak", current: weeklyStreakGoal, target: 7, helper: `${progress.streak} day streak right now` },
+  ];
+  const compareRankings = useMemo(() => {
+    const source = compareUsers.length ? compareUsers : [];
+    const fallbackName = profile?.displayName || localStorage.getItem("pymaster_name") || "You";
+    const merged = user?.uid
+      ? [
+          {
+            user_id: user.uid,
+            display_name: fallbackName,
+            xp: progress.xp,
+            solved_count: progress.solvedProblems.length,
+            streak: progress.streak,
+            wallet: progress.wallet,
+          },
+          ...source.filter((entry) => entry.user_id !== user.uid),
+        ]
+      : source;
+
+    return [...merged]
+      .sort((a, b) => b.xp - a.xp || b.streak - a.streak || b.wallet - a.wallet)
+      .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [compareUsers, profile?.displayName, progress.solvedProblems.length, progress.streak, progress.wallet, progress.xp, user?.uid]);
+  const yourRank = compareRankings.find((entry) => entry.user_id === user?.uid);
+  const compareWindow = yourRank
+    ? compareRankings.filter((entry) => Math.abs(entry.rank - yourRank.rank) <= 1).slice(0, 3)
+    : compareRankings.slice(0, 3);
+  const recentActivity = [
+    progress.solvedProblems.length > 0 ? `Solved ${progress.solvedProblems.length} total coding problems` : null,
+    progress.completedLessons.length > 0 ? `Completed ${progress.completedLessons.length} lessons in the learning track` : null,
+    progress.starsCaught > 0 ? `Caught ${progress.starsCaught} stars on the homepage` : null,
+    progress.streak > 0 ? `Built a ${progress.streak}-day coding streak` : null,
+    progress.wallet > 0 ? `Earned $${progress.wallet} in PyMaster wallet rewards` : null,
+  ].filter(Boolean) as string[];
+  const showcaseItems = [
+    progress.starsCaught >= 1000 ? { emoji: "🐉", title: "Dragon Master", helper: "1000 stars caught" } : null,
+    progress.starsCaught >= 500 ? { emoji: "👑", title: "Legendary Crown", helper: "500 stars caught" } : null,
+    progress.starsCaught >= 100 ? { emoji: "🏆", title: "Gold Trophy", helper: "100 stars caught" } : null,
+    progress.streak >= 100 ? { emoji: "🔥", title: "Python Master Streak", helper: "100-day streak" } : null,
+    certificateUnlocked ? { emoji: "📜", title: "Certificate Eligible", helper: "100 XP reached" } : null,
+    progress.completedLessons.length >= 10 ? { emoji: "📚", title: "Lesson Finisher", helper: "10 lessons completed" } : null,
+  ].filter(Boolean).slice(0, 3) as { emoji: string; title: string; helper: string }[];
+
+  const shareText =
+    `${profileName} is learning on PyMaster.\n` +
+    `XP: ${progress.xp.toLocaleString()} | Problems Solved: ${progress.solvedProblems.length} | Lessons: ${progress.completedLessons.length} | Streak: ${progress.streak} days | Stars: ${progress.starsCaught}`;
+
+  const handleShareDashboard = async () => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({
+          title: `${profileName}'s PyMaster Dashboard`,
+          text: shareText,
+          url: publicProfileUrl,
+        });
+        return;
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${shareText}\n${publicProfileUrl}`);
+        toast({
+          title: "Dashboard copied",
+          description: "Your dashboard summary and link are ready to paste.",
+        });
+        return;
+      }
+
+      toast({
+        title: "Share not supported",
+        description: "Your browser does not support sharing here yet.",
+        variant: "destructive",
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      toast({
+        title: "Share failed",
+        description: "We couldn't share your dashboard right now.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyShareText = async () => {
+    try {
+      if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+        toast({
+          title: "Copy not supported",
+          description: "Your browser does not support clipboard copy here yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(`${shareText}\n${publicProfileUrl}`);
+      toast({
+        title: "Copied to clipboard",
+        description: "Your dashboard share text is ready to send.",
+      });
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "We couldn't copy your dashboard summary.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportShareCard = async () => {
+    const card = shareCardRef.current;
+    if (!card) return;
+
+    setExportingShareCard(true);
+    try {
+      const canvas = await html2canvas(card, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
+      });
+      const link = document.createElement("a");
+      link.download = `${profileName.replace(/\s+/g, "_")}_pymaster_dashboard.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      toast({
+        title: "Dashboard image ready",
+        description: "Your share card has been exported as an image.",
+      });
+    } catch (error) {
+      console.error("Dashboard export failed", error);
+      toast({
+        title: "Export failed",
+        description: "We couldn't export your dashboard image.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingShareCard(false);
+    }
+  };
+
   const stats = [
   { icon: Code, label: "Problems Solved", value: progress.solvedProblems.length, total: problems.length, color: "text-primary", emoji: "💻" },
   { icon: BookOpen, label: "Lessons Done", value: progress.completedLessons.length, total: lessons.length, color: "text-streak-green", emoji: "📚" },
@@ -188,7 +412,102 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className={`max-w-6xl mx-auto px-4 sm:px-6 py-8 rounded-[2rem] ${selectedTheme.shell}`}>
+      <div className={`mb-8 rounded-3xl border p-5 sm:p-6 shadow-sm ${selectedTheme.hero}`}>
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div ref={shareCardRef} className="rounded-2xl border border-white/50 bg-background/90 p-5 backdrop-blur">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Public Profile</div>
+                <h2 className="mt-2 text-2xl font-bold text-foreground">{profileName}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Shareable learner card with your rank, streak, XP, and progress highlights.
+                </p>
+              </div>
+              <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                Level {levelNumber}
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-border bg-card/80 p-3">
+                <div className="text-xs text-muted-foreground">XP</div>
+                <div className="mt-1 text-xl font-bold text-foreground">{progress.xp.toLocaleString()}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card/80 p-3">
+                <div className="text-xs text-muted-foreground">Problems</div>
+                <div className="mt-1 text-xl font-bold text-foreground">{progress.solvedProblems.length}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card/80 p-3">
+                <div className="text-xs text-muted-foreground">Streak</div>
+                <div className="mt-1 text-xl font-bold text-foreground">{progress.streak}d</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card/80 p-3">
+                <div className="text-xs text-muted-foreground">Stars</div>
+                <div className="mt-1 text-xl font-bold text-foreground">{progress.starsCaught}</div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                {trophy.emoji} {trophy.title}
+              </span>
+              {certificateUnlocked && (
+                <span className="rounded-full bg-streak-green/10 px-3 py-1 text-xs font-medium text-streak-green">
+                  Certificate eligible
+                </span>
+              )}
+              {yourRank && (
+                <span className="rounded-full bg-python-yellow/10 px-3 py-1 text-xs font-medium text-python-yellow">
+                  Rank #{yourRank.rank}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-background/90 p-5 backdrop-blur">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Palette className="w-4 h-4 text-primary" />
+              Dashboard Upgrades
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {DASHBOARD_THEMES.map((theme) => (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => setDashboardTheme(theme.id)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    dashboardTheme === theme.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {theme.name}
+                </button>
+              ))}
+            </div>
+            <div className="mt-5 grid gap-2">
+              <Button type="button" className="w-full gap-2" onClick={handleShareDashboard}>
+                <Share2 className="w-4 h-4" />
+                Share Public Profile
+              </Button>
+              <Button type="button" variant="outline" className="w-full gap-2" onClick={handleCopyShareText}>
+                <Copy className="w-4 h-4" />
+                Copy Share Text
+              </Button>
+              <Button type="button" variant="outline" className="w-full gap-2" onClick={handleExportShareCard} disabled={exportingShareCard}>
+                <Download className="w-4 h-4" />
+                {exportingShareCard ? "Exporting..." : "Export Share Image"}
+              </Button>
+              <a href={publicProfileUrl} target="_blank" rel="noreferrer" className="inline-flex">
+                <Button type="button" variant="ghost" className="w-full gap-2">
+                  <ArrowUpRight className="w-4 h-4" />
+                  Open Public Profile
+                </Button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Profile header */}
       <div className="flex items-center gap-4 mb-8">
         <div className="relative group">
@@ -288,6 +607,230 @@ export default function DashboardPage() {
           )}
         </div>
       </SectionErrorBoundary>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-8">
+        <SectionErrorBoundary section="Rank Card">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Medal className="w-5 h-5 text-primary" />
+                  Rank Card
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Your current level, public standing, and next XP milestone.
+                </p>
+              </div>
+              {yourRank && (
+                <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                  #{yourRank.rank}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Current Level</div>
+                <div className="mt-2 text-3xl font-bold text-foreground">{levelNumber}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{title}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Progress</div>
+                <div className="mt-2 text-3xl font-bold text-foreground">{solvedPct}%</div>
+                <div className="mt-1 text-sm text-muted-foreground">{lessonPct}% lessons completed</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Next Level</div>
+                <div className="mt-2 text-3xl font-bold text-foreground">{xpToNextLevel}</div>
+                <div className="mt-1 text-sm text-muted-foreground">XP left to reach Level {levelNumber + 1}</div>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Level progress</span>
+                <span>{xpIntoLevel}/500 XP</span>
+              </div>
+              <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${(xpIntoLevel / 500) * 100}%` }} />
+              </div>
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
+        <SectionErrorBoundary section="Certificate Status">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Award className="w-5 h-5 text-python-yellow" />
+              Certificate Shortcut
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Track certificate readiness from the dashboard without opening the certificate page first.
+            </p>
+            <div className="mt-5 rounded-2xl border border-border bg-surface-1 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-foreground">
+                    {certificateUnlocked ? "Certificate unlocked" : "Keep going to unlock"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {certificateUnlocked ? "You have reached the 100 XP qualification mark." : `You need ${Math.max(100 - progress.xp, 0)} more XP to qualify.`}
+                  </div>
+                </div>
+                <div className={`rounded-full px-3 py-1 text-xs font-semibold ${certificateUnlocked ? "bg-streak-green/10 text-streak-green" : "bg-primary/10 text-primary"}`}>
+                  {certificateUnlocked ? "Eligible" : "In Progress"}
+                </div>
+              </div>
+              <div className="mt-4 h-2 rounded-full bg-background overflow-hidden">
+                <div className="h-full rounded-full bg-python-yellow" style={{ width: `${Math.min(progress.xp / 100 * 100, 100)}%` }} />
+              </div>
+              <div className="mt-4">
+                <Link to="/certificate" className="inline-flex">
+                  <Button size="sm" className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Open Certificate Page
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </SectionErrorBoundary>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <SectionErrorBoundary section="Weekly Goals">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              Weekly Goals
+            </h2>
+            <div className="mt-5 space-y-4">
+              {weeklyGoals.map((goal) => {
+                const pct = Math.min(goal.current / goal.target * 100, 100);
+                return (
+                  <div key={goal.label} className="rounded-xl border border-border bg-surface-1 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">{goal.label}</div>
+                        <div className="text-xs text-muted-foreground">{goal.helper}</div>
+                      </div>
+                      <div className="text-sm font-semibold text-primary">{goal.current}/{goal.target}</div>
+                    </div>
+                    <div className="mt-3 h-2 rounded-full bg-background overflow-hidden">
+                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
+        <SectionErrorBoundary section="Achievement Showcase">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Crown className="w-5 h-5 text-python-yellow" />
+              Achievement Showcase
+            </h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {showcaseItems.length > 0 ? showcaseItems.map((item) => (
+                <div key={item.title} className="rounded-xl border border-border bg-surface-1 p-4 text-center">
+                  <div className="text-3xl">{item.emoji}</div>
+                  <div className="mt-2 text-sm font-semibold text-foreground">{item.title}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{item.helper}</div>
+                </div>
+              )) : (
+                <div className="rounded-xl border border-dashed border-border bg-surface-1 p-4 text-sm text-muted-foreground sm:col-span-3">
+                  Your first showcase items will appear here as you build streaks, earn stars, and unlock the certificate.
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionErrorBoundary>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_1fr] mb-8">
+        <SectionErrorBoundary section="Recent Activity">
+          <div className="bg-card border border-border rounded-2xl p-6 h-full">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Recent Activity
+            </h2>
+            <div className="mt-5 space-y-3">
+              {recentActivity.length > 0 ? recentActivity.slice(0, 5).map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-xl border border-border bg-surface-1 p-3">
+                  <CheckCircle2 className="w-4 h-4 text-streak-green mt-0.5 shrink-0" />
+                  <span className="text-sm text-foreground">{item}</span>
+                </div>
+              )) : (
+                <div className="rounded-xl border border-dashed border-border bg-surface-1 p-4 text-sm text-muted-foreground">
+                  Start solving, learning, or coding to build your activity history.
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
+        <SectionErrorBoundary section="Friends Compare">
+          <div className="bg-card border border-border rounded-2xl p-6 h-full">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-python-yellow" />
+              Compare Nearby
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              See how you stack up against nearby learners on the leaderboard.
+            </p>
+            <div className="mt-5 space-y-3">
+              {compareWindow.length > 0 ? compareWindow.map((entry) => {
+                const isYou = entry.user_id === user?.uid;
+                return (
+                  <div key={`${entry.user_id}-${entry.rank}`} className={`rounded-xl border p-4 ${isYou ? "border-primary bg-primary/5" : "border-border bg-surface-1"}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">#{entry.rank} {entry.display_name}</div>
+                        <div className="text-xs text-muted-foreground">{entry.solved_count} solved • {entry.streak} day streak</div>
+                      </div>
+                      <div className="text-sm font-bold text-primary">{entry.xp.toLocaleString()} XP</div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="rounded-xl border border-dashed border-border bg-surface-1 p-4 text-sm text-muted-foreground">
+                  Leaderboard comparisons will appear here once ranking data is available.
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
+        <SectionErrorBoundary section="Heatmap Insights">
+          <div className="bg-card border border-border rounded-2xl p-6 h-full">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Flame className="w-5 h-5 text-python-yellow" />
+              Heatmap Insights
+            </h2>
+            <div className="mt-5 space-y-3">
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Active Days</div>
+                <div className="mt-1 text-2xl font-bold text-foreground">{activeDays.length}</div>
+                <div className="text-sm text-muted-foreground">Days tracked in your coding graph</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Strongest Day</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  {strongestDay ? `${strongestDay[0]} with ${strongestDay[1]} activity hits` : "No activity yet"}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Momentum</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  {progress.streak >= 7 ? "You are in a strong consistency run." : "A 7-day streak will unlock stronger momentum."}
+                </div>
+              </div>
+            </div>
+          </div>
+        </SectionErrorBoundary>
+      </div>
 
       {/* How to Climb */}
       <SectionErrorBoundary section="How to Climb">
@@ -416,13 +959,20 @@ export default function DashboardPage() {
       {/* Activity Graph */}
       <SectionErrorBoundary section="Coding Activity">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            📊 Coding Activity
-          </h2>
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                📊 Coding Activity
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Your consistency map for the last year, with stronger days glowing brighter.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {Object.keys(progress.activityMap).length} active days tracked
+            </div>
+          </div>
           <ActivityGraph activityMap={progress.activityMap} />
-          <p className="text-xs text-muted-foreground mt-3">
-            📅 {Object.keys(progress.activityMap).length} active days in the past year
-          </p>
         </div>
       </SectionErrorBoundary>
 

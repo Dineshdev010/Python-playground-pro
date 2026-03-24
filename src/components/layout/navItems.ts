@@ -4,7 +4,7 @@
 // top navbar, and mobile bottom nav.
 // ============================================================
 
-import { Home, BookOpen, Brain, Terminal, Code, Briefcase, Trophy, LayoutDashboard, Heart, Info, Award } from "lucide-react";
+import { Home, BookOpen, Brain, Terminal, Code, Briefcase, Trophy, LayoutDashboard, Heart, Info, Award, Zap } from "lucide-react";
 
 // Each item has: route path, Lucide icon, label text, and emoji (for mobile nav)
 export const navItems = [
@@ -13,6 +13,7 @@ export const navItems = [
   { to: "/dsa", icon: Brain, label: "DSA Mastery", emoji: "🧠" },
   { to: "/compiler", icon: Terminal, label: "Compiler", emoji: "💻" },
   { to: "/problems", icon: Code, label: "Problems", emoji: "🔥" },
+  { to: "/quick-prep", icon: Zap, label: "Quick Prep", emoji: "⚡" },
   { to: "/jobs", icon: Briefcase, label: "Job Portal", emoji: "💼" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard", emoji: "🏆" },
   { to: "/certificate", icon: Award, label: "Certificate", emoji: "📜" },

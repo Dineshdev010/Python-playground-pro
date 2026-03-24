@@ -19,6 +19,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function getUserLevelLabel(xp: number) {
+  if (xp >= 3000) return "Advanced";
+  if (xp >= 1000) return "Intermediate";
+  return "Beginner";
+}
+
 function TimeTracker() {
   const { progress, addTimeSpent } = useProgress();
   const [localTick, setLocalTick] = useState(0);
@@ -69,6 +75,8 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const levelNumber = Math.floor(progress.xp / 500) + 1;
+  const levelLabel = getUserLevelLabel(progress.xp);
 
   const handleSignOut = async () => {
     try {
@@ -169,7 +177,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
         </div>
         <div className="hidden sm:flex items-center gap-1.5 text-xs px-2 py-1 rounded-full bg-secondary">
           <Trophy className="w-3 h-3 text-python-yellow" />
-          <span className="text-muted-foreground">{getStreakTitle(progress.streak)}</span>
+          <span className="text-muted-foreground">{levelLabel} • Lv {levelNumber}</span>
         </div>
         {user ? (
           <DropdownMenu>

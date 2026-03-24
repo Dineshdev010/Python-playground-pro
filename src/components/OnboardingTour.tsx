@@ -84,14 +84,15 @@ const tourSteps: TourStep[] = [
 
 export function OnboardingTour() {
   const location = useLocation();
-  const isHomePage = location.pathname === "/";
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
-  const [dismissed, setDismissed] = useState(false);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    const completed = localStorage.getItem(TOUR_KEY);
-    if (!completed) {
+    const hasCompletedTour = localStorage.getItem(TOUR_KEY) === "true";
+    setCompleted(hasCompletedTour);
+
+    if (!hasCompletedTour) {
       // Show tour after a short delay
       const timeout = setTimeout(() => setActive(true), 2000);
       return () => clearTimeout(timeout);
@@ -113,6 +114,7 @@ export function OnboardingTour() {
   const handleClose = () => {
     setActive(false);
     localStorage.setItem(TOUR_KEY, "true");
+    setCompleted(true);
   };
 
   const handleRestart = () => {
@@ -127,7 +129,7 @@ export function OnboardingTour() {
   return (
     <>
       {/* Restart tour button — small, bottom-left */}
-      {!active && (
+      {!active && !completed && (
         <motion.button
           onClick={handleRestart}
           className="fixed bottom-20 left-4 lg:bottom-6 lg:left-6 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-secondary border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors shadow-lg"

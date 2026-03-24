@@ -1,16 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeProvider";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 export function VantaBackground() {
   const { theme } = useTheme();
+  const [isPageVisible, setIsPageVisible] = useState(true);
   
   // High-performance Framer Motion values instead of React State (Fixes page hangs!)
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
   // Add a slight spring physics for buttery smooth following without lag
-  const springConfig = { stiffness: 50, damping: 20, mass: 0.5 };
+  const springConfig = { stiffness: 35, damping: 24, mass: 0.7 };
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
@@ -26,8 +27,8 @@ export function VantaBackground() {
       // Throttle mouse moves to requestAnimationFrame
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          mouseX.set((e.clientX / window.innerWidth - 0.5) * 20); // range -10 to 10
-          mouseY.set((e.clientY / window.innerHeight - 0.5) * 20);
+          mouseX.set((e.clientX / window.innerWidth - 0.5) * 10);
+          mouseY.set((e.clientY / window.innerHeight - 0.5) * 10);
           ticking = false;
         });
         ticking = true;
@@ -37,17 +38,27 @@ export function VantaBackground() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY]);
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === "visible");
+    };
+
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const isDark = theme === "dark";
 
   // Construct parallax variables to inject directly into styles
-  const x1 = useTransform(smoothX, v => v * 0.4);
-  const y1 = useTransform(smoothY, v => v * 0.4);
-  const x2 = useTransform(smoothX, v => v * -0.8);
-  const y2 = useTransform(smoothY, v => v * -0.8);
-  const x3 = useTransform(smoothX, v => v * -1.5);
-  const y3 = useTransform(smoothY, v => v * -1.5);
-  const x4 = useTransform(smoothX, v => v * -2);
-  const y4 = useTransform(smoothY, v => v * -2);
+  const x1 = useTransform(smoothX, (v) => v * 0.24);
+  const y1 = useTransform(smoothY, (v) => v * 0.24);
+  const x2 = useTransform(smoothX, (v) => v * -0.45);
+  const y2 = useTransform(smoothY, (v) => v * -0.45);
+  const x3 = useTransform(smoothX, (v) => v * -0.8);
+  const y3 = useTransform(smoothY, (v) => v * -0.8);
+  const x4 = useTransform(smoothX, (v) => v * -1.1);
+  const y4 = useTransform(smoothY, (v) => v * -1.1);
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-background">
@@ -71,8 +82,8 @@ export function VantaBackground() {
           x: x1,
           y: y1,
         }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        animate={isPageVisible ? { scale: [1, 1.05, 1], opacity: [0.28, 0.42, 0.28] } : { scale: 1, opacity: 0.3 }}
+        transition={{ duration: 10, repeat: isPageVisible ? Infinity : 0, ease: "easeInOut" }}
       />
 
       {/* Cloud Layer 1 - Slow Background Clouds */}
@@ -82,8 +93,8 @@ export function VantaBackground() {
       >
         <motion.div 
           className="flex shrink-0 w-[200vw] h-full items-end"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+          animate={isPageVisible ? { x: ["0%", "-50%"] } : { x: "0%" }}
+          transition={{ duration: 160, repeat: isPageVisible ? Infinity : 0, ease: "linear" }}
         >
           {Array.from({ length: 6 }).map((_, i) => (
             <div 
@@ -104,8 +115,8 @@ export function VantaBackground() {
       >
         <motion.div 
           className="flex shrink-0 w-[200vw] h-full items-end"
-          animate={{ x: ["-50%", "0%"] }}
-          transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+          animate={isPageVisible ? { x: ["-50%", "0%"] } : { x: "-50%" }}
+          transition={{ duration: 120, repeat: isPageVisible ? Infinity : 0, ease: "linear" }}
         >
           {Array.from({ length: 8 }).map((_, i) => (
             <div 
@@ -126,8 +137,8 @@ export function VantaBackground() {
       >
         <motion.div 
           className="flex shrink-0 w-[200vw] h-full items-end"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+          animate={isPageVisible ? { x: ["0%", "-50%"] } : { x: "0%" }}
+          transition={{ duration: 72, repeat: isPageVisible ? Infinity : 0, ease: "linear" }}
         >
           {Array.from({ length: 10 }).map((_, i) => (
             <div 

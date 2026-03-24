@@ -16,6 +16,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Play, Send, Eye, EyeOff, ArrowLeft, ArrowRight, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { AdViewModal } from "@/components/AdViewModal";
+import { LiveProblemUpdates } from "@/components/LiveProblemUpdates";
 
 function normalizeOutput(output: string) {
   return output.replace(/\r\n/g, "\n").trim();
@@ -381,6 +382,8 @@ export default function ProblemPage() {
           setShowSolution(true);
         }} 
       />
+
+      <LiveProblemUpdates problemTitle={problem.title} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   getProgress,
   saveProgress,
   recordActivity,
+  getTodayLocalDateString,
   getRewardForDifficulty,
   canRecoverStreak,
   recoverStreak,
@@ -126,9 +127,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    saveProgress(progress);
+  }, [hydratedUserId, progress, user]);
+
+  useEffect(() => {
+    if (user && hydratedUserId !== user.uid) {
+      return;
+    }
+
     const handler = setTimeout(() => {
-      saveProgress(progress);
-      
       // Background cloud sync!
       if (user) {
         supabase.from('profiles').upsert({
@@ -215,7 +222,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Max 3 stars per day. Triggers a massive reward at 3.
   const addDailyStar = useCallback(() => {
     setProgress(prev => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayLocalDateString();
       let currentStars = prev.dailyStars;
       
       // Reset if it's a new day

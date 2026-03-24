@@ -1,20 +1,26 @@
 import { useProgress } from "@/contexts/ProgressContext";
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { getEffectiveDailyStars } from "@/lib/progress";
 
 export function DailyWantedLevel() {
   const { progress } = useProgress();
+  const dailyStars = getEffectiveDailyStars(progress);
+
+  if (dailyStars >= 3) {
+    return null;
+  }
   
   // Create an array of 3 booleans depending on how many stars the user has
   const starsArray = [
-    progress.dailyStars >= 1,
-    progress.dailyStars >= 2,
-    progress.dailyStars >= 3
+    dailyStars >= 1,
+    dailyStars >= 2,
+    dailyStars >= 3
   ];
 
   return (
-    <div className="fixed top-24 right-4 sm:right-8 z-50 flex flex-col items-end gap-1 pointer-events-none">
-      <div className="flex gap-1.5 p-2 sm:p-3 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl">
+    <div className="fixed right-3 top-[4.15rem] z-[998] pointer-events-none sm:right-4">
+      <div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-background/85 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur-md">
         {starsArray.map((isCaught, idx) => (
           <motion.div
             key={idx}
@@ -23,18 +29,18 @@ export function DailyWantedLevel() {
             transition={{ delay: idx * 0.1 }}
           >
             <Star 
-              className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ${
+              className={`h-3.5 w-3.5 transition-all duration-500 ${
                 isCaught 
-                  ? "fill-yellow-400 text-yellow-500 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" 
-                  : "fill-transparent text-white/30"
+                  ? "fill-yellow-400 text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" 
+                  : "fill-transparent text-muted-foreground/40"
               }`}
             />
           </motion.div>
         ))}
+        <span className="pl-0.5 font-semibold text-foreground">
+          Daily Tasks
+        </span>
       </div>
-      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/60 drop-shadow-md pr-1">
-        Daily Tasks
-      </span>
     </div>
   );
 }

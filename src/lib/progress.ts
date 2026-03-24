@@ -63,6 +63,14 @@ const defaultProgress: UserProgress = {
   timeSpent: 0,
 };
 
+export function getTodayLocalDateString(date = new Date()): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+export function getEffectiveDailyStars(progress: UserProgress, today = getTodayLocalDateString()): number {
+  return progress.lastStarDate === today ? progress.dailyStars : 0;
+}
+
 /**
  * Load progress from localStorage.
  * Falls back to default values if nothing is saved or if data is corrupted.
@@ -229,7 +237,7 @@ export interface ActivityResult {
 export function recordActivity(progress: UserProgress): ActivityResult {
   // Use local date (not UTC) to avoid timezone issues breaking streaks
   const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const today = getTodayLocalDateString(now);
   
   const updated = { ...progress };
   updated.activityMap = { ...progress.activityMap };
@@ -242,7 +250,7 @@ export function recordActivity(progress: UserProgress): ActivityResult {
     // Calculate yesterday's date string
     const yesterdayDate = new Date(now);
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterday = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, "0")}-${String(yesterdayDate.getDate()).padStart(2, "0")}`;
+    const yesterday = getTodayLocalDateString(yesterdayDate);
     
     const prevStreak = progress.streak;
     

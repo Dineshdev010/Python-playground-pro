@@ -21,6 +21,7 @@ import { CareerRoadmap } from "@/components/CareerRoadmap";
 import { FutureLearningSection } from "@/components/landing/FutureLearningSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { WinnerBanner } from "@/components/landing/WinnerBanner";
+import { LiveActivityFeed } from "@/components/landing/LiveActivityFeed";
 
 // Simple loading fallback for sections
 const SectionLoading = () => <div className="h-96 bg-surface-1 animate-pulse rounded-lg" />;
@@ -38,6 +39,9 @@ export default function LandingPage() {
       {/* Clickable shooting stars that quiz users with Python riddles for XP */}
       <ShootingStars />
       <DailyWantedLevel />
+      <div className="fixed left-3 top-[6.1rem] z-[998] hidden sm:block sm:left-4">
+        <LiveActivityFeed />
+      </div>
       {/* Main hero with headline, CTA buttons, and quick stats */}
       <HeroSection />
       {/* Visual divider between sections */}

@@ -13,6 +13,7 @@ import { OnboardingTour } from "@/components/OnboardingTour"; // First-time user
 import { TopNavbar } from "@/components/layout/TopNavbar"; // Top navigation bar
 import { Sidebar } from "@/components/layout/Sidebar"; // Desktop sidebar (toggle)
 import { MobileNav } from "@/components/layout/MobileNav"; // Bottom navigation for mobile
+import { ActiveUsersBanner } from "@/components/ActiveUsersBanner";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { showCelebration, celebrationData, dismissCelebration, logActivity } = useProgress();
   const [sidebarOpen, setSidebarOpen] = useState(false); // Controls sidebar visibility
   const isAuthPage = location.pathname === "/auth"; // Auth page has a simpler layout
+  const hideActiveUsersBadge =
+    location.pathname.startsWith("/learn") ||
+    location.pathname.startsWith("/dsa") ||
+    location.pathname.startsWith("/compiler");
   const { toast } = useToast();
 
   // Log activity on first visit of the day to update streak counter
@@ -75,6 +80,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Top navigation bar with logo, nav links, streak, wallet, etc. */}
       <TopNavbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+
+      {/* Live activity banner below the fixed navbar */}
+      {!hideActiveUsersBadge && <ActiveUsersBanner />}
 
       {/* Sidebar: slides in from left when menu button is clicked */}
       <AnimatePresence>
