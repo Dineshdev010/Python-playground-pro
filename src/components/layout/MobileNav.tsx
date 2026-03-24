@@ -12,7 +12,8 @@ export function MobileNav() {
 
   return (
     // Fixed bottom bar, visible only on mobile (hidden on lg screens)
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-card border-t border-border overflow-x-auto z-40 px-1 gap-1 scrollbar-none flex items-center justify-center">
+    // Horizontal scrollable to fit all navigation items
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-card border-t border-border overflow-x-auto z-40 px-1 gap-1 scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent flex items-center">
       {navItems.map((item) =>
         <Link
           key={item.to}
@@ -21,7 +22,7 @@ export function MobileNav() {
             // Highlight the active page with primary color and slight scale
             location.pathname === item.to 
               ? "text-primary bg-primary/10 scale-110" 
-              : "text-muted-foreground active:scale-90"
+              : "text-muted-foreground active:scale-90 hover:text-foreground"
           }`}
         >
           {/* Show emoji instead of Lucide icon on mobile for compactness */}

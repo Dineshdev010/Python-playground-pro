@@ -60,6 +60,99 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==================== GLOBAL OPTIMIZATIONS ==================== */
+
+/* Improve text rendering for clarity and smoothness */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  font-feature-settings: "kern" 1;
+}
+
+/* ==================== ENHANCED SCROLLBAR ==================== */
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsla(var(--primary), 0.5) transparent;
+}
+
+/* Chrome/Safari/Edge scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsla(var(--primary), 0.5);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--primary), 0.8);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Smooth transitions for interactive elements only */
+button,
+a,
+[role="button"],
+[role="menuitem"],
+input,
+textarea,
+select {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    @apply text-2xl;
+  }
+  
+  h2 {
+    @apply text-xl;
+  }
+  
+  h3 {
+    @apply text-lg;
+  }
+  
+  button {
+    @apply min-h-10 px-3;
+  }
+}
+
+/* ==================== TEXT RENDERING ==================== */
+p, span, li, label {
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+}
+
 @layer base {
   /* Dark mode (default) */
   :root,

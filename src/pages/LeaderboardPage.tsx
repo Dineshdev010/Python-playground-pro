@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { Trophy, Flame, Code, Wallet, Medal, Crown, Award, Star, Lock } from "lucide-react";
 import { useProgress } from "@/contexts/ProgressContext";
 import { getTrophyForStars } from "@/lib/progress";
-import { motion } from "framer-motion";
 
 type SortKey = "xp" | "problemsSolved" | "streak" | "wallet";
 
@@ -20,6 +19,7 @@ interface LeaderboardUser {
   problemsSolved: number;
   streak: number;
   wallet: number;
+  emoji?: string;
   isYou?: boolean;
 }
 
@@ -51,28 +51,31 @@ export default function LeaderboardPage() {
   const { progress } = useProgress();
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortKey>("xp");
-  const userTrophy = getTrophyForStars(progress.starsCaught);
-  const userEquippedEmoji = localStorage.getItem("pymaster_selected_emoji") || "";
+  
+  // Memoize user trophy to prevent unnecessary recalculations
+  const userTrophy = getTrophyForStars(progress?.starsCaught || 0);
+  const userEquippedEmoji = typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_selected_emoji") || "") : "";
 
   // Build leaderboard from real user data only
   const you: LeaderboardUser = {
     rank: 0,
-    name: localStorage.getItem("pymaster_name") || "You",
-    avatar: (localStorage.getItem("pymaster_name") || "You").slice(0, 2).toUpperCase(),
-    xp: progress.xp || 0,
-    problemsSolved: progress.solvedProblems?.length || 0,
-    streak: progress.streak || 0,
-    wallet: progress.wallet,
+    name: typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_name") || "You") : "You",
+    avatar: (typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_name") || "You") : "You").slice(0, 2).toUpperCase(),
+    xp: progress?.xp || 0,
+    problemsSolved: progress?.solvedProblems?.length || 0,
+    streak: progress?.streak || 0,
+    wallet: progress?.wallet || 0,
+    emoji: userEquippedEmoji,
     isYou: true,
   };
 
   // 5 dummy competitor users mapped to realistic stats
   const dummyUsers: LeaderboardUser[] = [
-    { rank: 0, name: "SarahTheSnake", avatar: "SS", xp: 18450, problemsSolved: 215, streak: 64, wallet: 1400 },
-    { rank: 0, name: "ByteHacker", avatar: "BH", xp: 21200, problemsSolved: 280, streak: 115, wallet: 3150 },
-    { rank: 0, name: "Alex CodeNinja", avatar: "AC", xp: 12500, problemsSolved: 142, streak: 35, wallet: 850 },
-    { rank: 0, name: "DevMaster99", avatar: "DM", xp: 8200, problemsSolved: 85, streak: 12, wallet: 450 },
-    { rank: 0, name: "NewbiePy", avatar: "NP", xp: 3500, problemsSolved: 25, streak: 5, wallet: 150 },
+    { rank: 0, name: "SarahTheSnake", avatar: "SS", emoji: "🐍", xp: 18450, problemsSolved: 215, streak: 64, wallet: 1400 },
+    { rank: 0, name: "ByteHacker", avatar: "BH", emoji: "🚀", xp: 21200, problemsSolved: 280, streak: 115, wallet: 3150 },
+    { rank: 0, name: "Alex CodeNinja", avatar: "AC", emoji: "🥷", xp: 12500, problemsSolved: 142, streak: 35, wallet: 850 },
+    { rank: 0, name: "DevMaster99", avatar: "DM", emoji: "💻", xp: 8200, problemsSolved: 85, streak: 12, wallet: 450 },
+    { rank: 0, name: "NewbiePy", avatar: "NP", emoji: "📚", xp: 3500, problemsSolved: 25, streak: 5, wallet: 150 },
   ];
 
   const allUsers = [you, ...dummyUsers]
@@ -199,12 +202,9 @@ export default function LeaderboardPage() {
         const activeLeader = allUsers[0];
         const activeSortLabel = sortOptions.find(o => o.key === sortBy)?.label;
         return (
-          <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             key={sortBy}
-            className="bg-card border border-border rounded-xl p-6 mb-8 relative overflow-hidden group shadow-sm"
+            className="bg-card border border-border rounded-xl p-6 mb-8 relative overflow-hidden group shadow-sm transition-opacity duration-300"
           >
             <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-700 ease-out group-hover:scale-110 pointer-events-none" />
             <div className="flex items-center gap-5 sm:gap-6 relative">
@@ -231,7 +231,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         );
       })()}
 
@@ -240,13 +240,13 @@ export default function LeaderboardPage() {
         {/* Mobile card view */}
         <div className="sm:hidden">
           {allUsers.map(user => (
-            <motion.div layout key={user.name} className={`p-4 mb-3 rounded-xl border ${user.isYou ? "bg-primary/20 border-primary shadow-sm shadow-primary/20" : "bg-primary/5 border-transparent"}`}>
+            <div key={`mobile-${user.rank}`} className={`p-4 mb-3 rounded-xl border transition-all duration-200 ${user.isYou ? "bg-primary/20 border-primary shadow-sm shadow-primary/20" : "bg-primary/5 border-transparent"}`}>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-primary text-primary-foreground">
                   {user.avatar}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-primary">{user.name}{userEquippedEmoji && ` ${userEquippedEmoji}`} {userTrophy.emoji}</span>
+                  <span className="text-sm font-bold text-primary">{user.name}{user.emoji && ` ${user.emoji}`}{user.isYou && ` ${userTrophy.emoji}`}</span>
                   <div className="text-xs text-muted-foreground">Rank #{user.rank}</div>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default function LeaderboardPage() {
                   <div className="text-[10px] text-muted-foreground">Wallet</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
         {/* Desktop table view */}
@@ -282,10 +282,9 @@ export default function LeaderboardPage() {
             <span className="text-right">Wallet</span>
           </div>
           {allUsers.map(user => (
-            <motion.div
-              layout
-              key={user.name}
-              className={`grid grid-cols-[3rem_1fr_6rem_6rem_6rem_6rem] gap-2 px-4 py-3 border-b items-center transition-colors ${
+            <div
+              key={`desktop-${user.rank}`}
+              className={`grid grid-cols-[3rem_1fr_6rem_6rem_6rem_6rem] gap-2 px-4 py-3 border-b items-center transition-colors duration-200 ${
                 user.isYou ? "bg-primary/15 border-primary shadow-sm relative z-10" : "bg-primary/5 border-border last:border-0"
               }`}
             >
@@ -297,7 +296,7 @@ export default function LeaderboardPage() {
                 {user.avatar}
               </div>
               <span className="text-sm font-bold text-primary truncate">
-                {user.name}{userEquippedEmoji && ` ${userEquippedEmoji}`} {userTrophy.emoji}
+                {user.name}{user.emoji && ` ${user.emoji}`}{user.isYou && ` ${userTrophy.emoji}`}
               </span>
             </div>
             <span className={`text-sm text-right font-mono ${sortBy === "xp" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
@@ -312,7 +311,7 @@ export default function LeaderboardPage() {
             <span className={`text-sm text-right font-mono ${sortBy === "wallet" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
               ${user.wallet}
             </span>
-          </motion.div>
+          </div>
         ))}
         </div>
       </div>

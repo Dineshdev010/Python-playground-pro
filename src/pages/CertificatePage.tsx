@@ -261,14 +261,20 @@ export default function CertificatePage() {
 
                 <div className="flex flex-col items-center">
                   <div className="h-12 border-b-2 border-slate-300 w-44 mb-3 flex flex-col items-center justify-end">
-                     <img 
-                       src="/signature.png" 
-                       alt="Signature" 
-                       className="h-12 object-contain mix-blend-multiply opacity-80"
-                       onError={(e) => {
-                         (e.target as HTMLImageElement).style.display = 'none';
-                       }}
-                     />
+                    {/* Signature Display - Image or Fallback Text */}
+                    <img 
+                      src="/signature.png" 
+                      alt="Signature" 
+                      className="h-12 object-contain mix-blend-multiply opacity-80"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                    <style>{`
+                      img:not([src="/signature.png"]) { display: none; }
+                      img[src="/signature.png"][style*="display: none"] ~ .signature-fallback {
+                        display: block;
+                      }
+                    `}</style>
+                    <span className="signature-fallback hidden font-serif text-xl italic font-bold text-slate-700">Dinesh Raja M.</span>
                   </div>
                   <span className="text-[9px] lg:text-[10px] text-slate-500 uppercase tracking-widest font-black">Dinesh Raja M.</span>
                   <span className="text-[8px] text-slate-400 uppercase tracking-widest mt-1">Authorized Signature</span>

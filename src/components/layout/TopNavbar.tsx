@@ -85,7 +85,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   return (
     <>
     <AdViewModal isOpen={showAd} onClose={() => setShowAd(false)} />
-    <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50 flex items-center px-2 sm:px-4 justify-between shrink-0 overflow-x-auto scrollbar-none">
+    <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md fixed top-0 left-0 right-0 z-[999] flex items-center px-2 sm:px-4 justify-between shrink-0 overflow-x-auto scrollbar-none">
       <div className="flex items-center gap-1 sm:gap-3 shrink-0">
         <button
           onClick={onMenuToggle}

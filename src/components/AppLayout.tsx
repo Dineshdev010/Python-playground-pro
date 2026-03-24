@@ -84,8 +84,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile bottom navigation bar (visible on small screens only) */}
       <MobileNav />
 
-      {/* Main content area — pb-16 adds padding for mobile nav */}
-      <main className="flex-1 pb-16 lg:pb-0 w-full relative">
+      {/* Main content area — pb-16 adds padding for mobile nav, pt-14 for fixed navbar */}
+      <main className="flex-1 pt-14 pb-16 lg:pb-0 w-full relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

@@ -158,12 +158,13 @@ export function ShootingStars() {
 
   const triggerBurst = (x: number, y: number) => {
     confetti({
-      particleCount: 80,
+      particleCount: 60, // Reduced from 80 for better performance, keeps visual impact
       spread: 70,
       origin: { x: x / window.innerWidth, y: y / window.innerHeight },
       colors: ["#FFD700", "#3B82F6", "#22C55E", "#F59E0B"],
       gravity: 1.2,
-      scalar: 0.9,
+      scalar: 1, // Kept at 1 for impact - stars are important
+      decay: 0.95, // Faster particle decay for better performance
     });
   };
 

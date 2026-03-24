@@ -26,20 +26,37 @@ export function CustomCursor() {
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (
-        window.getComputedStyle(target).cursor === "pointer" ||
+      const computedStyle = window.getComputedStyle(target);
+      const cursor = computedStyle.cursor;
+      
+      // Check if it's interactive (button, link, pointer cursor, nav items, icons)
+      const isClickable = 
+        cursor === "pointer" ||
         target.tagName.toLowerCase() === "button" ||
         target.tagName.toLowerCase() === "a" ||
+        target.tagName.toLowerCase() === "nav" ||
+        target.tagName.toLowerCase() === "header" ||
         target.closest("button") ||
-        target.closest("a")
-      ) {
-        setIsHovering(true);
-      }
-      // Check specifically if hovering over text to dim it or enhance readability if needed,
-      // but for now, we just grow on buttons to indicate clicking.
-      else {
-        setIsHovering(false);
-      }
+        target.closest("a") ||
+        target.closest("nav") ||
+        target.closest("header") ||
+        target.closest("[role='menuitem']") ||
+        target.className?.includes("nav") ||
+        target.className?.includes("cursor-pointer");
+      
+      // Only zoom on HEADINGS and IMPORTANT text (h1-h6), NOT regular paragraphs
+      const isHeading = 
+        target.tagName.match(/^(H[1-6])$/) ||
+        /^(h[1-6])$/i.test(target.tagName) ||
+        target.closest("h1") ||
+        target.closest("h2") ||
+        target.closest("h3") ||
+        target.closest("h4") ||
+        target.closest("h5") ||
+        target.closest("h6");
+      
+      // Zoom effect only on clickable elements and headings
+      setIsHovering(isClickable || isHeading);
     };
 
     window.addEventListener("mousemove", moveCursor, { passive: true });
@@ -67,9 +84,9 @@ export function CustomCursor() {
         }}
       />
       
-      {/* The Lens Effect Ring */}
+      {/* The Lens Effect Ring - Zooms on any hover */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] hidden md:block border border-primary/30 overflow-hidden"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] hidden md:block border-2 border-primary/40 overflow-hidden"
         style={{
           x: ringXSpring,
           y: ringYSpring,
@@ -80,11 +97,12 @@ export function CustomCursor() {
           width: isHovering ? 70 : 44,
           height: isHovering ? 70 : 44,
           boxShadow: isHovering 
-            ? "0 0 25px hsla(var(--primary), 0.3), inset 0 0 15px hsla(var(--primary), 0.3)" 
+            ? "0 0 50px hsla(var(--primary), 0.7), inset 0 0 30px hsla(var(--primary), 0.6), 0 0 80px hsla(var(--primary), 0.4)" 
             : "0 0 10px hsla(var(--primary), 0.2), inset 0 0 5px hsla(var(--primary), 0.1)",
-          backgroundColor: isHovering ? "hsla(var(--primary), 0.1)" : "rgba(var(--background), 0.05)",
+          backgroundColor: isHovering ? "hsla(var(--primary), 0.25)" : "rgba(var(--background), 0.05)",
+          borderColor: isHovering ? "hsl(var(--primary))" : "hsla(var(--primary), 0.3)",
         }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
       />
     </>
   );

@@ -10,10 +10,17 @@ export function VantaBackground() {
   const mouseY = useMotionValue(0);
   
   // Add a slight spring physics for buttery smooth following without lag
-  const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+  const springConfig = { stiffness: 50, damping: 20, mass: 0.5 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
+    // Disable animations on low-end devices
+    if ("ontouchstart" in window && navigator.maxTouchPoints > 0) {
+      // Mobile device - don't track mouse
+      return;
+    }
+
     let ticking = false;
     const handleMouseMove = (e: MouseEvent) => {
       // Throttle mouse moves to requestAnimationFrame

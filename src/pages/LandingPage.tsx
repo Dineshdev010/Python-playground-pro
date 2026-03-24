@@ -7,19 +7,23 @@
 // ============================================================
 
 import { Helmet } from "react-helmet-async";
+import { Suspense } from "react";
 import { VantaBackground } from "@/components/VantaBackground";
 import { ShootingStars } from "@/components/ShootingStars";
 import { DailyWantedLevel } from "@/components/DailyWantedLevel";
-import { CareerRoadmap } from "@/components/CareerRoadmap";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { GettingStartedSection } from "@/components/landing/GettingStartedSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { RoadmapSection } from "@/components/landing/RoadmapSection";
 import { BasicProblemsSection } from "@/components/landing/BasicProblemsSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { CareerRoadmap } from "@/components/CareerRoadmap";
+import { FutureLearningSection } from "@/components/landing/FutureLearningSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { WinnerBanner } from "@/components/landing/WinnerBanner";
-import { FutureLearningSection } from "@/components/landing/FutureLearningSection";
+
+// Simple loading fallback for sections
+const SectionLoading = () => <div className="h-96 bg-surface-1 animate-pulse rounded-lg" />;
 
 export default function LandingPage() {
   return (
