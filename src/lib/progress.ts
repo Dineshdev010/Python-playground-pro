@@ -23,6 +23,24 @@ export interface UserProgress {
   timeSpent: number; // Total time spent learning in seconds
 }
 
+export interface ProgressProfileRow {
+  wallet?: number | null;
+  streak?: number | null;
+  last_coding_date?: string | null;
+  solved_problems?: unknown;
+  completed_lessons?: unknown;
+  completed_exercises?: unknown;
+  unlocked_lessons?: unknown;
+  xp?: number | null;
+  activity_map?: unknown;
+  stars_caught?: number | null;
+  previous_streak?: number | null;
+  streak_broken_date?: string | null;
+  daily_stars?: number | null;
+  last_star_date?: string | null;
+  time_spent?: number | null;
+}
+
 // Key used to store progress in localStorage
 const STORAGE_KEY = "pymaster_progress";
 
@@ -63,7 +81,9 @@ export function getProgress(): UserProgress {
         unlockedLessons: Array.isArray(parsed.unlockedLessons) ? parsed.unlockedLessons : defaultProgress.unlockedLessons,
       };
     }
-  } catch {}
+  } catch {
+    // Fall back to defaults when local data is unavailable or malformed.
+  }
   return { ...defaultProgress };
 }
 
@@ -73,6 +93,124 @@ export function getProgress(): UserProgress {
  */
 export function saveProgress(progress: UserProgress) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function asActivityMap(value: unknown): Record<string, number> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, number] => typeof entry[0] === "string" && typeof entry[1] === "number",
+    ),
+  );
+}
+
+function maxDateString(a: string | null, b: string | null): string | null {
+  if (!a) return b;
+  if (!b) return a;
+  return a > b ? a : b;
+}
+
+function mergeDailyStars(local: UserProgress, remote: UserProgress) {
+  const lastStarDate = maxDateString(local.lastStarDate, remote.lastStarDate);
+  if (!lastStarDate) {
+    return { dailyStars: 0, lastStarDate: null };
+  }
+
+  if (local.lastStarDate === remote.lastStarDate) {
+    return {
+      dailyStars: Math.max(local.dailyStars, remote.dailyStars),
+      lastStarDate,
+    };
+  }
+
+  return local.lastStarDate === lastStarDate
+    ? { dailyStars: local.dailyStars, lastStarDate }
+    : { dailyStars: remote.dailyStars, lastStarDate };
+}
+
+function mergeActivityMap(localMap: Record<string, number>, remoteMap: Record<string, number>) {
+  const keys = new Set([...Object.keys(localMap), ...Object.keys(remoteMap)]);
+
+  return Array.from(keys).reduce<Record<string, number>>((acc, key) => {
+    acc[key] = Math.max(localMap[key] ?? 0, remoteMap[key] ?? 0);
+    return acc;
+  }, {});
+}
+
+export function profileRowToProgress(row?: ProgressProfileRow | null): UserProgress {
+  if (!row) {
+    return { ...defaultProgress };
+  }
+
+  return {
+    ...defaultProgress,
+    wallet: row.wallet ?? defaultProgress.wallet,
+    streak: row.streak ?? defaultProgress.streak,
+    lastCodingDate: row.last_coding_date ?? defaultProgress.lastCodingDate,
+    solvedProblems: asStringArray(row.solved_problems),
+    completedLessons: asStringArray(row.completed_lessons),
+    completedExercises: asStringArray(row.completed_exercises),
+    unlockedLessons: asStringArray(row.unlocked_lessons),
+    xp: row.xp ?? defaultProgress.xp,
+    activityMap: asActivityMap(row.activity_map),
+    starsCaught: row.stars_caught ?? defaultProgress.starsCaught,
+    previousStreak: row.previous_streak ?? defaultProgress.previousStreak,
+    streakBrokenDate: row.streak_broken_date ?? defaultProgress.streakBrokenDate,
+    dailyStars: row.daily_stars ?? defaultProgress.dailyStars,
+    lastStarDate: row.last_star_date ?? defaultProgress.lastStarDate,
+    timeSpent: row.time_spent ?? defaultProgress.timeSpent,
+  };
+}
+
+export function progressToProfileUpdate(progress: UserProgress): ProgressProfileRow {
+  return {
+    wallet: progress.wallet,
+    streak: progress.streak,
+    last_coding_date: progress.lastCodingDate,
+    solved_problems: progress.solvedProblems,
+    completed_lessons: progress.completedLessons,
+    completed_exercises: progress.completedExercises,
+    unlocked_lessons: progress.unlockedLessons,
+    xp: progress.xp,
+    activity_map: progress.activityMap,
+    stars_caught: progress.starsCaught,
+    previous_streak: progress.previousStreak,
+    streak_broken_date: progress.streakBrokenDate,
+    daily_stars: progress.dailyStars,
+    last_star_date: progress.lastStarDate,
+    time_spent: progress.timeSpent,
+  };
+}
+
+export function mergeProgress(local: UserProgress, remote: UserProgress): UserProgress {
+  const dailyStars = mergeDailyStars(local, remote);
+  const activityMap = mergeActivityMap(local.activityMap, remote.activityMap);
+
+  return {
+    ...defaultProgress,
+    wallet: Math.max(local.wallet, remote.wallet),
+    streak: Math.max(local.streak, remote.streak),
+    lastCodingDate: maxDateString(local.lastCodingDate, remote.lastCodingDate),
+    solvedProblems: Array.from(new Set([...local.solvedProblems, ...remote.solvedProblems])),
+    completedLessons: Array.from(new Set([...local.completedLessons, ...remote.completedLessons])),
+    completedExercises: Array.from(new Set([...local.completedExercises, ...remote.completedExercises])),
+    unlockedLessons: Array.from(new Set([...local.unlockedLessons, ...remote.unlockedLessons])),
+    xp: Math.max(local.xp, remote.xp),
+    activityMap,
+    starsCaught: Math.max(local.starsCaught, remote.starsCaught),
+    previousStreak: Math.max(local.previousStreak, remote.previousStreak),
+    streakBrokenDate: maxDateString(local.streakBrokenDate, remote.streakBrokenDate),
+    dailyStars: dailyStars.dailyStars,
+    lastStarDate: dailyStars.lastStarDate,
+    timeSpent: Math.max(local.timeSpent, remote.timeSpent),
+  };
 }
 
 // --- Activity Recording ---
@@ -195,7 +333,8 @@ export function getStreakRecoveryCost(previousStreak: number): number {
  */
 export function canRecoverStreak(progress: UserProgress): boolean {
   if (!progress.streakBrokenDate || progress.previousStreak < 2) return false;
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   return progress.streakBrokenDate === today;
 }
 

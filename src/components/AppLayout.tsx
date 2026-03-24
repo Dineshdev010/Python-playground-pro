@@ -40,7 +40,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         });
       }, 1500);
     }
-  }, []);
+  }, [logActivity, toast]);
 
   // --- Simplified layout for the auth (login/signup) page ---
   if (isAuthPage) {

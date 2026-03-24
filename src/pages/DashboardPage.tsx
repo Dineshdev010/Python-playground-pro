@@ -3,9 +3,10 @@
 // User dashboard with profile editing, stats overview, emoji
 // shop, star trophy progress, activity heatmap, and badges.
 // ============================================================
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useProgress } from "@/contexts/ProgressContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getStreakTitle, getTrophyForStars } from "@/lib/progress";
 import { problems } from "@/data/problems";
 import { lessons } from "@/data/lessons";
@@ -65,6 +66,7 @@ const howToClimb = [
 
 export default function DashboardPage() {
   const { progress, attemptStreakRecovery, canRecover, recoveryCost, addWallet } = useProgress();
+  const { profile, saveProfile } = useAuth();
   const title = getStreakTitle(progress.streak);
   const trophy = getTrophyForStars(progress.starsCaught);
   const navigate = useNavigate();
@@ -83,20 +85,60 @@ export default function DashboardPage() {
   const [nameInput, setNameInput] = useState(profileName);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const saveName = () => {
-    setProfileName(nameInput);
-    localStorage.setItem("pymaster_name", nameInput);
-    setEditingName(false);
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.displayName) {
+      setProfileName(profile.displayName);
+      setNameInput(profile.displayName);
+    }
+    if (profile.avatarUrl) {
+      setProfilePic(profile.avatarUrl);
+    }
+  }, [profile]);
+
+  const saveName = async () => {
+    const nextName = nameInput.trim() || profileName;
+    try {
+      await saveProfile({
+        displayName: nextName,
+        bio: profile?.bio || "",
+        avatarUrl: profilePic,
+        skills: profile?.skills || [],
+        profileComplete: true,
+      });
+      setProfileName(nextName);
+      setEditingName(false);
+    } catch (error) {
+      toast({
+        title: "Profile Save Failed",
+        description: error instanceof Error ? error.message : "We couldn't save your display name.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const dataUrl = reader.result as string;
-      setProfilePic(dataUrl);
-      localStorage.setItem("pymaster_avatar", dataUrl);
+      try {
+        await saveProfile({
+          displayName: profileName,
+          bio: profile?.bio || "",
+          avatarUrl: dataUrl,
+          skills: profile?.skills || [],
+          profileComplete: true,
+        });
+        setProfilePic(dataUrl);
+      } catch (error) {
+        toast({
+          title: "Avatar Save Failed",
+          description: error instanceof Error ? error.message : "We couldn't save your avatar.",
+          variant: "destructive",
+        });
+      }
     };
     reader.readAsDataURL(file);
   };

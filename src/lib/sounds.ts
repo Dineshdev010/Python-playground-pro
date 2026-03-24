@@ -4,6 +4,11 @@
 // No audio files needed — sounds are generated programmatically!
 // ============================================================
 
+function createAudioContext(): AudioContext {
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  return new AudioContextCtor();
+}
+
 /**
  * Play a short celebration fanfare (C5 → E5 → G5 → C6).
  * Used when the user solves a problem or earns a reward.
@@ -11,7 +16,7 @@
 export function playCelebrationSound() {
   try {
     // Create a new audio context (browser's audio engine)
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = createAudioContext();
 
     // Musical notes: C5, E5, G5, C6 (a happy ascending chord)
     const notes = [523.25, 659.25, 783.99, 1046.5];
@@ -43,7 +48,7 @@ export function playCelebrationSound() {
 
     // Clean up audio context after sounds finish
     setTimeout(() => audioCtx.close(), 2000);
-  } catch (e) {
+  } catch {
     // Audio not supported — fail silently (don't crash the app)
   }
 }
@@ -54,7 +59,7 @@ export function playCelebrationSound() {
  */
 export function playApplauseSound() {
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = createAudioContext();
 
     const duration = 1.5;
     const bufferSize = audioCtx.sampleRate * duration;
@@ -86,7 +91,7 @@ export function playApplauseSound() {
     source.start();
 
     setTimeout(() => audioCtx.close(), 3000);
-  } catch (e) {
+  } catch {
     // Audio not supported
   }
 }
@@ -97,7 +102,7 @@ export function playApplauseSound() {
  */
 export function playLevelUpSound() {
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = createAudioContext();
 
     // Rising scale: C4 → E4 → G4 → C5 → E5 → G5
     const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
@@ -125,5 +130,7 @@ export function playLevelUpSound() {
     });
 
     setTimeout(() => audioCtx.close(), 2000);
-  } catch (e) {}
+  } catch {
+    // Audio not supported
+  }
 }

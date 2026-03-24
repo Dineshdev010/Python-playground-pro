@@ -20,14 +20,18 @@ import gpayQR from "@/assets/gpay-qr.jpg";
 export default function CompleteProfilePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile, saveProfile } = useAuth();
 
   // Profile fields
   const [name, setName] = useState(() => localStorage.getItem("pymaster_name") || user?.displayName || "");
   const [bio, setBio] = useState(() => localStorage.getItem("pymaster_bio") || "");
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem("pymaster_avatar") || "");
   const [skills, setSkills] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem("pymaster_skills") || "[]"); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem("pymaster_skills") || "[]");
+    } catch {
+      return [];
+    }
   });
   const [showQR, setShowQR] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,11 +40,18 @@ export default function CompleteProfilePage() {
 
   // Redirect if profile is already complete
   useEffect(() => {
-    const isComplete = localStorage.getItem("pymaster_profile_complete") === "true";
-    if (isComplete) {
+    if (profile?.profileComplete) {
       navigate("/dashboard");
     }
-  }, [navigate]);
+  }, [navigate, profile?.profileComplete]);
+
+  useEffect(() => {
+    if (!profile) return;
+    setName(profile.displayName || user?.displayName || "");
+    setBio(profile.bio);
+    setProfilePic(profile.avatarUrl);
+    setSkills(profile.skills);
+  }, [profile, user?.displayName]);
 
   const handlePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,18 +67,28 @@ export default function CompleteProfilePage() {
     setSkills(prev => prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!name.trim()) {
       toast({ title: "Name required", description: "Please enter your display name.", variant: "destructive" });
       return;
     }
 
-    // Save all profile data to localStorage
-    localStorage.setItem("pymaster_name", name.trim());
-    localStorage.setItem("pymaster_bio", bio.trim());
-    localStorage.setItem("pymaster_skills", JSON.stringify(skills));
-    if (profilePic) localStorage.setItem("pymaster_avatar", profilePic);
-    localStorage.setItem("pymaster_profile_complete", "true");
+    try {
+      await saveProfile({
+        displayName: name.trim(),
+        bio: bio.trim(),
+        avatarUrl: profilePic,
+        skills,
+        profileComplete: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Profile Save Failed",
+        description: error instanceof Error ? error.message : "We couldn't save your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     toast({ title: "🎉 Profile Complete!", description: "Welcome to PyMaster! Let's start coding." });
 
@@ -162,9 +183,24 @@ export default function CompleteProfilePage() {
 
           {/* Skip for now */}
           <button
-            onClick={() => {
-              localStorage.setItem("pymaster_profile_complete", "true");
-              navigate("/dashboard");
+            onClick={async () => {
+              const fallbackName = name.trim() || user?.displayName || user?.email?.split("@")[0] || "Python Learner";
+              try {
+                await saveProfile({
+                  displayName: fallbackName,
+                  bio: bio.trim(),
+                  avatarUrl: profilePic,
+                  skills,
+                  profileComplete: true,
+                });
+                navigate("/dashboard");
+              } catch (error) {
+                toast({
+                  title: "Profile Save Failed",
+                  description: error instanceof Error ? error.message : "We couldn't save your profile.",
+                  variant: "destructive",
+                });
+              }
             }}
             className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
           >

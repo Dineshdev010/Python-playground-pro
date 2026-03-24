@@ -4,19 +4,47 @@
 // test case runner, solution reveal, and reward system.
 // Resets editor state when navigating between problems.
 // ============================================================
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import confetti from "canvas-confetti";
 import { problems, getDifficultyColor, getDifficultyBg } from "@/data/problems";
 import { useProgress } from "@/contexts/ProgressContext";
-import { toast } from "sonner";
 import { getRewardForDifficulty } from "@/lib/progress";
 import { executePython } from "@/lib/piston";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Play, Send, Eye, EyeOff, ArrowLeft, ArrowRight, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { AdViewModal } from "@/components/AdViewModal";
+
+function normalizeOutput(output: string) {
+  return output.replace(/\r\n/g, "\n").trim();
+}
+
+function getCallableName(code: string): string | null {
+  const match = code.match(/def\s+([A-Za-z_]\w*)\s*\(/);
+  return match?.[1] || null;
+}
+
+function buildTestHarness(code: string, callableName: string, input: string) {
+  const hasInput = input.trim().length > 0;
+  return `${code}
+
+__payload = (${hasInput ? input : ""})
+if ${hasInput ? "isinstance(__payload, tuple)" : "False"}:
+    __args = list(__payload)
+elif ${hasInput ? "True" : "False"}:
+    __args = [__payload]
+else:
+    __args = []
+
+__result = ${callableName}(*__args)
+if __result is None and __args:
+    print(repr(__args[0]))
+else:
+    print(repr(__result))
+`;
+}
 
 export default function ProblemPage() {
   const { id } = useParams<{ id: string }>();
@@ -78,21 +106,46 @@ export default function ProblemPage() {
     setIsRunning(true);
     setOutput("⏳ Running tests...");
 
-    const result = await executePython(code);
-    const actualOutput = result.output.trim();
+    const callableName = getCallableName(code);
+    const results: { passed: boolean; input: string; expected: string }[] = [];
+    let combinedOutput = "";
 
-    if (result.error && !result.output) {
-      setOutput(`❌ Error:\n${result.error}`);
-      setTestResults(null);
-      setIsRunning(false);
-      return;
+    if (callableName) {
+      for (const testCase of problem.testCases) {
+        const result = await executePython(buildTestHarness(code, callableName, testCase.input));
+        const actualOutput = normalizeOutput(result.output);
+        const expectedOutput = normalizeOutput(testCase.expected);
+        const passed = !result.error && actualOutput === expectedOutput;
+        results.push({ passed, input: testCase.input, expected: testCase.expected });
+
+        if (result.error && !result.output) {
+          setOutput(`❌ Error:\n${result.error}`);
+          setTestResults(results);
+          setIsRunning(false);
+          return;
+        }
+
+        combinedOutput += `Test ${results.length}: ${actualOutput || "(no output)"}\n`;
+      }
+    } else {
+      const result = await executePython(code);
+      const actualOutput = normalizeOutput(result.output);
+      const expectedOutput = normalizeOutput(problem.testCases[0]?.expected || "");
+
+      if (result.error && !result.output) {
+        setOutput(`❌ Error:\n${result.error}`);
+        setTestResults(null);
+        setIsRunning(false);
+        return;
+      }
+
+      results.push({
+        passed: actualOutput === expectedOutput,
+        input: problem.testCases[0]?.input || "",
+        expected: problem.testCases[0]?.expected || "",
+      });
+      combinedOutput = actualOutput || "(no output)";
     }
-
-    const results = problem.testCases.map(tc => {
-      const expectedTrimmed = tc.expected.trim();
-      const passed = actualOutput.includes(expectedTrimmed) || actualOutput === expectedTrimmed;
-      return { passed, input: tc.input, expected: tc.expected };
-    });
 
     setTestResults(results);
     const allPassed = results.every(r => r.passed);
@@ -106,11 +159,11 @@ export default function ProblemPage() {
         origin: { y: 0.6 },
         colors: ["#3b82f6", "#22c55e", "#eab308"],
       });
-      setOutput(`🎉 All tests passed!\n\n📺 Output:\n${actualOutput}\n\n💰 You earned $${reward}!\n🔥 Streak updated!`);
+      setOutput(`🎉 All tests passed!\n\n📺 Output:\n${combinedOutput.trim()}\n\n💰 You earned $${reward}!\n🔥 Streak updated!`);
     } else if (allPassed && solved) {
-      setOutput(`✅ All tests passed!\n\n📺 Output:\n${actualOutput}\n\n(Already solved)`);
+      setOutput(`✅ All tests passed!\n\n📺 Output:\n${combinedOutput.trim()}\n\n(Already solved)`);
     } else {
-      setOutput(`📺 Your output:\n${actualOutput || "(no output)"}\n\n❌ Some tests failed. Check your solution.`);
+      setOutput(`📺 Test output:\n${combinedOutput.trim() || "(no output)"}\n\n❌ Some tests failed. Check your solution.`);
     }
 
     setIsRunning(false);

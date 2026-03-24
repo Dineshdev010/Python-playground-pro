@@ -3,7 +3,7 @@
 // Interactive Python lesson viewer with categorized lessons,
 // exercise editor, ad-to-unlock, and progress tracking.
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { lessons } from "@/data/lessons";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -58,11 +58,22 @@ export default function LearnPage() {
 
   const handleAdComplete = () => {
     if (showAdForLesson) {
-      unlockLesson(showAdForLesson);
-      toast.success("Chapter unlocked! 🔓", { description: "Thanks for watching the ad!" });
+      unlockLesson(showAdForLesson, 0);
+      toast.success("Chapter unlocked! 🔓", { description: "Thanks for watching the ad." });
       setSelectedId(showAdForLesson);
       setShowAdForLesson(null);
     }
+  };
+
+  const handleWalletUnlock = (lessonId: string) => {
+    const unlocked = unlockLesson(lessonId);
+    if (!unlocked) {
+      toast.error("Not enough cash", { description: "You need $25 in your wallet to unlock this lesson instantly." });
+      return;
+    }
+
+    toast.success("Chapter unlocked! 🔓", { description: "You spent $25 to unlock this lesson." });
+    setSelectedId(lessonId);
   };
 
   const handleSelectLesson = (lessonId: string, index: number, unlocked: boolean) => {
@@ -79,6 +90,15 @@ export default function LearnPage() {
   };
 
   const getLessonsByCategory = (cat: string) => lessons.filter(l => l.category === cat);
+
+  useEffect(() => {
+    if (!selectedLesson) return;
+    const levels = ["beginner", "intermediate", "advanced"] as const;
+    const lessonFullyCompleted = levels.every((level) => progress.completedExercises.includes(`${selectedLesson.id}:${level}`));
+    if (lessonFullyCompleted) {
+      completeLesson(selectedLesson.id);
+    }
+  }, [completeLesson, progress.completedExercises, selectedLesson]);
 
   return (
     <>
@@ -99,7 +119,7 @@ export default function LearnPage() {
             {progress.completedLessons.length}/{lessons.length} completed
           </p>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <Play className="w-3 h-3" /> Watch ads to unlock lessons
+            <Play className="w-3 h-3" /> Watch an ad or pay $25 to unlock lessons
           </p>
         </div>
         <nav className="p-2">
@@ -141,7 +161,7 @@ export default function LearnPage() {
                         )}
                         <span className="truncate flex-1">{lesson.title}</span>
                         {!unlocked && (
-                          <span className="text-[10px] text-primary flex items-center gap-0.5"><Play className="w-3 h-3" />Ad</span>
+                          <span className="text-[10px] text-primary flex items-center gap-0.5"><Play className="w-3 h-3" />Ad / $25</span>
                         )}
                       </div>
                       {/* Progress bar for unlocked lessons */}
@@ -265,21 +285,31 @@ export default function LearnPage() {
                       )}
                       <div>
                         <p className="text-sm font-medium text-foreground">
-                          {canProceed ? "Next Chapter Unlocked!" : "Locked — Complete all 3 exercises or watch an ad"}
+                          {canProceed ? "Next Chapter Unlocked!" : "Locked — complete all 3 exercises, watch an ad, or pay $25"}
                         </p>
                         <p className="text-xs text-muted-foreground">{nextLesson.title}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       {!canProceed && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleAdUnlock(nextLesson.id)}
-                          className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
-                        >
-                          <Play className="w-3 h-3" /> Watch Ad
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAdUnlock(nextLesson.id)}
+                            className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                          >
+                            <Play className="w-3 h-3" /> Watch Ad
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleWalletUnlock(nextLesson.id)}
+                            className="gap-1 text-reward-gold border-reward-gold/30 hover:bg-reward-gold/10"
+                          >
+                            Pay $25
+                          </Button>
+                        </>
                       )}
                       <Button
                         size="sm"
@@ -339,7 +369,7 @@ export default function LearnPage() {
                               </div>
                             </div>
                             {!unlocked ? (
-                              <span className="text-xs text-primary flex items-center gap-1"><Play className="w-3 h-3" />Watch Ad</span>
+                              <span className="text-xs text-primary flex items-center gap-1"><Play className="w-3 h-3" />Ad / $25</span>
                             ) : (
                               <span className={`text-xs ${allDone ? "text-streak-green" : "text-muted-foreground"}`}>{exercisesDone}/3</span>
                             )}

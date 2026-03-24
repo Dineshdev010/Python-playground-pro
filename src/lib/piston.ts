@@ -13,43 +13,47 @@ export interface ExecutionResult {
 }
 
 // Cache the Pyodide instance so we only load it once
-let pyodideInstance: any = null;
-let pyodidePromise: Promise<any> | null = null;
+let pyodideInstance: PyodideInstance | null = null;
+let pyodidePromise: Promise<PyodideInstance> | null = null;
 
 /**
  * Load Pyodide (Python-in-the-browser via WebAssembly).
  * Cached after first load — subsequent calls return instantly.
  */
-function loadPyodide(): Promise<any> {
+function loadPyodide(): Promise<PyodideInstance> {
   if (pyodideInstance) return Promise.resolve(pyodideInstance);
   if (pyodidePromise) return pyodidePromise;
 
-  pyodidePromise = new Promise(async (resolve, reject) => {
+  pyodidePromise = (async () => {
     try {
       // Step 1: Add the Pyodide script tag (if not already there)
-      if (!(window as any).loadPyodide) {
+      if (!window.loadPyodide) {
         const script = document.createElement("script");
         script.src = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
         script.async = true;
-        await new Promise<void>((res, rej) => {
-          script.onload = () => res();
-          script.onerror = () => rej(new Error("Failed to load Pyodide"));
+        await new Promise<void>((resolve, reject) => {
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load Pyodide"));
           document.head.appendChild(script);
         });
       }
 
+      if (!window.loadPyodide) {
+        throw new Error("Pyodide loader did not initialize.");
+      }
+
       // Step 2: Initialize Pyodide
-      const pyodide = await (window as any).loadPyodide({
+      const pyodide = await window.loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
       });
 
       pyodideInstance = pyodide;
-      resolve(pyodide);
+      return pyodide;
     } catch (err) {
       pyodidePromise = null;
-      reject(err);
+      throw err;
     }
-  });
+  })();
 
   return pyodidePromise;
 }
@@ -62,12 +66,10 @@ export function preloadPyodide(): void {
   // Use requestIdleCallback or setTimeout to avoid blocking UI
   if (typeof window !== "undefined") {
     const start = () => {
-      loadPyodide().catch(() => {
-        // Silent fail — will retry on first actual execution
-      });
+      loadPyodide().catch(() => undefined);
     };
     if ("requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(start);
+      window.requestIdleCallback?.(() => start());
     } else {
       setTimeout(start, 2000);
     }
@@ -112,17 +114,20 @@ sys.stderr = StringIO()
         error: stderr,
         exitCode: stderr ? 1 : 0,
       };
-    } catch (err: any) {
+    } catch (err) {
       let stdout = "";
       try {
         stdout = pyodide.runPython("sys.stdout.getvalue()") || "";
-      } catch (_) {}
+      } catch {
+        // Keep best-effort stdout capture only.
+      }
 
-      const errorMessage = err.type
-        ? `${err.type}: ${err.message}`
-        : err.message || String(err);
+      const pyodideError = err as PyodideError;
+      const errorMessage = pyodideError.type
+        ? `${pyodideError.type}: ${pyodideError.message}`
+        : pyodideError.message || String(err);
       return {
-        output: stdout,
+        output: String(stdout),
         error: errorMessage,
         exitCode: 1,
       };
@@ -133,7 +138,9 @@ sys.stderr = StringIO()
 sys.stdout = sys.__stdout__
 sys.stderr = sys.__stderr__
 `);
-      } catch (_) {}
+      } catch {
+        // Ignore cleanup failures from partially initialized runtimes.
+      }
     }
   } catch (err) {
     return {

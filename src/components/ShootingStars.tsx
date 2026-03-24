@@ -14,7 +14,9 @@ function getUnseenRiddle(starsCaught: number): typeof pythonRiddles[0] {
   try {
     answered = JSON.parse(localStorage.getItem(ANSWERED_RIDDLES_KEY) || "[]");
     lastIdx = parseInt(localStorage.getItem(LAST_RIDDLE_KEY) || "-1", 10);
-  } catch {}
+  } catch {
+    // Reset riddle history if local storage is unavailable.
+  }
   
   // Filter out answered riddles AND the last shown riddle to avoid consecutive repeats
   let candidates = pythonRiddles
@@ -52,7 +54,9 @@ function markRiddleAnswered(riddle: typeof pythonRiddles[0]) {
   let answered: number[] = [];
   try {
     answered = JSON.parse(localStorage.getItem(ANSWERED_RIDDLES_KEY) || "[]");
-  } catch {}
+  } catch {
+    // Ignore malformed answered-riddle cache and rebuild it.
+  }
   if (!answered.includes(idx)) {
     answered.push(idx);
     localStorage.setItem(ANSWERED_RIDDLES_KEY, JSON.stringify(answered));

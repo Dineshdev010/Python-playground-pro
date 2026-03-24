@@ -24,7 +24,7 @@ export function StreakFire({ streak, size = "sm", showQuote = false }: StreakFir
 
   const quote = useMemo(
     () => motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)],
-    [streak]
+    []
   );
 
   const sizeConfig = {

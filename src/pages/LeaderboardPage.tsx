@@ -3,15 +3,18 @@
 // Displays a competitive leaderboard with sortable columns,
 // trophy tiers, and the current user highlighted.
 // ============================================================
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Flame, Code, Wallet, Medal, Crown, Award, Star, Lock } from "lucide-react";
 import { useProgress } from "@/contexts/ProgressContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { getTrophyForStars } from "@/lib/progress";
 
 type SortKey = "xp" | "problemsSolved" | "streak" | "wallet";
 
 interface LeaderboardUser {
+  userId?: string;
   rank: number;
   name: string;
   avatar: string;
@@ -21,6 +24,15 @@ interface LeaderboardUser {
   wallet: number;
   emoji?: string;
   isYou?: boolean;
+}
+
+interface LeaderboardRow {
+  user_id: string;
+  display_name: string;
+  xp: number;
+  solved_count: number;
+  streak: number;
+  wallet: number;
 }
 
 // Trophy tier definitions with thresholds (8 tiers)
@@ -49,38 +61,75 @@ const rankBg: Record<number, string> = {
 
 export default function LeaderboardPage() {
   const { progress } = useProgress();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortKey>("xp");
+  const [users, setUsers] = useState<LeaderboardUser[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Memoize user trophy to prevent unnecessary recalculations
   const userTrophy = getTrophyForStars(progress?.starsCaught || 0);
   const userEquippedEmoji = typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_selected_emoji") || "") : "";
 
-  // Build leaderboard from real user data only
-  const you: LeaderboardUser = {
-    rank: 0,
-    name: typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_name") || "You") : "You",
-    avatar: (typeof localStorage !== "undefined" ? (localStorage.getItem("pymaster_name") || "You") : "You").slice(0, 2).toUpperCase(),
-    xp: progress?.xp || 0,
-    problemsSolved: progress?.solvedProblems?.length || 0,
-    streak: progress?.streak || 0,
-    wallet: progress?.wallet || 0,
-    emoji: userEquippedEmoji,
-    isYou: true,
-  };
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
 
-  // 5 dummy competitor users mapped to realistic stats
-  const dummyUsers: LeaderboardUser[] = [
-    { rank: 0, name: "SarahTheSnake", avatar: "SS", emoji: "🐍", xp: 18450, problemsSolved: 215, streak: 64, wallet: 1400 },
-    { rank: 0, name: "ByteHacker", avatar: "BH", emoji: "🚀", xp: 21200, problemsSolved: 280, streak: 115, wallet: 3150 },
-    { rank: 0, name: "Alex CodeNinja", avatar: "AC", emoji: "🥷", xp: 12500, problemsSolved: 142, streak: 35, wallet: 850 },
-    { rank: 0, name: "DevMaster99", avatar: "DM", emoji: "💻", xp: 8200, problemsSolved: 85, streak: 12, wallet: 450 },
-    { rank: 0, name: "NewbiePy", avatar: "NP", emoji: "📚", xp: 3500, problemsSolved: 25, streak: 5, wallet: 150 },
-  ];
+    supabase.rpc("get_leaderboard").then(({ data, error }) => {
+      if (!active) return;
 
-  const allUsers = [you, ...dummyUsers]
-    .sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number))
-    .map((u, i) => ({ ...u, rank: i + 1 }));
+      if (error) {
+        console.error("Leaderboard load failed", error);
+        setUsers([]);
+        setLoading(false);
+        return;
+      }
+
+        const nextUsers = ((data || []) as LeaderboardRow[]).map((row) => ({
+          userId: row.user_id,
+          rank: 0,
+          name: row.display_name,
+          avatar: row.display_name.slice(0, 2).toUpperCase(),
+          xp: row.xp,
+          problemsSolved: row.solved_count,
+          streak: row.streak,
+        wallet: row.wallet,
+        emoji: row.user_id === user?.uid ? userEquippedEmoji : undefined,
+        isYou: row.user_id === user?.uid,
+      }));
+
+      setUsers(nextUsers);
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.uid, userEquippedEmoji]);
+
+  const allUsers = useMemo(() => {
+    const fallbackName = profile?.displayName || localStorage.getItem("pymaster_name") || "You";
+    const currentUserEntry: LeaderboardUser = {
+      userId: user?.uid,
+      rank: 0,
+      name: fallbackName,
+      avatar: profile?.avatarUrl || fallbackName.slice(0, 2).toUpperCase(),
+      xp: progress?.xp || 0,
+      problemsSolved: progress?.solvedProblems?.length || 0,
+      streak: progress?.streak || 0,
+      wallet: progress?.wallet || 0,
+      emoji: userEquippedEmoji,
+      isYou: true,
+    };
+
+    const sourceUsers = user
+      ? [currentUserEntry, ...users.filter((entry) => entry.userId !== user.uid)]
+      : users;
+
+    return [...sourceUsers]
+      .sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number))
+      .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [profile?.avatarUrl, profile?.displayName, progress?.solvedProblems?.length, progress?.streak, progress?.wallet, progress?.xp, sortBy, user, userEquippedEmoji, users]);
 
   const sortOptions: { key: SortKey; label: string; icon: typeof Trophy }[] = [
     { key: "xp", label: "XP", icon: Trophy },
@@ -96,7 +145,9 @@ export default function LeaderboardPage() {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Trophy className="w-6 h-6 text-python-yellow" /> Leaderboard
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Your stats & trophy tiers to unlock</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {loading ? "Loading real rankings..." : "Live rankings from real learner profiles"}
+          </p>
         </div>
         <div className="flex gap-1.5 bg-surface-1 border border-border rounded-lg p-1 overflow-x-auto scrollbar-none">
           {sortOptions.map(opt => (

@@ -50,6 +50,7 @@ const DSAPage = lazy(() => import("./pages/DSAPage"));
 const DonatePage = lazy(() => import("./pages/DonatePage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const CompleteProfilePage = lazy(() => import("./pages/CompleteProfilePage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const CertificatePage = lazy(() => import("./pages/CertificatePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -92,14 +93,15 @@ const App = () => (
                     <Route path="/compiler" element={<Suspense fallback={<EditorSkeleton />}><CompilerPage /></Suspense>} />
                     <Route path="/problems" element={<Suspense fallback={<ProblemsListSkeleton />}><ProblemsListPage /></Suspense>} />
                     <Route path="/problems/:id" element={<Suspense fallback={<EditorSkeleton />}><ProblemPage /></Suspense>} />
-                    <Route path="/dashboard" element={<Suspense fallback={<DashboardSkeleton />}><DashboardPage /></Suspense>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<DashboardSkeleton />}><DashboardPage /></Suspense></ProtectedRoute>} />
                     <Route path="/leaderboard" element={<Suspense fallback={<PageSkeleton />}><LeaderboardPage /></Suspense>} />
                     <Route path="/jobs" element={<Suspense fallback={<PageSkeleton />}><JobsPage /></Suspense>} />
                     <Route path="/dsa" element={<Suspense fallback={<PageSkeleton />}><DSAPage /></Suspense>} />
                     <Route path="/donate" element={<Suspense fallback={<PageSkeleton />}><DonatePage /></Suspense>} />
                     <Route path="/auth" element={<Suspense fallback={<PageSkeleton />}><AuthPage /></Suspense>} />
-                    <Route path="/complete-profile" element={<Suspense fallback={<PageSkeleton />}><CompleteProfilePage /></Suspense>} />
-                    <Route path="/certificate" element={<Suspense fallback={<PageSkeleton />}><CertificatePage /></Suspense>} />
+                    <Route path="/reset-password" element={<Suspense fallback={<PageSkeleton />}><ResetPasswordPage /></Suspense>} />
+                    <Route path="/complete-profile" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CompleteProfilePage /></Suspense></ProtectedRoute>} />
+                    <Route path="/certificate" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CertificatePage /></Suspense></ProtectedRoute>} />
                     <Route path="/privacy" element={<Suspense fallback={<PageSkeleton />}><PrivacyPolicyPage /></Suspense>} />
                     {/* Catch-all: any unknown URL shows 404 */}
                     <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />

@@ -79,10 +79,9 @@ export default function AuthPage() {
     setLoading(true);
     try {
       if (mode === "login") {
-        await login(email, password);
+        const result = await login(email, password);
         toast({ title: "Welcome back!", description: "You've signed in successfully." });
-        const isProfileComplete = localStorage.getItem("pymaster_profile_complete") === "true";
-        navigate(isProfileComplete ? "/dashboard" : "/complete-profile");
+        navigate(result.profile?.profileComplete ? "/dashboard" : "/complete-profile");
       } else if (mode === "signup") {
         await signup(email, password, name);
         toast({ title: "Account created!", description: "Welcome to PyMaster!" });
@@ -92,10 +91,10 @@ export default function AuthPage() {
         toast({ title: "Reset link sent!", description: "Check your email for a password reset link." });
         setMode("login");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error?.message || "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {

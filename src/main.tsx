@@ -14,7 +14,7 @@ createRoot(document.getElementById("root")!).render(<App />);
 // Hide the loading spinner that shows while React is loading
 // The loader is defined in index.html and shown before React mounts
 requestAnimationFrame(() => {
-  if ((window as any).__hideLoader) {
-    (window as any).__hideLoader();
+  if (window.__hideLoader) {
+    window.__hideLoader();
   }
 });

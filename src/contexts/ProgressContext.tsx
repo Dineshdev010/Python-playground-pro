@@ -8,7 +8,19 @@
 // ============================================================
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { UserProgress, getProgress, saveProgress, recordActivity, getRewardForDifficulty, canRecoverStreak, recoverStreak, getStreakRecoveryCost } from "@/lib/progress";
+import {
+  UserProgress,
+  getProgress,
+  saveProgress,
+  recordActivity,
+  getRewardForDifficulty,
+  canRecoverStreak,
+  recoverStreak,
+  getStreakRecoveryCost,
+  mergeProgress,
+  profileRowToProgress,
+  progressToProfileUpdate,
+} from "@/lib/progress";
 import { playCelebrationSound, playApplauseSound, playLevelUpSound } from "@/lib/sounds";
 import { getEarnedBadges } from "@/lib/badges";
 import { problems } from "@/data/problems";
@@ -26,7 +38,7 @@ interface ProgressContextType {
   logActivity: () => void;               // Record daily activity (for streak)
   catchStar: (xpGain: number) => void;   // Catch a shooting star for XP
   addDailyStar: () => void;              // Catch a GTA-style daily task star
-  unlockLesson: (lessonId: string) => boolean;   // Pay $25 to unlock a lesson
+  unlockLesson: (lessonId: string, cost?: number) => boolean;   // Unlock a lesson, optionally charging wallet
   attemptStreakRecovery: () => boolean;   // Try to restore a broken streak
   addWallet: (amount: number) => void;   // Add/subtract from wallet
   addTimeSpent: (seconds: number) => void; // Add time spent learning
@@ -60,48 +72,68 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState<UserProgress>(getProgress());
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<{ title: string; subtitle: string; emoji: string; reward?: string } | null>(null);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(user?.uid ?? null);
 
   // 1. Fetch from Supabase whenever user logs in or mounts
   useEffect(() => {
-    if (user) {
-      supabase.from('profiles').select('*').eq('id', user.uid).single().then(({ data, error }) => {
-        if (data && !error) {
-          setProgress(prev => ({
-            ...prev,
-            wallet: data.wallet ?? prev.wallet,
-            xp: data.xp ?? prev.xp,
-            streak: data.streak ?? prev.streak,
-            starsCaught: data.stars_caught ?? prev.starsCaught,
-            dailyStars: data.daily_stars ?? prev.dailyStars,
-            solvedProblems: data.solved_problems || prev.solvedProblems,
-          }));
-        }
-      });
-    } else {
+    let active = true;
+
+    if (!user) {
       // Fallback to local storage if not logged in
       setProgress(getProgress());
+      setHydratedUserId(null);
+      return () => {
+        active = false;
+      };
     }
+
+    setHydratedUserId(null);
+    const localProgress = getProgress();
+
+    supabase
+      .from("profiles")
+      .select(
+        "wallet, streak, last_coding_date, solved_problems, completed_lessons, completed_exercises, unlocked_lessons, xp, activity_map, stars_caught, previous_streak, streak_broken_date, daily_stars, last_star_date, time_spent",
+      )
+      .eq("id", user.uid)
+      .single()
+      .then(({ data, error }) => {
+        if (!active) return;
+
+        if (error) {
+          console.error("Cloud Load Error", error);
+          setProgress(localProgress);
+          setCloudReady(true);
+          return;
+        }
+
+        const remoteProgress = profileRowToProgress(data);
+        const mergedProgress = mergeProgress(localProgress, remoteProgress);
+        setProgress(mergedProgress);
+        saveProgress(mergedProgress);
+        setHydratedUserId(user.uid);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   // 2. Auto-save progress to local storage AND Cloud whenever it changes 
   // (Debounced defensively to optimize the Event Loop and drastically reduce DB calls)
   useEffect(() => {
+    if (user && hydratedUserId !== user.uid) {
+      return;
+    }
+
     const handler = setTimeout(() => {
       saveProgress(progress);
       
       // Background cloud sync!
       if (user) {
-        // DANGEROUS NATIVE UPSERT FLAGGED:
-        // Note: For actual production, replace this upsert with the RPC call:
-        // supabase.rpc('increment_user_rewards', { ... }) attached in the audit repo.
         supabase.from('profiles').upsert({
           id: user.uid,
-          wallet: progress.wallet,
-          xp: progress.xp,
-          streak: progress.streak,
-          stars_caught: progress.starsCaught,
-          daily_stars: progress.dailyStars,
-          solved_problems: progress.solvedProblems,
+          ...progressToProfileUpdate(progress),
         }).then(({ error }) => {
           if (error) console.error("Cloud Sync Error", error);
         });
@@ -109,7 +141,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }, 1500); // 1.5 sec global execution buffer
     
     return () => clearTimeout(handler);
-  }, [progress, user]);
+  }, [hydratedUserId, progress, user]);
 
   // ---------- Celebration trigger ----------
   // Shows the celebration modal with confetti and sound
@@ -226,18 +258,18 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   // ---------- Unlock a lesson by paying $25 ----------
   // Returns true if successful, false if not enough money
-  const unlockLesson = useCallback((lessonId: string): boolean => {
+  const unlockLesson = useCallback((lessonId: string, cost = 25): boolean => {
     let success = false;
     setProgress(prev => {
       // Already unlocked? No cost needed
       if (prev.unlockedLessons.includes(lessonId)) { success = true; return prev; }
       // Not enough money? Can't unlock
-      if (prev.wallet < 25) { success = false; return prev; }
-      // Deduct $25 and add to unlocked list
+      if (cost > 0 && prev.wallet < cost) { success = false; return prev; }
+      // Deduct cost and add to unlocked list
       success = true;
       return {
         ...prev,
-        wallet: prev.wallet - 25,
+        wallet: prev.wallet - cost,
         unlockedLessons: [...prev.unlockedLessons, lessonId],
       };
     });
