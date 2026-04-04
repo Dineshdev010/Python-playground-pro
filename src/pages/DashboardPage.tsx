@@ -16,7 +16,7 @@ import { StreakFire } from "@/components/StreakFire";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Code, Flame, Wallet, Trophy, Target, Zap, Star, Award, Camera, Pencil, Check, ShoppingBag, Clock, Share2, Copy, Download, Palette, Medal, CheckCircle2, Crown, ArrowUpRight, Sparkles, Save, Github, Linkedin, Globe } from "lucide-react";
+import { BookOpen, Code, Flame, Wallet, Trophy, Target, Zap, Star, Award, Camera, Pencil, Check, ShoppingBag, Clock, Share2, Copy, Download, Palette, Medal, CheckCircle2, Crown, ArrowUpRight, Sparkles, Save, Github, Linkedin, Globe, CircleHelp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { getPublicUrl } from "@/lib/public-url";
@@ -62,6 +62,7 @@ const EMOJI_SHOP: {emoji: string;name: string;price: number;legendary?: boolean;
 const howToClimb = [
 { emoji: "💻", title: "Solve Problems", desc: "Earn cash & XP by solving coding challenges", link: "/problems" },
 { emoji: "📚", title: "Complete Lessons", desc: "Learn new concepts and earn XP", link: "/learn" },
+{ emoji: "❓", title: "Python Quiz", desc: "Practice 200 quiz questions and improve accuracy", link: "/python-quiz-100" },
 { emoji: "⭐", title: "Catch Stars", desc: "Grab shooting stars on the home page", link: "/" },
 { emoji: "🔥", title: "Keep Your Streak", desc: "Code every day for bonus rewards", link: "/compiler" }];
 
@@ -127,6 +128,45 @@ function formatCountdown(totalSeconds: number) {
 }
 
 const TIME_GIFT_INTERVAL_SECONDS = 60 * 60;
+const QUIZ_PROGRESS_STORAGE_KEY = "pymaster_quiz_progress_v1";
+
+type QuizProgressSnapshot = {
+  allTotal: number;
+  allAnswered: number;
+  allScore: number;
+  trickyTotal: number;
+  trickyAnswered: number;
+  trickyScore: number;
+  updatedAt: string;
+};
+
+const EMPTY_QUIZ_PROGRESS: QuizProgressSnapshot = {
+  allTotal: 0,
+  allAnswered: 0,
+  allScore: 0,
+  trickyTotal: 0,
+  trickyAnswered: 0,
+  trickyScore: 0,
+  updatedAt: "",
+};
+
+function readQuizProgressSnapshot(): QuizProgressSnapshot {
+  if (typeof window === "undefined") return EMPTY_QUIZ_PROGRESS;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(QUIZ_PROGRESS_STORAGE_KEY) || "{}");
+    return {
+      allTotal: typeof parsed.allTotal === "number" ? parsed.allTotal : 0,
+      allAnswered: typeof parsed.allAnswered === "number" ? parsed.allAnswered : 0,
+      allScore: typeof parsed.allScore === "number" ? parsed.allScore : 0,
+      trickyTotal: typeof parsed.trickyTotal === "number" ? parsed.trickyTotal : 0,
+      trickyAnswered: typeof parsed.trickyAnswered === "number" ? parsed.trickyAnswered : 0,
+      trickyScore: typeof parsed.trickyScore === "number" ? parsed.trickyScore : 0,
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : "",
+    };
+  } catch {
+    return EMPTY_QUIZ_PROGRESS;
+  }
+}
 
 
 export default function DashboardPage() {
@@ -163,6 +203,7 @@ export default function DashboardPage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(() => readSocialLinks());
   const [savingProfileDetails, setSavingProfileDetails] = useState(false);
   const [giftTick, setGiftTick] = useState(0);
+  const [quizProgress, setQuizProgress] = useState<QuizProgressSnapshot>(() => readQuizProgressSnapshot());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
@@ -189,6 +230,22 @@ export default function DashboardPage() {
     }, 1000);
 
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const refreshQuizProgress = () => setQuizProgress(readQuizProgressSnapshot());
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === QUIZ_PROGRESS_STORAGE_KEY) {
+        refreshQuizProgress();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("pymaster-quiz-progress-updated", refreshQuizProgress as EventListener);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("pymaster-quiz-progress-updated", refreshQuizProgress as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -368,6 +425,8 @@ export default function DashboardPage() {
     certificateUnlocked ? { emoji: "📜", title: "Certificate Eligible", helper: "100 XP reached" } : null,
     progress.completedLessons.length >= 10 ? { emoji: "📚", title: "Lesson Finisher", helper: "10 lessons completed" } : null,
   ].filter(Boolean).slice(0, 3) as { emoji: string; title: string; helper: string }[];
+  const allQuizAnsweredPct = quizProgress.allTotal ? Math.round((quizProgress.allAnswered / quizProgress.allTotal) * 100) : 0;
+  const trickyQuizAnsweredPct = quizProgress.trickyTotal ? Math.round((quizProgress.trickyAnswered / quizProgress.trickyTotal) * 100) : 0;
 
   const shareText =
     `${profileName} is learning on PyMaster.\n` +
@@ -956,6 +1015,58 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <SectionErrorBoundary section="Quiz Progress">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <CircleHelp className="w-5 h-5 text-primary" />
+              Quiz Progress
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Track your Python quiz progress across all questions and tricky mode.
+            </p>
+
+            <div className="mt-5 space-y-4">
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-foreground">All Questions</div>
+                  <div className="text-xs text-muted-foreground">
+                    {quizProgress.allAnswered}/{quizProgress.allTotal} answered • {quizProgress.allScore} correct
+                  </div>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-background overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${allQuizAnsweredPct}%` }} />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-surface-1 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-foreground">Tricky Only</div>
+                  <div className="text-xs text-muted-foreground">
+                    {quizProgress.trickyAnswered}/{quizProgress.trickyTotal} answered • {quizProgress.trickyScore} correct
+                  </div>
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-background overflow-hidden">
+                  <div className="h-full rounded-full bg-python-yellow transition-all" style={{ width: `${trickyQuizAnsweredPct}%` }} />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Link to="/python-quiz-100" className="inline-flex">
+                  <Button size="sm" className="gap-2">
+                    <CircleHelp className="w-4 h-4" />
+                    Continue Quiz
+                  </Button>
+                </Link>
+                <Link to="/learn" className="inline-flex">
+                  <Button size="sm" variant="outline">
+                    Revise Lessons
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </SectionErrorBoundary>
+
         <SectionErrorBoundary section="Weekly Goals">
           <div className="bg-card border border-border rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -1096,7 +1207,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             🧗 How to Climb
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {howToClimb.map((item) =>
             <button
               key={item.title}

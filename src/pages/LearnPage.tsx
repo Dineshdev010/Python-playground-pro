@@ -347,6 +347,9 @@ export default function LearnPage() {
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
             <Play className="w-3 h-3" /> View a sponsor message or pay $100 to unlock lessons
           </p>
+          <Button asChild size="sm" variant="outline" className="mt-3 w-full justify-start">
+            <Link to="/python-quiz-100">Take 200 Python Quiz</Link>
+          </Button>
         </div>
         <nav className="p-2">
           {categories.map(cat => {
@@ -609,6 +612,20 @@ export default function LearnPage() {
             <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4 hidden md:block" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Select a Lesson</h2>
             <p className="text-muted-foreground mb-6 hidden md:block">Choose a topic from the sidebar to start learning with a broader, clearer Python track.</p>
+
+            <div className="w-full max-w-5xl mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-5 text-left">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-base font-semibold text-foreground">200 Python Quiz</div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Practice all core Python topics with 100 MCQ questions and instant explanations.
+                  </p>
+                </div>
+                <Button asChild>
+                  <Link to="/python-quiz-100">Start Quiz</Link>
+                </Button>
+              </div>
+            </div>
 
             <div className="w-full max-w-5xl mb-8 grid gap-4 sm:grid-cols-2 text-left">
               {topicCoverage.map((group) => (

@@ -47,6 +47,7 @@ const CertificateVerificationPage = lazy(() => import("./pages/CertificateVerifi
 const QuickPrepPage = lazy(() => import("./pages/QuickPrepPage"));
 const PythonGamePage = lazy(() => import("./pages/PythonGamePage"));
 const PythonLearningBeginnersPage = lazy(() => import("./pages/PythonLearningBeginnersPage"));
+const PythonQuizPage = lazy(() => import("./pages/PythonQuizPage"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -88,6 +89,7 @@ const appRoutes: AppRoute[] = [
   { path: "/quick-prep", element: <QuickPrepPage />, fallback: <PageSkeleton /> },
   { path: "/python-game", element: <PythonGamePage />, fallback: <PageSkeleton /> },
   { path: "/python-learning-for-beginners", element: <PythonLearningBeginnersPage />, fallback: <PageSkeleton /> },
+  { path: "/python-quiz-100", element: <PythonQuizPage />, fallback: <PageSkeleton /> },
   { path: "/u/:userId", element: <PublicProfilePage />, fallback: <PageSkeleton /> },
   { path: "/privacy", element: <PrivacyPolicyPage />, fallback: <PageSkeleton /> },
   { path: "/contact", element: <ContactPage />, fallback: <PageSkeleton /> },

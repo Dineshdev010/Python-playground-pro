@@ -1,10 +1,27 @@
-// ============================================================
-// NAV ITEMS — src/components/layout/navItems.ts
-// Defines all navigation items used in the sidebar, 
+﻿// ============================================================
+// NAV ITEMS - src/components/layout/navItems.ts
+// Defines all navigation items used in the sidebar,
 // top navbar, and mobile bottom nav.
 // ============================================================
 
-import { Home, BookOpen, Brain, Terminal, Code, Briefcase, Trophy, LayoutDashboard, Heart, Info, Award, Zap, Mail, Calculator, Gamepad2 } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Brain,
+  Terminal,
+  Code,
+  Briefcase,
+  Trophy,
+  LayoutDashboard,
+  Heart,
+  Info,
+  Award,
+  Zap,
+  Mail,
+  Calculator,
+  Gamepad2,
+  CircleHelp,
+} from "lucide-react";
 
 // Each item has: route path, Lucide icon, label text, and emoji (for mobile nav)
 export const navItems = [
@@ -16,6 +33,7 @@ export const navItems = [
   { to: "/aptitude", icon: Calculator, label: "Aptitude", emoji: "🧮" },
   { to: "/quick-prep", icon: Zap, label: "Quick Prep", emoji: "⚡" },
   { to: "/python-game", icon: Gamepad2, label: "Python Game", emoji: "🎮" },
+  { to: "/python-quiz-100", icon: CircleHelp, label: "Python Quiz", emoji: "❓" },
   { to: "/jobs", icon: Briefcase, label: "Job Portal", emoji: "💼" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard", emoji: "🏆" },
   { to: "/certificate", icon: Award, label: "Certificate", emoji: "📜" },
