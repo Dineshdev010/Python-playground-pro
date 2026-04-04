@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Mail, MessageSquare, Globe, HeartHandshake } from "lucide-react";
+import { siteConfig } from "@/config/site";
 
 export default function ContactPage() {
   return (
@@ -26,16 +27,16 @@ export default function ContactPage() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <a
-            href="mailto:dineshjas986@gmail.com"
+            href={`mailto:${siteConfig.contact.email}`}
             className="rounded-2xl border border-border bg-card/80 p-5 hover:border-primary/30"
           >
             <Mail className="h-5 w-5 text-primary" />
             <div className="mt-3 text-lg font-semibold text-foreground">Email</div>
-            <div className="mt-1 text-sm text-muted-foreground break-all">dineshjas986@gmail.com</div>
+            <div className="mt-1 text-sm text-muted-foreground break-all">{siteConfig.contact.email}</div>
           </a>
 
           <a
-            href="https://buymeacoffee.com/dineshjas9r"
+            href={siteConfig.donations.buyMeACoffee}
             target="_blank"
             rel="noreferrer"
             className="rounded-2xl border border-border bg-card/80 p-5 hover:border-primary/30"

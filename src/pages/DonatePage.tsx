@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Heart, Coffee, CreditCard, Star, Gift, ExternalLink, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
+import { siteConfig } from "@/config/site";
 
 import gpayQR from "@/assets/gpay-qr.jpg";
 
@@ -15,7 +16,7 @@ const donationLinks = [
     name: "Buy Me a Coffee",
     emoji: "☕",
     description: "Support PyMaster with a coffee! Every cup fuels more lessons.",
-    url: "https://buymeacoffee.com/dineshjas9r",
+    url: siteConfig.donations.buyMeACoffee,
     color: "bg-python-yellow/10 border-python-yellow/30 hover:border-python-yellow",
     buttonColor: "bg-python-yellow text-background hover:bg-python-yellow/90",
     icon: Coffee,
@@ -120,9 +121,9 @@ export default function DonatePage() {
             Scan the QR code below with Google Pay or any UPI app to donate instantly.
           </p>
           <div className="inline-block rounded-xl overflow-hidden border border-border shadow-lg mb-4">
-            <img src={gpayQR} alt="GPay QR Code for donating to PyMaster by Dinesh Raja M - Scan with any UPI app" className="w-64 h-auto" loading="lazy" />
+            <img src={gpayQR} alt={`GPay QR Code for donating to PyMaster by ${siteConfig.author}`} className="w-64 h-auto" loading="lazy" />
           </div>
-          <p className="text-sm font-mono text-foreground mb-1">UPI ID: dineshjas986@oksbi</p>
+          <p className="text-sm font-mono text-foreground mb-1">UPI ID: {siteConfig.donations.upiId}</p>
           <p className="text-xs text-muted-foreground">
             Scan & pay any amount you'd like. Every rupee counts! 🙏
           </p>

@@ -8,6 +8,7 @@ import { Users, Target, Heart, Code, BookOpen, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { AboutUsSection } from "@/components/landing/AboutUsSection";
 import { Helmet } from "react-helmet-async";
+import { siteConfig } from "@/config/site";
 
 import type { Variants } from "framer-motion";
 
@@ -131,7 +132,7 @@ export default function AboutPage() {
           </motion.div>
           <div className="max-w-sm mx-auto">
             {[
-              { name: "Dinesh Raja M", role: "Founder & Developer", bio: "Passionate about making coding education accessible to everyone." },
+              { name: siteConfig.author, role: siteConfig.role, bio: siteConfig.bio },
             ].map((member, i) => (
               <motion.div
                 key={member.name}
@@ -176,7 +177,7 @@ export default function AboutPage() {
           </motion.p>
           <motion.div variants={fadeUp} custom={2} className="flex flex-wrap justify-center gap-4">
             <motion.a
-              href="mailto:dineshjas@gmail.com"
+              href={`mailto:${siteConfig.contact.email}`}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}

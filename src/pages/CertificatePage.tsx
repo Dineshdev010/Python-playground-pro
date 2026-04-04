@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { getPublicUrl } from "@/lib/public-url";
 import { Link } from "react-router-dom";
 import gpayQR from "@/assets/gpay-qr.jpg";
+import { siteConfig } from "@/config/site";
 
 interface CertificateRecord {
   id: string;

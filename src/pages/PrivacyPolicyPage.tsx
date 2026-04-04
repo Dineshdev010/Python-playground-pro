@@ -6,6 +6,7 @@
 import { Link } from "react-router-dom";
 import { Shield, ArrowLeft } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { siteConfig } from "@/config/site";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -98,7 +99,7 @@ export default function PrivacyPolicyPage() {
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-foreground">8. Contact</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            If you have privacy questions or want to request account deletion, contact us at <a className="text-primary hover:underline" href="mailto:dineshjas986@gmail.com">dineshjas986@gmail.com</a>.
+            If you have privacy questions or want to request account deletion, contact us at <a className="text-primary hover:underline" href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>.
           </p>
         </div>
 
@@ -113,7 +114,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="text-center pt-4">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} PyMaster. All rights reserved. Built with ❤️ by Dinesh Raja M.
+            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved. Built with ❤️ by {siteConfig.author}.
           </p>
         </div>
       </div>
