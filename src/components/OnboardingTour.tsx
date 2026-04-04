@@ -92,12 +92,12 @@ export function OnboardingTour() {
     const hasCompletedTour = localStorage.getItem(TOUR_KEY) === "true";
     setCompleted(hasCompletedTour);
 
-    if (!hasCompletedTour) {
+    if (!hasCompletedTour && location.pathname === "/") {
       // Show tour after a short delay
       const timeout = setTimeout(() => setActive(true), 2000);
       return () => clearTimeout(timeout);
     }
-  }, []);
+  }, [location.pathname]);
 
   const handleNext = () => {
     if (step < tourSteps.length - 1) {

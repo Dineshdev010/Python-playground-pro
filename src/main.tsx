@@ -10,10 +10,10 @@ import "./index.css"; // Global styles (Tailwind CSS + custom styles)
 
 // Only register the service worker in production builds.
 // Registering in dev can slow HMR and cause confusing cache behavior.
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => undefined);
-  });
+if (import.meta.env.PROD) {
+  import('virtual:pwa-register').then(({ registerSW }) => {
+    registerSW({ immediate: true });
+  }).catch(err => console.error("SW Registration failed:", err));
 }
 
 // Mount the App component into the <div id="root"> in index.html

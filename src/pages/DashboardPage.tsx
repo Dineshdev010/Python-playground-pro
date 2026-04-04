@@ -518,8 +518,8 @@ export default function DashboardPage() {
 
 
   return (
-    <div className={`max-w-6xl mx-auto px-4 sm:px-6 py-8 rounded-[2rem] ${selectedTheme.shell}`}>
-      <div className={`mb-8 rounded-3xl border p-5 sm:p-6 shadow-sm ${selectedTheme.hero}`}>
+    <div className={`max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8 rounded-none md:rounded-[2rem] ${selectedTheme.shell}`}>
+      <div className={`mb-6 md:mb-8 rounded-2xl md:rounded-3xl border p-4 sm:p-6 shadow-sm ${selectedTheme.hero}`}>
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div ref={shareCardRef} className="rounded-2xl border border-white/50 bg-background/90 p-5 backdrop-blur">
             <div className="flex items-start justify-between gap-3">
@@ -643,7 +643,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Profile header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 mb-6 md:mb-8">
         <div className="relative group">
           <Avatar className="w-20 h-20 border-2 border-primary/40 ring-4 ring-primary/10 shadow-xl shadow-primary/10">
             {profilePic ? <AvatarImage src={profilePic} alt="Profile" /> : null}
@@ -664,8 +664,8 @@ export default function DashboardPage() {
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePicUpload} className="hidden" />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start w-full">
+          <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
             {editingName ?
             <div className="flex items-center gap-2">
                 <input
@@ -688,7 +688,7 @@ export default function DashboardPage() {
               </div>
             }
           </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
             <StreakFire streak={progress.streak} size="sm" showQuote />
             <span className="text-sm text-muted-foreground">{title}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -1167,7 +1167,7 @@ export default function DashboardPage() {
                 "border-python-yellow/60 bg-gradient-to-r from-python-yellow/5 via-reward-gold/5 to-python-yellow/5 hover:from-python-yellow/10 hover:to-reward-gold/10 animate-pulse"}`
                 }>
                 
-                <div className="flex items-center gap-5">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
                   <div className="text-6xl drop-shadow-lg">{item.emoji}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">

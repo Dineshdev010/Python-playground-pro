@@ -418,14 +418,14 @@ export default function QuickPrepPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-border/70 bg-card p-6 shadow-sm">
+        <div className="rounded-2xl md:rounded-3xl border border-border/70 bg-card p-5 md:p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Quick Rules</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {quickTips.map((tip) => (
-              <div key={tip} className="rounded-2xl border border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+              <div key={tip} className="rounded-xl md:rounded-2xl border border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
                 {tip}
               </div>
             ))}
@@ -434,7 +434,7 @@ export default function QuickPrepPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-[2rem] border border-primary/15 bg-[linear-gradient(135deg,rgba(14,165,233,0.08),rgba(245,158,11,0.08),rgba(16,185,129,0.08))] p-6 shadow-[0_18px_60px_rgba(15,23,42,0.12)] sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl md:rounded-[2rem] border border-primary/15 bg-[linear-gradient(135deg,rgba(14,165,233,0.08),rgba(245,158,11,0.08),rgba(16,185,129,0.08))] p-5 shadow-[0_18px_60px_rgba(15,23,42,0.12)] sm:p-8">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
           <div className="relative mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
@@ -467,9 +467,9 @@ export default function QuickPrepPage() {
               </div>
             </div>
           </div>
-          <div className="relative space-y-8">
+          <div className="relative space-y-6 md:space-y-8">
             {cheatSheetSections.map((section) => (
-              <div key={section.title} className="rounded-[1.75rem] border border-border/60 bg-background/78 p-5 backdrop-blur-sm sm:p-6">
+              <div key={section.title} className="rounded-2xl md:rounded-[1.75rem] border border-border/60 bg-background/78 p-4 backdrop-blur-sm sm:p-6">
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <div>
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">

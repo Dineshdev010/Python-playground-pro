@@ -4,9 +4,9 @@
 // test case runner, solution reveal, and reward system.
 // Resets editor state when navigating between problems.
 // ============================================================
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, Link } from "react-router-dom";
-import Editor from "@monaco-editor/react";
+const Editor = React.lazy(() => import("@monaco-editor/react"));
 import confetti from "canvas-confetti";
 import { problems, getDifficultyColor, getDifficultyBg, getRecommendedSubjects } from "@/data/problems";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -190,7 +190,7 @@ export default function ProblemPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)]">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <Helmet>
         <title>{problem.title} | PyMaster Problems</title>
         <meta name="description" content={`Solve ${problem.title} in Python. ${problem.description.substring(0, 100)}... Challenge yourself with our built-in compiler.`} />
@@ -235,7 +235,7 @@ export default function ProblemPage() {
       {/* Split panes */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {/* Left: Problem description */}
-        <div className={`md:w-[45%] overflow-y-auto border-b md:border-b-0 md:border-r border-border ${showDescription ? "" : "hidden md:block"}`}>
+        <div className={`md:w-[45%] overflow-y-auto border-b md:border-b-0 md:border-r border-border shrink-0 ${showDescription ? "h-[35vh] md:h-auto" : "hidden md:block"}`}>
           <button
             onClick={() => setShowDescription(!showDescription)}
             className="md:hidden w-full flex items-center justify-between px-4 py-2 bg-surface-1 border-b border-border text-xs text-muted-foreground"
@@ -354,26 +354,27 @@ export default function ProblemPage() {
 
         {/* Right: Editor + Output */}
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 min-h-[200px]">
-            <Editor
-              key={id} // Force remount on problem change for clean state
-              height="100%"
-              language="python"
-              theme="vs-dark"
-              value={code}
-              onChange={(v) => setCode(v || "")}
-              options={{
-                fontSize: isMobile ? 12 : 14,
-                fontFamily: "'JetBrains Mono', monospace",
-                minimap: { enabled: false },
-                padding: { top: 12 },
-                scrollBeyondLastLine: false,
-                wordWrap: "on",
-                automaticLayout: true,
-                lineNumbers: isMobile ? "off" : "on",
-              }}
-            />
-          </div>
+            <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-surface-0"><span className="text-sm font-semibold tracking-wider text-muted-foreground animate-pulse">Loading Compiler Engine...</span></div>}>
+              <Editor
+                key={id}
+                height="100%"
+                language="python"
+                theme="vs-dark"
+                value={code}
+                onChange={(v) => setCode(v || "")}
+                loading={<div className="flex w-full h-full items-center justify-center"><span className="text-sm text-muted-foreground animate-pulse">Loading compiler engine...</span></div>}
+                options={{
+                  fontSize: isMobile ? 12 : 14,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  minimap: { enabled: false },
+                  padding: { top: 12 },
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                  automaticLayout: true,
+                  lineNumbers: isMobile ? "off" : "on",
+                }}
+              />
+            </Suspense>
 
           <div className="h-48 border-t border-border bg-surface-0 flex flex-col shrink-0">
             <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-border bg-surface-1">
