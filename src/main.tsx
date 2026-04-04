@@ -41,36 +41,28 @@ function isDynamicImportError(reason: unknown) {
 }
 
 window.addEventListener("unhandledrejection", (event) => {
-  if (!isDynamicImportError(event.reason)) return;
+  if (isDynamicImportError(event.reason)) {
+    const alreadyReloaded = sessionStorage.getItem(CHUNK_RELOAD_KEY) === "1";
+    if (!alreadyReloaded) {
+      sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+      window.location.reload();
+      return;
+    }
 
-  const alreadyReloaded = sessionStorage.getItem(CHUNK_RELOAD_KEY) === "1";
-  if (!alreadyReloaded) {
-    sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
-    window.location.reload();
+    hideLoaderSafely();
+    showBootError("A deployment update was detected. Please hard refresh once (Ctrl+Shift+R).");
     return;
   }
 
   hideLoaderSafely();
-  showBootError("A deployment update was detected. Please hard refresh once (Ctrl+Shift+R).");
+  showBootError("A startup promise failed. Open DevTools Console and share the first red error line.");
 });
 
-window.addEventListener("error", () => {
+window.addEventListener("error", (event) => {
   hideLoaderSafely();
+  const msg = event.message || "A startup script failed.";
+  showBootError(`${msg} Open DevTools Console and share the first red error line.`);
 });
-
-// Only register the service worker in production builds.
-// Registering in dev can slow HMR and cause confusing cache behavior.
-if (import.meta.env.PROD) {
-  import('virtual:pwa-register').then(({ registerSW }) => {
-    const updateSW = registerSW({
-      immediate: true,
-      onNeedRefresh() {
-        // Force clients to pick up the newest deployed assets quickly.
-        updateSW(true);
-      },
-    });
-  }).catch(err => console.error("SW Registration failed:", err));
-}
 
 // Mount the App component into the <div id="root"> in index.html
 try {
