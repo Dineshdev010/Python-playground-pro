@@ -10,6 +10,8 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/lib/supabase";
 import { getPublicUrl } from "@/lib/public-url";
 import { Link } from "react-router-dom";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 import gpayQR from "@/assets/gpay-qr.jpg";
 import { siteConfig } from "@/config/site";
 
@@ -42,7 +44,9 @@ export default function CertificatePage() {
   const [paymentProfile, setPaymentProfile] = useState<CertificatePaymentProfile | null>(null);
   const [loadingPaymentStatus, setLoadingPaymentStatus] = useState(true);
   const [exportingPreview, setExportingPreview] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const certificateAreaRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useWindowSize();
 
   // Qualification: 100 XP means they have completed at least a few lessons or problems
   const isQualified = progress.xp >= 100;
@@ -347,6 +351,15 @@ export default function CertificatePage() {
     };
   }, [toast, user]);
 
+  // Activate Confetti when the user has achieved the certificate!
+  useEffect(() => {
+    if (isQualified && !loadingPaymentStatus) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 14000); // Stop after 14 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isQualified, loadingPaymentStatus]);
+
   const ensureCertificateRecord = async () => {
     if (certificate) return certificate;
 
@@ -551,10 +564,14 @@ export default function CertificatePage() {
           <title>Certificate Payment Required | PyMaster</title>
         </Helmet>
 
+        {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={800} gravity={0.15} style={{ zIndex: 9999, position: 'fixed' }} />}
+
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3 flex items-center justify-center gap-3">
-            <Award className="w-8 h-8 text-python-yellow" /> Python Mastery Certificate
-          </h1>
+          <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3 flex items-center justify-center gap-3">
+              <Award className="w-8 h-8 text-python-yellow" /> Python Mastery Certificate
+            </h1>
+          </motion.div>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             You are qualified for a professional-style certificate. Once payment is completed and verified,
             the certificate will be processed and shared to your email within <strong className="text-foreground">2 business days</strong>.
@@ -562,11 +579,17 @@ export default function CertificatePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
-          <div className="bg-surface-1 p-2 sm:p-4 rounded-xl border border-border shadow-2xl relative">
+          <motion.div 
+            className="bg-surface-1 p-2 sm:p-4 rounded-xl border border-border shadow-2xl relative"
+            style={{ perspective: 1500 }}
+            initial={{ opacity: 0, rotateY: -90, scale: 0.8 }}
+            animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+            transition={{ duration: 1.2, type: "spring", bounce: 0.3 }}
+          >
             <div className="overflow-x-auto rounded-lg">
               {renderCertificateDocument(true)}
             </div>
-          </div>
+          </motion.div>
 
           <div className="w-full bg-card border border-border rounded-xl p-6 shadow-xl">
             <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-primary/5">
@@ -647,10 +670,14 @@ export default function CertificatePage() {
         <title>Python Mastery Certificate | PyMaster</title>
       </Helmet>
 
+      {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={800} gravity={0.15} style={{ zIndex: 9999, position: 'fixed' }} />}
+
       <div className="text-center mb-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3 flex items-center justify-center gap-3">
-          <Award className="w-8 h-8 text-python-yellow" /> Python Mastery Certificate
-        </h1>
+        <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3 flex items-center justify-center gap-3">
+            <Award className="w-8 h-8 text-python-yellow" /> Python Mastery Certificate
+          </h1>
+        </motion.div>
         <p className="text-muted-foreground">
           Congratulations on achieving the <strong className="text-foreground">{effectiveLevel}</strong> rank.
           {!certificate && " Your professional certificate can be prepared and sent to your email within 2 business days after verification."}
@@ -675,12 +702,18 @@ export default function CertificatePage() {
 
       <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
         {/* CERTIFICATE PREVIEW - FULL REDESIGN BASED ON PROMPT */}
-        <div className="flex-1 max-w-[1000px] w-full bg-surface-1 p-2 sm:p-4 rounded-xl border border-border shadow-2xl relative">
+        <motion.div 
+          className="flex-1 max-w-[1000px] w-full bg-surface-1 p-2 sm:p-4 rounded-xl border border-border shadow-2xl relative"
+          style={{ perspective: 1500 }}
+          initial={{ opacity: 0, rotateY: -90, scale: 0.8 }}
+          animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+          transition={{ duration: 1.2, type: "spring", bounce: 0.3 }}
+        >
           {/* Actual Certificate Document (Optimized for A4 Print: 297x210 aspect) */}
           <div className="overflow-x-auto rounded-lg">
             {renderCertificateDocument(false)}
           </div>
-        </div>
+        </motion.div>
 
         {/* PAYMENT & ACTION PANEL */}
         <div className="w-full lg:w-[340px] shrink-0 bg-card border border-border rounded-xl p-6 shadow-xl relative z-10">

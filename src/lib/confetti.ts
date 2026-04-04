@@ -1,45 +1,11 @@
-import confetti from "canvas-confetti";
+// src/lib/confetti.ts
 
-const brandColors = ["#FFD700", "#3B82F6", "#22C55E", "#F59E0B", "#A855F7", "#FB7185"];
-
-export function fireRewardConfetti(origin?: { x?: number; y?: number }) {
-  const baseOrigin = {
-    x: origin?.x ?? 0.5,
-    y: origin?.y ?? 0.55,
-  };
-
-  confetti({
-    particleCount: 36,
-    angle: 60,
-    spread: 60,
-    startVelocity: 42,
-    gravity: 1.05,
-    ticks: 220,
-    scalar: 0.95,
-    origin: baseOrigin,
-    colors: brandColors,
-  });
-
-  confetti({
-    particleCount: 36,
-    angle: 120,
-    spread: 60,
-    startVelocity: 42,
-    gravity: 1.05,
-    ticks: 220,
-    scalar: 0.95,
-    origin: baseOrigin,
-    colors: brandColors,
-  });
-
-  confetti({
-    particleCount: 24,
-    spread: 90,
-    startVelocity: 28,
-    gravity: 0.95,
-    ticks: 180,
-    scalar: 1.15,
-    origin: baseOrigin,
-    colors: brandColors,
-  });
+/**
+ * Fires the new heavy-rain global confetti effect using react-confetti.
+ * This triggers a custom window event that the <GlobalConfetti /> listener inside App.tsx catches.
+ */
+export function fireRewardConfetti(durationMs: number = 7000) {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("fire-confetti", { detail: { duration: durationMs } }));
+  }
 }
