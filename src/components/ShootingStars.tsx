@@ -145,9 +145,9 @@ export function ShootingStars() {
   useEffect(() => {
     if (!isPageVisible) return;
 
-    // Random spawn: initial delay 8-20s, then random intervals 60-180s
+    // Random spawn: initial delay 3-8s, then random intervals 30-60s
     const scheduleNext = () => {
-      const delay = Math.floor(Math.random() * 150000) + 90000; // 90-240 seconds
+      const delay = Math.floor(Math.random() * 30000) + 30000; // 30-60 seconds
       return setTimeout(() => {
         spawnStar();
         timeoutRef.current = scheduleNext();
@@ -155,7 +155,7 @@ export function ShootingStars() {
     };
     
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
-    const initialDelay = Math.floor(Math.random() * 15000) + 12000; // 12-27 seconds
+    const initialDelay = Math.floor(Math.random() * 5000) + 3000; // 3-8 seconds
     const initialTimeout = setTimeout(() => {
       spawnStar();
       timeoutRef.current = scheduleNext();
@@ -174,7 +174,7 @@ export function ShootingStars() {
   };
 
   const triggerBurst = (x: number, y: number) => {
-    fireRewardConfetti({ x: x / window.innerWidth, y: y / window.innerHeight });
+    fireRewardConfetti();
   };
 
   const submitAnswer = () => {

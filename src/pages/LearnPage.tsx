@@ -3,7 +3,7 @@
 // Interactive Python lesson viewer with categorized lessons,
 // exercise editor, ad-to-unlock, and progress tracking.
 // ============================================================
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { lessons } from "@/data/lessons";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -77,6 +77,142 @@ function getLessonHeadings(content: string) {
     .filter((line) => line.startsWith("## ") || line.startsWith("### "))
     .map((line) => line.replace(/^###?\s+/, ""))
     .slice(0, 5);
+}
+
+type LessonClarityGuide = {
+  summary: string;
+  analogy: string;
+  steps: string[];
+  commonMistakes: string[];
+  quickCheck: string;
+};
+
+function extractGlossaryTerms(content: string) {
+  const terms = new Set<string>();
+  const re = /`([^`]+)`/g;
+  let match: RegExpExecArray | null = re.exec(content);
+  while (match) {
+    const value = match[1]?.trim();
+    if (value) terms.add(value);
+    match = re.exec(content);
+  }
+  return Array.from(terms).slice(0, 10);
+}
+
+function getLessonClarityGuide(title: string): LessonClarityGuide {
+  const lower = title.toLowerCase();
+
+  if (lower.includes("variable") || lower.includes("data type")) {
+    return {
+      summary: "Variables are named boxes that store values like text, numbers, or true/false.",
+      analogy: "Think of labeled jars in a kitchen. The label is the variable name and the jar contents are the value.",
+      steps: [
+        "Pick a clear variable name.",
+        "Store a value using `=`.",
+        "Print it to verify the value.",
+        "Change it and print again to understand updates.",
+      ],
+      commonMistakes: [
+        "Using unclear names like `x1` for everything.",
+        "Mixing text and numbers without conversion.",
+        "Forgetting that quotes make a value a string.",
+      ],
+      quickCheck: "If `age = 12`, what type is `age` and what does `print(age + 1)` output?",
+    };
+  }
+
+  if (lower.includes("string")) {
+    return {
+      summary: "A string is text, and Python gives you many tools to clean, split, and format it.",
+      analogy: "A string is like a sentence made of letter blocks. You can slice, flip, and join those blocks.",
+      steps: [
+        "Create a string value.",
+        "Use one method at a time (`upper`, `lower`, `strip`).",
+        "Try slicing to take only part of the text.",
+        "Use `split` and `join` to transform structure.",
+      ],
+      commonMistakes: [
+        "Assuming strings can be changed in-place.",
+        "Using wrong slice indexes.",
+        "Forgetting that methods return a new string.",
+      ],
+      quickCheck: "What is the output of `'  hi  '.strip().upper()`?",
+    };
+  }
+
+  if (lower.includes("loop")) {
+    return {
+      summary: "Loops repeat work so you do not write the same code again and again.",
+      analogy: "A loop is like asking a robot to do one step many times until a stop condition is met.",
+      steps: [
+        "Choose `for` for a known sequence.",
+        "Choose `while` for condition-based repetition.",
+        "Print inside the loop to observe behavior.",
+        "Use `break` and `continue` only when needed.",
+      ],
+      commonMistakes: [
+        "Forgetting to update condition in `while` loops.",
+        "Infinite loops from missing exit logic.",
+        "Off-by-one errors with `range()`.",
+      ],
+      quickCheck: "What numbers are printed by `for i in range(1, 4): print(i)`?",
+    };
+  }
+
+  if (lower.includes("function")) {
+    return {
+      summary: "Functions group reusable logic into one named block.",
+      analogy: "A function is like a vending machine: give input, press button, get output.",
+      steps: [
+        "Define with `def` and a clear name.",
+        "Pass input through parameters.",
+        "Use `return` for output.",
+        "Call it with test values.",
+      ],
+      commonMistakes: [
+        "Confusing `print` with `return`.",
+        "Using global variables instead of parameters.",
+        "Not testing with different inputs.",
+      ],
+      quickCheck: "What does `return` do that `print` does not?",
+    };
+  }
+
+  if (lower.includes("list") || lower.includes("dictionary") || lower.includes("set") || lower.includes("tuple")) {
+    return {
+      summary: "Collections store multiple values and each type is best for different use cases.",
+      analogy: "Think of a toolbox: lists are ordered trays, dictionaries are labeled drawers, sets are unique tokens.",
+      steps: [
+        "Pick the right collection type for the task.",
+        "Add and remove values safely.",
+        "Loop through values and inspect output.",
+        "Use built-in methods instead of manual work.",
+      ],
+      commonMistakes: [
+        "Using list when unique values are needed (use set).",
+        "Using wrong key names in dictionaries.",
+        "Forgetting tuple values are immutable.",
+      ],
+      quickCheck: "Which type is best for fast key-value lookup: list, tuple, or dict?",
+    };
+  }
+
+  return {
+    summary: "This lesson builds practical Python thinking with examples you can run immediately.",
+    analogy: "Treat this topic like learning a new game: understand rules, try small rounds, then play bigger levels.",
+    steps: [
+      "Read the core idea once.",
+      "Run the code example and observe output.",
+      "Change one line and re-run.",
+      "Finish beginner, intermediate, and advanced exercises.",
+    ],
+    commonMistakes: [
+      "Reading without running code.",
+      "Skipping basic examples and jumping too fast.",
+      "Not checking outputs after each change.",
+    ],
+    quickCheck: "Can you explain this topic in two lines to a beginner friend?",
+  };
 }
 
 export default function LearnPage() {
@@ -154,6 +290,14 @@ export default function LearnPage() {
 
   const getLessonsByCategory = (cat: string) => lessons.filter(l => l.category === cat);
   const selectedLessonHeadings = selectedLesson ? getLessonHeadings(selectedLesson.content) : [];
+  const selectedLessonGlossary = useMemo(
+    () => (selectedLesson ? extractGlossaryTerms(selectedLesson.content) : []),
+    [selectedLesson],
+  );
+  const selectedLessonClarityGuide = useMemo(
+    () => (selectedLesson ? getLessonClarityGuide(selectedLesson.title) : null),
+    [selectedLesson],
+  );
 
   useEffect(() => {
     if (!selectedLesson) return;
@@ -285,6 +429,39 @@ export default function LearnPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{selectedLesson.title}</h1>
             <p className="text-muted-foreground mb-6">{selectedLesson.description}</p>
 
+            {selectedLessonClarityGuide && (
+              <div className="mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Crystal Clear Learning Mode</h2>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p><span className="font-semibold text-foreground">Simple summary:</span> {selectedLessonClarityGuide.summary}</p>
+                  <p><span className="font-semibold text-foreground">Easy analogy:</span> {selectedLessonClarityGuide.analogy}</p>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Step-by-step</div>
+                    <ul className="space-y-1.5">
+                      {selectedLessonClarityGuide.steps.map((step) => (
+                        <li key={step} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-streak-green mt-0.5 shrink-0" />
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Common mistakes to avoid</div>
+                    <ul className="space-y-1.5">
+                      {selectedLessonClarityGuide.commonMistakes.map((mistake) => (
+                        <li key={mistake} className="flex items-start gap-2">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-python-yellow shrink-0" />
+                          <span>{mistake}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p><span className="font-semibold text-foreground">Quick self-check:</span> {selectedLessonClarityGuide.quickCheck}</p>
+                </div>
+              </div>
+            )}
+
             {selectedLessonHeadings.length > 0 && (
               <div className="mb-6 rounded-2xl border border-border bg-card/60 p-4">
                 <div className="text-sm font-semibold text-foreground mb-3">In This Lesson</div>
@@ -292,6 +469,19 @@ export default function LearnPage() {
                   {selectedLessonHeadings.map((heading) => (
                     <span key={heading} className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
                       {heading}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedLessonGlossary.length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/60 p-4">
+                <div className="text-sm font-semibold text-foreground mb-3">Key Terms In This Lesson</div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedLessonGlossary.map((term) => (
+                    <span key={term} className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+                      {term}
                     </span>
                   ))}
                 </div>

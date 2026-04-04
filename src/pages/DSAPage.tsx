@@ -4,13 +4,14 @@
 // explanations, code examples, complexity analysis, and
 // pattern detection tips for each topic.
 // ============================================================
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, Search, Zap, ArrowRight, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, Code, Target, Lightbulb, TrendingUp } from "lucide-react";
+import { BookOpen, Brain, Search, Zap, ArrowRight, ArrowLeft, CheckCircle2, Code, Target, Lightbulb, TrendingUp, ExternalLink, PlayCircle } from "lucide-react";
 import type { Easing } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
+import { problems, type Problem } from "@/data/problems";
 
 interface DSATopic {
   id: string;
@@ -610,17 +611,137 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.4, ease: "easeOut" as Easing } }),
 };
 
+const topicKeywords: Record<string, string[]> = {
+  arrays: ["array", "list", "subarray", "prefix", "kadane"],
+  "hash-maps": ["hash", "dictionary", "frequency", "anagram", "two sum"],
+  "stacks-queues": ["stack", "queue", "parentheses", "deque", "monotonic"],
+  "linked-lists": ["linked list", "listnode", "cycle", "remove nth", "reverse list", "random pointer"],
+  strings: ["string", "palindrome", "substring", "anagram", "word"],
+  heaps: ["heap", "priority queue", "kth", "top k", "merge k"],
+  "two-pointers": ["two pointer", "sorted", "pair", "sum", "palindrome"],
+  "sliding-window": ["window", "substring", "consecutive", "anagram"],
+  "binary-search-pattern": ["binary search", "sorted", "peak", "boundary"],
+  greedy: ["greedy", "interval", "jump", "minimum", "maximum"],
+  "dynamic-programming": ["dp", "dynamic programming", "memo", "knapsack", "subsequence"],
+  backtracking: ["backtracking", "permutation", "combination", "n-queens", "word search"],
+  trees: ["tree", "binary tree", "bst", "traversal", "serialize"],
+  graphs: ["graph", "bfs", "dfs", "shortest path", "topological"],
+  trie: ["trie", "prefix", "word dictionary", "autocomplete"],
+  "union-find": ["union find", "disjoint", "connected", "redundant", "islands"],
+  "bit-manipulation": ["bit", "xor", "mask", "power of two"],
+};
+
+function buildYouTubeSearchUrl(problemTitle: string) {
+  const query = encodeURIComponent(`${problemTitle} python dsa explanation`);
+  return `https://www.youtube.com/results?search_query=${query}`;
+}
+
+function getRelatedProblems(topicId: string) {
+  const keywords = topicKeywords[topicId] || [];
+  const scored = problems
+    .map((problem) => {
+      const hay = `${problem.title} ${problem.description} ${problem.solutionExplanation}`.toLowerCase();
+      const score = keywords.reduce((count, key) => (hay.includes(key) ? count + 1 : count), 0);
+      return { problem, score };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map((entry) => entry.problem);
+  return scored;
+}
+
+function parseNodesFromCode(rawCode: string) {
+  const values: number[] = [];
+  const regex = /ListNode\s*\(\s*(-?\d+)/g;
+  let match = regex.exec(rawCode);
+  while (match) {
+    values.push(Number(match[1]));
+    match = regex.exec(rawCode);
+  }
+  return values;
+}
+
+function parseNumberList(raw: string) {
+  return raw
+    .split(",")
+    .map((item) => Number(item.trim()))
+    .filter((value) => Number.isFinite(value));
+}
+
+function parseTokenList(raw: string) {
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function inferVisualizationType(topicId: string, problem?: Problem) {
+  const text = `${topicId} ${problem?.title ?? ""} ${problem?.description ?? ""}`.toLowerCase();
+  if (text.includes("linked list") || text.includes("listnode")) return "linked-list" as const;
+  if (text.includes("tree") || text.includes("bst")) return "tree" as const;
+  if (text.includes("graph")) return "graph" as const;
+  if (text.includes("string") || text.includes("palindrome") || text.includes("substring")) return "string" as const;
+  if (text.includes("window") || text.includes("subarray")) return "sliding-window" as const;
+  return "array" as const;
+}
+
+function extractSeedInput(problem?: Problem) {
+  if (!problem?.examples?.length) return "1,2,3,4,5";
+  const raw = problem.examples[0].input || "";
+  const bracketMatch = raw.match(/\[([^\]]+)\]/);
+  if (bracketMatch?.[1]) return bracketMatch[1];
+  const tokenMatch = raw.match(/([A-Za-z]-[A-Za-z](?:,\s*[A-Za-z]-[A-Za-z])*)/);
+  if (tokenMatch?.[1]) return tokenMatch[1];
+  return raw.includes(",") ? raw.replace(/[^\w,\-\s]/g, "") : "1,2,3,4,5";
+}
+
+function buildTreeLevels(values: number[]) {
+  const levels: number[][] = [];
+  let level = 0;
+  let index = 0;
+  while (index < values.length && level < 5) {
+    const count = 2 ** level;
+    levels.push(values.slice(index, index + count));
+    index += count;
+    level += 1;
+  }
+  return levels;
+}
+
 export default function DSAPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [visualInput, setVisualInput] = useState("1,2,3,4,5");
+  const [windowStart, setWindowStart] = useState(0);
+  const [windowSize, setWindowSize] = useState(3);
+  const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
+  const [activeVisualization, setActiveVisualization] = useState<"array" | "string" | "sliding-window" | "linked-list" | "tree" | "graph">("array");
+  const [linkedListCodeInput, setLinkedListCodeInput] = useState(
+    "head = ListNode(1)\nhead.next = ListNode(2)\nhead.next.next = ListNode(3)\nhead.next.next.next = ListNode(4)",
+  );
+  const [linkedListNodes, setLinkedListNodes] = useState<number[]>([1, 2, 3, 4]);
 
   const topic = dsaTopics.find(t => t.id === selectedTopic);
+  const relatedProblems = useMemo(() => (topic ? getRelatedProblems(topic.id) : []), [topic]);
+  const arrayValues = useMemo(() => parseNumberList(visualInput), [visualInput]);
+  const stringValues = useMemo(() => visualInput.replace(/\s+/g, ""), [visualInput]);
+  const graphEdges = useMemo(() => parseTokenList(visualInput), [visualInput]);
+  const treeLevels = useMemo(() => buildTreeLevels(arrayValues), [arrayValues]);
 
   const difficultyColor = {
     Easy: "text-streak-green bg-streak-green/10 border-streak-green/30",
     Medium: "text-python-yellow bg-python-yellow/10 border-python-yellow/30",
     Hard: "text-destructive bg-destructive/10 border-destructive/30",
   };
+
+  useEffect(() => {
+    if (!topic) return;
+    setActiveProblem(null);
+    setActiveVisualization(inferVisualizationType(topic.id));
+    setVisualInput(topic.id === "graphs" ? "A-B,B-C,C-D,D-E" : "1,2,3,4,5");
+    setWindowStart(0);
+    setWindowSize(3);
+  }, [topic?.id]);
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
@@ -791,12 +912,239 @@ export default function DSAPage() {
               </div>
             </motion.div>
 
+            <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={6} className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-5">
+              <h3 className="text-base font-semibold text-foreground mb-2">Problem Visual Lab</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Visualize DSA problems across multiple structures. Pick a mode, load a problem, and inspect the shape of data.
+              </p>
+
+              <div className="mb-4 grid gap-2 sm:grid-cols-3">
+                {(["array", "string", "sliding-window", "linked-list", "tree", "graph"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setActiveVisualization(mode)}
+                    className={`rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      activeVisualization === mode
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {mode.replace("-", " ")}
+                  </button>
+                ))}
+              </div>
+
+              <div className="rounded-lg border border-border bg-surface-1 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  {activeProblem ? `Input from: ${activeProblem.title}` : "Custom Input"}
+                </div>
+                <input
+                  value={visualInput}
+                  onChange={(e) => setVisualInput(e.target.value)}
+                  placeholder={activeVisualization === "graph" ? "A-B,B-C,C-D" : "1,2,3,4,5"}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/50"
+                />
+              </div>
+
+              {activeVisualization === "sliding-window" && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="text-xs text-muted-foreground">
+                    Window Start
+                    <input
+                      type="number"
+                      min={0}
+                      value={windowStart}
+                      onChange={(e) => setWindowStart(Math.max(0, Number(e.target.value) || 0))}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-primary/50"
+                    />
+                  </label>
+                  <label className="text-xs text-muted-foreground">
+                    Window Size
+                    <input
+                      type="number"
+                      min={1}
+                      value={windowSize}
+                      onChange={(e) => setWindowSize(Math.max(1, Number(e.target.value) || 1))}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-primary/50"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {activeVisualization === "linked-list" && (
+                <div className="mt-3 rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Code Input</div>
+                  <textarea
+                    value={linkedListCodeInput}
+                    onChange={(e) => setLinkedListCodeInput(e.target.value)}
+                    className="h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary/50"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-3 w-full"
+                    onClick={() => {
+                      const values = parseNodesFromCode(linkedListCodeInput);
+                      if (values.length > 0) {
+                        setLinkedListNodes(values);
+                        setVisualInput(values.join(","));
+                      }
+                    }}
+                  >
+                    Parse Nodes From Code
+                  </Button>
+                </div>
+              )}
+
+              <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-background p-4">
+                {activeVisualization === "array" && (
+                  <div className="flex min-w-max items-end gap-2">
+                    {arrayValues.map((value, idx) => (
+                      <div key={`${value}-${idx}`} className="flex flex-col items-center">
+                        <div
+                          className="w-10 rounded-t-md bg-primary/80 text-center text-xs text-white"
+                          style={{ height: `${Math.max(20, Math.min(160, value * 8))}px` }}
+                        />
+                        <div className="mt-1 text-xs text-foreground">{value}</div>
+                        <div className="text-[10px] text-muted-foreground">i={idx}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {activeVisualization === "string" && (
+                  <div className="flex min-w-max items-center gap-2">
+                    {stringValues.split("").map((ch, idx) => (
+                      <div key={`${ch}-${idx}`} className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-center">
+                        <div className="text-sm font-semibold text-foreground">{ch}</div>
+                        <div className="text-[10px] text-muted-foreground">idx {idx}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {activeVisualization === "sliding-window" && (
+                  <div className="flex min-w-max items-center gap-2">
+                    {arrayValues.map((value, idx) => {
+                      const inWindow = idx >= windowStart && idx < windowStart + windowSize;
+                      return (
+                        <div
+                          key={`${value}-${idx}`}
+                          className={`rounded-lg border px-3 py-2 text-center ${
+                            inWindow ? "border-python-yellow bg-python-yellow/20" : "border-border bg-surface-1"
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-foreground">{value}</div>
+                          <div className="text-[10px] text-muted-foreground">idx {idx}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {activeVisualization === "linked-list" && (
+                  <div className="flex min-w-max items-center gap-2">
+                    {(linkedListNodes.length ? linkedListNodes : parseNumberList(visualInput)).map((value, index, arr) => (
+                      <div key={`${value}-${index}`} className="flex items-center gap-2">
+                        <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-center shadow-sm">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Node</div>
+                          <div className="text-base font-bold text-foreground">{value}</div>
+                        </div>
+                        {index < arr.length - 1 && <ArrowRight className="w-4 h-4 text-primary shrink-0" />}
+                      </div>
+                    ))}
+                    <div className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">NULL</div>
+                  </div>
+                )}
+
+                {activeVisualization === "tree" && (
+                  <div className="space-y-3">
+                    {treeLevels.map((level, levelIdx) => (
+                      <div key={levelIdx} className="flex justify-center gap-2">
+                        {level.map((value, idx) => (
+                          <div key={`${value}-${idx}`} className="rounded-full border border-streak-green/30 bg-streak-green/10 px-3 py-2 text-sm font-semibold text-foreground">
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {activeVisualization === "graph" && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {graphEdges.map((edge) => (
+                        <div key={edge} className="rounded-lg border border-border bg-surface-1 px-3 py-2 text-xs font-mono text-foreground">
+                          {edge}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Enter edges like <code>A-B,B-C,C-D</code>. This shows graph connectivity pairs.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
             {/* Real World */}
             <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={7} className="bg-surface-1 border border-border rounded-lg p-4 mb-6">
               <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-reward-gold" /> 🌍 Real-World Applications
               </h3>
               <p className="text-sm text-muted-foreground">{topic.realWorldUse}</p>
+            </motion.div>
+
+            <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={7} className="bg-surface-1 border border-border rounded-lg p-4 mb-6">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <PlayCircle className="w-4 h-4 text-red-500" /> Problem Videos (YouTube)
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                These are matched from your PyMaster problem set. Open the problem, watch explanations, or load problem input into the visual lab.
+              </p>
+              <div className="space-y-2">
+                {relatedProblems.length > 0 ? relatedProblems.map((problem: Problem) => (
+                  <div key={problem.id} className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{problem.title}</div>
+                        <div className="text-xs text-muted-foreground">{problem.difficulty}</div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => {
+                          setActiveProblem(problem);
+                          setActiveVisualization(inferVisualizationType(topic.id, problem));
+                          setVisualInput(extractSeedInput(problem));
+                          const seeded = parseNodesFromCode(problem.starterCode || "");
+                          if (seeded.length) setLinkedListNodes(seeded);
+                        }}
+                      >
+                        Visualize
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button asChild variant="outline" size="sm" className="h-8">
+                        <Link to={`/problems/${problem.id}`}>Open Problem</Link>
+                      </Button>
+                      <Button asChild variant="outline" size="sm" className="h-8 gap-1">
+                        <a href={buildYouTubeSearchUrl(problem.title)} target="_blank" rel="noreferrer">
+                          YouTube <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-sm text-muted-foreground">
+                    No direct mapping found yet. Open practice problems and search by this topic title on YouTube.
+                  </div>
+                )}
+              </div>
             </motion.div>
 
             {/* Practice link */}

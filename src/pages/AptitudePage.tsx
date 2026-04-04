@@ -17,271 +17,11 @@ import {
   Trophy,
   WandSparkles,
 } from "lucide-react";
+import { useProgress } from "@/contexts/ProgressContext";
+import { toast } from "sonner";
+import { fireRewardConfetti } from "@/lib/confetti";
 
-const aptitudeTypes = [
-  {
-    title: "Quantitative Aptitude",
-    focus: "Percentages, profit and loss, ratio, averages, time-speed-distance, time and work",
-    howToClear: "Master formulas, convert words into equations quickly, and practice timed sets every day.",
-    shortcuts: [
-      "Use percentage to fraction conversions like 50%=1/2, 25%=1/4, 12.5%=1/8.",
-      "For averages, total change = average change x number of items.",
-      "For time and work, treat one day work as a fraction of the full job.",
-    ],
-    formulas: [
-      "Percentage = (Part / Whole) x 100",
-      "Speed = Distance / Time",
-      "Work rate = 1 / total days",
-    ],
-    learningBlocks: [
-      {
-        title: "What to learn first",
-        points: ["Percentages and fractions", "Ratios and proportions", "Averages and mixtures"],
-      },
-      {
-        title: "Common traps",
-        points: ["Using wrong base value for percentages", "Ignoring units in speed/time", "Adding ratios directly without scaling"],
-      },
-    ],
-    mcqs: [
-      {
-        question: "If the price of a shirt increases from 800 to 920, what is the percentage increase?",
-        options: ["10%", "12%", "15%", "20%"],
-        answer: "15%",
-        explanation: "Increase = 120. Percentage increase = 120/800 x 100 = 15%.",
-        difficulty: "easy",
-        companyTags: ["TCS", "Infosys"],
-        strategy: "Find the increase first, then divide by the original value instead of the new value.",
-      },
-      {
-        question: "A can finish a job in 10 days and B in 15 days. Together they finish in:",
-        options: ["5 days", "6 days", "7.5 days", "12 days"],
-        answer: "6 days",
-        explanation: "Combined work rate = 1/10 + 1/15 = 1/6, so the work finishes in 6 days.",
-        difficulty: "medium",
-        companyTags: ["Accenture", "Capgemini"],
-        strategy: "Convert each worker into a one-day work fraction, then add the rates.",
-      },
-      {
-        question: "If the ratio of boys to girls in a class is 3:2 and there are 30 boys, how many girls are there?",
-        options: ["18", "20", "22", "24"],
-        answer: "20",
-        explanation: "3 parts = 30, so 1 part = 10. Girls = 2 parts = 20.",
-        difficulty: "easy",
-        companyTags: ["Infosys", "Wipro"],
-        strategy: "Reduce the ratio to one part first, then scale the missing side.",
-      },
-      {
-        question: "A train covers 120 km in 2 hours. What is its speed?",
-        options: ["40 km/h", "50 km/h", "60 km/h", "70 km/h"],
-        answer: "60 km/h",
-        explanation: "Speed = distance / time = 120 / 2 = 60 km/h.",
-        difficulty: "easy",
-        companyTags: ["Cognizant", "TCS"],
-        strategy: "Use the direct speed formula and keep the units visible.",
-      },
-    ],
-  },
-  {
-    title: "Logical Reasoning",
-    focus: "Series, coding-decoding, blood relations, direction sense, syllogisms, puzzles",
-    howToClear: "Write conditions cleanly, eliminate impossible options early, and draw quick diagrams for relations and directions.",
-    shortcuts: [
-      "For blood relations, draw a mini family tree instead of solving in your head.",
-      "For direction problems, use N-E-S-W arrows and track every turn.",
-      "In syllogisms, trust the exact statements, not real-world assumptions.",
-    ],
-    formulas: [
-      "Series: check difference, ratio, squares, cubes, alternate pattern",
-      "Directions: use x-y movement and Pythagoras for final distance",
-      "Coding-decoding: compare position shift or letter pattern",
-    ],
-    learningBlocks: [
-      {
-        title: "What to learn first",
-        points: ["Number patterns", "Direction diagrams", "Family tree mapping"],
-      },
-      {
-        title: "Common traps",
-        points: ["Guessing from intuition", "Skipping diagram steps", "Assuming facts not given"],
-      },
-    ],
-    mcqs: [
-      {
-        question: "Find the next number in the series: 2, 6, 12, 20, 30, ?",
-        options: ["36", "40", "42", "44"],
-        answer: "42",
-        explanation: "Differences are 4, 6, 8, 10, so next difference is 12. 30 + 12 = 42.",
-        difficulty: "medium",
-        companyTags: ["Infosys", "Wipro"],
-        strategy: "Check the gap between terms before trying multiplication or alternate patterns.",
-      },
-      {
-        question: "A man walks 5 km north, then 3 km east. How far is he from the start?",
-        options: ["8 km", "5.8 km", "6 km", "7 km"],
-        answer: "5.8 km",
-        explanation: "Use Pythagoras: sqrt(5^2 + 3^2) = sqrt(34), approximately 5.8 km.",
-        difficulty: "medium",
-        companyTags: ["TCS", "Cognizant"],
-        strategy: "Turn the movement into a right triangle and use Pythagoras only at the end.",
-      },
-      {
-        question: "If SOUTH is coded as TPVUI, how is NORTH coded in the same pattern?",
-        options: ["OPSUI", "NPSUI", "OQRUI", "OPSTI"],
-        answer: "OPSUI",
-        explanation: "Each letter moves one step forward: N->O, O->P, R->S, T->U, H->I.",
-        difficulty: "easy",
-        companyTags: ["Accenture", "Infosys"],
-        strategy: "Map one sample word letter by letter and apply the same shift exactly.",
-      },
-      {
-        question: "Pointing to a girl, Ravi said, 'She is the daughter of my father's only son.' Who is the girl to Ravi?",
-        options: ["Sister", "Daughter", "Niece", "Cousin"],
-        answer: "Daughter",
-        explanation: "Ravi's father's only son is Ravi himself, so the girl is Ravi's daughter.",
-        difficulty: "medium",
-        companyTags: ["Wipro", "Capgemini"],
-        strategy: "Resolve the innermost relation first and build outward one person at a time.",
-      },
-    ],
-  },
-  {
-    title: "Verbal Ability",
-    focus: "Reading comprehension, sentence correction, grammar, vocabulary, para jumbles",
-    howToClear: "Read short passages daily, learn grammar rules by pattern, and eliminate options that sound awkward or ambiguous.",
-    shortcuts: [
-      "In sentence correction, first check subject-verb agreement and tense consistency.",
-      "For para jumbles, find the opening sentence that introduces the topic, not a detail.",
-      "In comprehension, answer from the passage, not from outside knowledge.",
-    ],
-    formulas: [
-      "Subject + singular verb for singular heads like each/everyone",
-      "Vocabulary: infer meaning from context first",
-      "Para-jumbles: intro -> development -> example -> conclusion",
-    ],
-    learningBlocks: [
-      {
-        title: "What to learn first",
-        points: ["Basic grammar rules", "High-frequency vocabulary", "Reading comprehension skimming"],
-      },
-      {
-        title: "Common traps",
-        points: ["Choosing what sounds familiar", "Ignoring tense mismatch", "Using outside knowledge in RC"],
-      },
-    ],
-    mcqs: [
-      {
-        question: "Choose the correct sentence.",
-        options: [
-          "Each of the students have submitted their form.",
-          "Each of the students has submitted his or her form.",
-          "Each of the students have submit their form.",
-          "Each of the students has submit their forms.",
-        ],
-        answer: "Each of the students has submitted his or her form.",
-        explanation: "The subject 'Each' is singular, so it takes 'has submitted'.",
-        difficulty: "easy",
-        companyTags: ["TCS", "Capgemini"],
-        strategy: "Find the real subject first. Words after 'of' usually do not control the verb.",
-      },
-      {
-        question: "Choose the word closest in meaning to 'brief'.",
-        options: ["Long", "Short", "Loud", "Sharp"],
-        answer: "Short",
-        explanation: "'Brief' means short in duration or length.",
-        difficulty: "easy",
-        companyTags: ["Infosys", "Cognizant"],
-        strategy: "Eliminate opposites first, then match the closest everyday meaning.",
-      },
-      {
-        question: "Choose the correct synonym of 'abundant'.",
-        options: ["Scarce", "Plentiful", "Narrow", "Ancient"],
-        answer: "Plentiful",
-        explanation: "'Abundant' means more than enough or plentiful.",
-        difficulty: "easy",
-        companyTags: ["Wipro", "Accenture"],
-        strategy: "Look for a meaning pair and remove words that describe size, time, or quantity shortage.",
-      },
-      {
-        question: "Choose the best arrangement for a paragraph opening.",
-        options: [
-          "A sentence with 'however'",
-          "A sentence introducing the main topic",
-          "A sentence giving an example",
-          "A sentence with a pronoun like 'they'",
-        ],
-        answer: "A sentence introducing the main topic",
-        explanation: "An opening sentence should introduce the topic clearly, not refer back to earlier ideas.",
-        difficulty: "medium",
-        companyTags: ["Infosys", "TCS"],
-        strategy: "An opener should stand alone. Avoid connectors, examples, or pronouns without context.",
-      },
-    ],
-  },
-  {
-    title: "Data Interpretation",
-    focus: "Tables, bar charts, pie charts, caselets, mixed charts",
-    howToClear: "Estimate fast, compare values before calculating, and only compute exactly when the options are close.",
-    shortcuts: [
-      "Convert pie chart percentages into fractions when possible.",
-      "Look for ratio comparisons first before doing long calculations.",
-      "Round numbers smartly for approximation-based questions.",
-    ],
-    formulas: [
-      "Average = Sum / Number of values",
-      "Percentage change = (Change / Original) x 100",
-      "Median for even values = average of two middle numbers",
-    ],
-    learningBlocks: [
-      {
-        title: "What to learn first",
-        points: ["Tables and percentages", "Averages and median", "Ratio-based comparison"],
-      },
-      {
-        title: "Common traps",
-        points: ["Over-calculating too early", "Missing units", "Reading the wrong row or column"],
-      },
-    ],
-    mcqs: [
-      {
-        question: "A company’s sales are 200, 250, and 300 units in three months. What is the average sales figure?",
-        options: ["225", "240", "250", "260"],
-        answer: "250",
-        explanation: "Average = (200 + 250 + 300) / 3 = 250.",
-        difficulty: "easy",
-        companyTags: ["Capgemini", "Cognizant"],
-        strategy: "Add the values carefully once, then divide by the number of entries.",
-      },
-      {
-        question: "If category A is 40% of a total of 500, how many units are in A?",
-        options: ["180", "190", "200", "220"],
-        answer: "200",
-        explanation: "40% of 500 = 0.4 x 500 = 200.",
-        difficulty: "easy",
-        companyTags: ["Accenture", "Infosys"],
-        strategy: "Convert the percentage into a decimal or fraction before multiplying.",
-      },
-      {
-        question: "The values in a table are 40, 50, 60, and 70. What is the median?",
-        options: ["50", "55", "60", "65"],
-        answer: "55",
-        explanation: "For four values, median is the average of the middle two values: (50 + 60) / 2 = 55.",
-        difficulty: "medium",
-        companyTags: ["TCS", "Wipro"],
-        strategy: "For an even count, sort if needed and average the middle two values only.",
-      },
-      {
-        question: "If revenue rises from 400 to 460, what is the percentage increase?",
-        options: ["10%", "12%", "15%", "18%"],
-        answer: "15%",
-        explanation: "Increase = 60. Percentage increase = 60/400 x 100 = 15%.",
-        difficulty: "medium",
-        companyTags: ["Infosys", "Capgemini"],
-        strategy: "Use change divided by original value, not final value.",
-      },
-    ],
-  },
-];
+import { aptitudeTypes } from "@/data/aptitudeQuestions";
 
 type AptitudeType = (typeof aptitudeTypes)[number];
 type Mcq = AptitudeType["mcqs"][number];
@@ -381,11 +121,16 @@ const practiceTracks: AptitudeTrack[] = [
 
 const quickStats = [
   { label: "Core aptitude types", value: "4", tone: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300" },
-  { label: "Practice MCQs", value: "16", tone: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+  { label: "Practice MCQs", value: "100", tone: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
   { label: "Company-style sets", value: "6", tone: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
 ];
 
 export default function AptitudePage() {
+  const { catchStar } = useProgress();
+  const [hintsUsed, setHintsUsed] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("pymaster_apt_hints") || "{}"); } catch { return {}; }
+  });
+  const [currentStreak, setCurrentStreak] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const didApplyUrlTrack = useRef(false);
   const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
@@ -394,8 +139,28 @@ export default function AptitudePage() {
   const [activeDifficulty, setActiveDifficulty] = useState<DifficultyFilter>("all");
   const [activeCompany, setActiveCompany] = useState<(typeof companySetLabels)[number]>("All Companies");
   const [activeTrackId, setActiveTrackId] = useState<AptitudeTrack["id"]>("beginner");
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [submittedTests, setSubmittedTests] = useState<Record<string, boolean>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("pymaster_apt_ans") || "{}"); } catch { return {}; }
+  });
+  const [submittedTests, setSubmittedTests] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("pymaster_apt_sub") || "{}"); } catch { return {}; }
+  });
+
+  useEffect(() => { localStorage.setItem("pymaster_apt_hints", JSON.stringify(hintsUsed)); }, [hintsUsed]);
+  useEffect(() => { localStorage.setItem("pymaster_apt_ans", JSON.stringify(selectedAnswers)); }, [selectedAnswers]);
+  useEffect(() => { localStorage.setItem("pymaster_apt_sub", JSON.stringify(submittedTests)); }, [submittedTests]);
+
+  const resetAllProgress = () => {
+    if (window.confirm("Are you sure you want to clear all your aptitude progress?")) {
+      setHintsUsed({});
+      setSelectedAnswers({});
+      setSubmittedTests({});
+      localStorage.removeItem("pymaster_apt_hints");
+      localStorage.removeItem("pymaster_apt_ans");
+      localStorage.removeItem("pymaster_apt_sub");
+      toast.success("Progress reset successfully!");
+    }
+  };
   const [mockAnswers, setMockAnswers] = useState<Record<string, string>>({});
   const [mockSubmitted, setMockSubmitted] = useState(false);
   const [mockStarted, setMockStarted] = useState(false);
@@ -531,6 +296,38 @@ export default function AptitudePage() {
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
+  const handleSubmitAnswer = (questionKey: string, mcq: Mcq) => {
+    if (submittedTests[questionKey]) return;
+    setSubmittedTests((current) => ({ ...current, [questionKey]: true }));
+    
+    const isCorrect = selectedAnswers[questionKey] === mcq.answer;
+    if (isCorrect) {
+      const usedHint = hintsUsed[questionKey];
+      const xpReward = usedHint ? 5 : 10;
+      catchStar(xpReward);
+      
+      const newStreak = currentStreak + 1;
+      setCurrentStreak(newStreak);
+      
+      if (newStreak === 3) {
+        fireRewardConfetti();
+        toast.success("🔥 3x Streak Bonus! You are on fire!", {
+          description: `+${xpReward} XP earned for correct answer.`,
+        });
+        setCurrentStreak(0);
+      } else {
+        toast.success(`Correct! +${xpReward} XP`, {
+          description: usedHint ? "Hint used (-5 XP)." : "Great job!",
+        });
+      }
+    } else {
+      setCurrentStreak(0);
+      toast.error("Incorrect.", {
+        description: "Consistency is key. Review the explanation!",
+      });
+    }
+  };
+
   const renderTestCard = (mcq: Mcq, typeTitle: string, index: number) => {
     const questionKey = `${typeTitle}-${index}`;
     const selectedOption = selectedAnswers[questionKey];
@@ -584,12 +381,23 @@ export default function AptitudePage() {
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setSubmittedTests((current) => ({ ...current, [questionKey]: true }))}
+            onClick={() => handleSubmitAnswer(questionKey, mcq)}
             disabled={!selectedOption || isSubmitted}
             className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitted ? "Submitted" : "Submit Answer"}
           </button>
+          {!isSubmitted && (
+            <button
+              type="button"
+              onClick={() => setHintsUsed((current) => ({ ...current, [questionKey]: true }))}
+              disabled={hintsUsed[questionKey]}
+              className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 disabled:opacity-50"
+            >
+              <Lightbulb className="h-3.5 w-3.5" />
+              {hintsUsed[questionKey] ? "Hint Revealed" : "Use Hint (Cost: -5 XP)"}
+            </button>
+          )}
           {isSubmitted ? (
             <button
               type="button"
@@ -607,6 +415,11 @@ export default function AptitudePage() {
             </button>
           ) : null}
         </div>
+        {hintsUsed[questionKey] && !isSubmitted && (
+          <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+            <span className="font-semibold">Hint:</span> {mcq.strategy}
+          </div>
+        )}
         {isSubmitted ? (
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             <span className="font-medium text-foreground">Correct answer:</span> {mcq.answer}
@@ -748,15 +561,24 @@ export default function AptitudePage() {
 
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
         <div id="aptitude-hub" className="rounded-[2rem] border border-border/70 bg-card p-4 shadow-sm sm:p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Layers3 className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-semibold text-foreground">
-                {pageMode === "learning"
-                  ? "Aptitude Learning Hub"
-                  : pageMode === "practice"
-                    ? "Aptitude Practice Hub"
-                    : "Aptitude Mock Test Hub"}
-              </h2>
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Layers3 className="h-4 w-4 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">
+                  {pageMode === "learning"
+                    ? "Aptitude Learning Hub"
+                    : pageMode === "practice"
+                      ? "Aptitude Practice Hub"
+                      : "Aptitude Mock Test Hub"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={resetAllProgress}
+                className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/20 transition-colors"
+              >
+                Reset Progress
+              </button>
             </div>
           <div className="mb-5 grid gap-3 rounded-[1.5rem] border border-border/60 bg-background/70 p-4 sm:grid-cols-2 xl:grid-cols-3">
             <div>

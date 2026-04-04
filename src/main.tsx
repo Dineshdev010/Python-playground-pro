@@ -12,7 +12,13 @@ import "./index.css"; // Global styles (Tailwind CSS + custom styles)
 // Registering in dev can slow HMR and cause confusing cache behavior.
 if (import.meta.env.PROD) {
   import('virtual:pwa-register').then(({ registerSW }) => {
-    registerSW({ immediate: true });
+    const updateSW = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        // Force clients to pick up the newest deployed assets quickly.
+        updateSW(true);
+      },
+    });
   }).catch(err => console.error("SW Registration failed:", err));
 }
 

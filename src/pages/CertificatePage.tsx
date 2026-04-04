@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useProgress } from "@/contexts/ProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,35 @@ export default function CertificatePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const certificateAreaRef = useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
+  const [certContainerWidth, setCertContainerWidth] = useState(1000);
+  const [containerWrapperEl, setContainerWrapperEl] = useState<HTMLDivElement | null>(null);
+  const setContainerWrapperRef = useCallback((node: HTMLDivElement | null) => {
+    setContainerWrapperEl(node);
+  }, []);
+
+  useEffect(() => {
+    if (!containerWrapperEl) return;
+
+    const syncWidth = () => {
+      setCertContainerWidth(containerWrapperEl.clientWidth || 1000);
+    };
+    syncWidth();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", syncWidth);
+      return () => window.removeEventListener("resize", syncWidth);
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setCertContainerWidth(entry.contentRect.width || 1000);
+      }
+    });
+    observer.observe(containerWrapperEl);
+    return () => observer.disconnect();
+  }, [containerWrapperEl]);
+
+  const certScale = Math.max(0.2, Math.min(1, certContainerWidth / 1000));
 
   // Qualification: 100 XP means they have completed at least a few lessons or problems
   const isQualified = progress.xp >= 100;
@@ -65,14 +94,39 @@ export default function CertificatePage() {
 
   // Setup styling and data based on 3 distinct levels requested by UI/UX prompt
   let level = "Beginner";
-  let skills = ["Python Syntax", "Control Flow", "Basic Functions", "File I/O"];
+  let skills = [
+    "Python Syntax",
+    "Control Flow",
+    "Basic Functions",
+    "File I/O",
+    "Modules & Packages",
+    "Lists and Dictionaries",
+    "Debugging Basics",
+  ];
 
   if (hasExpert) {
     level = "Advanced";
-    skills = ["Data Structures", "Algorithms", "Object-Oriented Programming", "System Design", "Advanced APIs"];
+    skills = [
+      "Data Structures",
+      "Algorithms",
+      "Object-Oriented Programming",
+      "System Design",
+      "Advanced APIs",
+      "Performance Optimization",
+      "Database Integration",
+      "Testing and Automation",
+    ];
   } else if (hasIntermediate) {
     level = "Intermediate";
-    skills = ["Data Structures", "Object-Oriented Programming", "API Integration", "Error Handling"];
+    skills = [
+      "Data Structures",
+      "Object-Oriented Programming",
+      "API Integration",
+      "Error Handling",
+      "Recursion Fundamentals",
+      "Code Refactoring",
+      "Problem-Solving Patterns",
+    ];
   }
 
   const effectiveLevel = certificate?.rank_level || level;
@@ -134,13 +188,17 @@ export default function CertificatePage() {
         "Download the final A4 PDF export",
       ];
 
-  const renderCertificateDocument = (previewMode: boolean) => (
+  const renderCertificateDocument = (
+    previewMode: boolean,
+    options?: { attachExportRef?: boolean },
+  ) => (
     <div
-      ref={certificateAreaRef}
-      id="certificate-export-area"
-      className={`print-certificate relative flex w-full min-w-[800px] aspect-[1.414/1] flex-col overflow-hidden text-slate-900 shadow-inner ${
+      ref={options?.attachExportRef ? certificateAreaRef : undefined}
+      id={options?.attachExportRef ? "certificate-export-area" : undefined}
+      className={`print-certificate relative flex flex-col justify-between overflow-hidden text-slate-900 shadow-inner bg-[#fffdf8] ${
         previewMode ? "opacity-95" : ""
       }`}
+      style={{ width: "1000px", height: "707px", minWidth: "1000px", minHeight: "707px", boxSizing: "border-box" }}
     >
       <div className="absolute inset-0 bg-[linear-gradient(180deg,#fffdf8_0%,#f7f1e3_100%)]" />
       <div className="absolute inset-3 border border-[#d6c096]" />
@@ -156,7 +214,7 @@ export default function CertificatePage() {
       <div className="absolute bottom-10 left-10 h-24 w-24 rounded-full border border-[#eadcbc] opacity-70" />
       <div className="absolute bottom-10 right-10 h-24 w-24 rounded-full border border-[#eadcbc] opacity-70" />
 
-      <div className="relative z-10 flex flex-1 flex-col px-16 pb-10 pt-12 text-center">
+      <div className="relative z-10 flex flex-1 flex-col justify-between px-16 py-8 text-center">
         <div className="mx-auto flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#d6c096] bg-white shadow-sm">
             <img src="/logo.png" alt="Logo" className="h-9 w-9 object-contain" decoding="async" />
@@ -173,31 +231,31 @@ export default function CertificatePage() {
           <span>{previewMode ? "Preview Copy" : "Verified Issue"}</span>
         </div>
 
-        <div className={`mx-auto mt-7 inline-flex rounded-full border px-6 py-2 text-[10px] font-bold uppercase tracking-[0.38em] ${accentBorderClass} ${accentClass} bg-white/80 shadow-sm`}>
+        <div className={`mx-auto mt-5 inline-flex rounded-full border px-6 py-2 text-[10px] font-bold uppercase tracking-[0.38em] ${accentBorderClass} ${accentClass} bg-white/80 shadow-sm`}>
           Corporate Professional Credential
         </div>
 
-        <h1 className="mt-7 font-serif text-[48px] font-semibold uppercase tracking-[0.18em] text-slate-900">
+        <h1 className="mt-2 font-serif text-[30px] font-semibold uppercase tracking-[0.15em] text-slate-900">
           Professional Certificate of Achievement
         </h1>
         <p className="mt-3 text-[13px] uppercase tracking-[0.34em] text-slate-500">
           Awarded for verified Python capability, applied problem solving, and practical execution
         </p>
-        <div className="mx-auto mt-5 flex items-center gap-4">
+        <div className="mx-auto mt-4 flex items-center gap-4">
           <div className="h-px w-28 bg-[#d6c096]" />
           <Star className="h-4 w-4 text-[#b68a3d]" />
           <div className="h-px w-28 bg-[#d6c096]" />
         </div>
 
-        <p className="mt-7 text-base italic text-slate-500">This is to proudly certify that</p>
+        <p className="mt-4 text-base italic text-slate-500">This is to proudly certify that</p>
 
-        <div className="mx-auto mt-5 w-full max-w-[720px] rounded-[28px] border border-[#e6d7b8] bg-white/55 px-10 py-6 shadow-[0_18px_40px_rgba(120,92,38,0.08)]">
-          <h2 className="break-words font-serif text-[56px] font-semibold leading-tight text-slate-900">
+        <div className="mx-auto mt-2 w-full max-w-[650px] rounded-[20px] border border-[#e6d7b8] bg-white/55 px-8 py-2 shadow-sm">
+          <h2 className="break-words font-serif text-[40px] font-semibold leading-tight text-slate-900">
             {profileName}
           </h2>
         </div>
 
-        <p className="mx-auto mt-8 max-w-[780px] text-[18px] leading-8 text-slate-700">
+        <p className="mx-auto mt-3 max-w-[780px] text-[16px] leading-7 text-slate-700">
           {previewMode ? (
             <>has completed the PyMaster pathway and is eligible to receive the <span className={`font-semibold ${accentClass}`}>{effectiveLevel}</span> certification in Python programming, problem solving, and practical coding fundamentals.</>
           ) : (
@@ -205,22 +263,22 @@ export default function CertificatePage() {
           )}
         </p>
 
-        <div className="mx-auto mt-8 grid max-w-[780px] grid-cols-2 gap-3 text-left">
+        <div className="mx-auto mt-2 flex max-w-[850px] flex-wrap justify-center gap-2 text-left">
           {skills.map((skill) => (
-            <div key={skill} className="flex items-center gap-3 rounded-xl border border-[#eadcbc] bg-white/55 px-4 py-3 shadow-[0_10px_22px_rgba(120,92,38,0.05)]">
-              <div className={`h-2.5 w-2.5 rounded-full ${accentBgClass}`} />
-              <span className="text-[15px] font-medium text-slate-800">{skill}</span>
+            <div key={skill} className="flex items-center gap-2 rounded-lg border border-[#eadcbc] bg-white/55 px-3 py-1.5 shadow-sm">
+              <div className={`h-2 w-2 rounded-full ${accentBgClass}`} />
+              <span className="text-[12px] font-medium text-slate-800">{skill}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-auto pt-10">
+        <div className="mt-4">
           <div className="grid grid-cols-[1.15fr_0.8fr_1.15fr] items-end gap-8">
             <div className="text-left">
               <div className="rounded-2xl border border-[#eadcbc] bg-white/55 p-4">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Credential Reference</div>
                 <div className="mt-3 flex items-end gap-4">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-[#d6c096] bg-white p-3 shadow-sm">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#d6c096] bg-white p-2 shadow-sm">
                     <svg viewBox="0 0 100 100" className="h-full w-full text-slate-800" fill="currentColor">
                       <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h20v10H40zM40 20h20v10H40zM0 40h10v20H0zM20 40h10v20H20zM70 40h30v10H70zM80 60h20v10H80zM40 40h20v20H40zM50 70h20v10H50zM40 90h10v10H40zM80 80h20v20H80zM60 90h10v10H60z" />
                     </svg>
@@ -238,10 +296,10 @@ export default function CertificatePage() {
             </div>
 
             <div className="flex justify-center">
-              <div className={`flex h-32 w-32 flex-col items-center justify-center rounded-full border-[7px] border-double ${accentBorderClass} bg-white/90 text-center shadow-[0_18px_40px_rgba(120,92,38,0.12)]`}>
-                <Award className={`mb-2 h-8 w-8 ${accentClass}`} />
-                <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-slate-700">Official</div>
-                <div className="mt-1 text-[8px] uppercase tracking-[0.18em] text-slate-400">
+              <div className={`flex h-24 w-24 flex-col items-center justify-center rounded-full border-[6px] border-double ${accentBorderClass} bg-white/90 text-center shadow-sm`}>
+                <Award className={`mb-1 h-6 w-6 ${accentClass}`} />
+                <div className="text-[7px] font-bold uppercase tracking-[0.28em] text-slate-700">Official</div>
+                <div className="mt-1 text-[6px] uppercase tracking-[0.18em] text-slate-400">
                   {previewMode ? "Preview Seal" : `${effectiveLevel} Level`}
                 </div>
               </div>
@@ -275,7 +333,7 @@ export default function CertificatePage() {
             </div>
           </div>
 
-          <div className="mt-7 flex items-center justify-between border-t border-[#e7d2a5] pt-4 text-[10px] uppercase tracking-[0.24em] text-slate-400">
+          <div className="mt-4 flex items-center justify-between border-t border-[#e7d2a5] pt-3 text-[10px] uppercase tracking-[0.24em] text-slate-400">
             <span>PyMaster Academy</span>
             <span>Python Certification Board</span>
             <span>{previewMode ? "Preview Draft" : "Official Certificate"}</span>
@@ -291,27 +349,30 @@ export default function CertificatePage() {
     let active = true;
     setLoadingCertificate(true);
 
-    supabase
-      .from("certificates")
-      .select("id, user_id, rank_level, issued_at, metadata")
-      .eq("user_id", user.uid)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const fetchCert = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("certificates")
+          .select("id, user_id, rank_level, issued_at, metadata")
+          .eq("user_id", user.uid)
+          .maybeSingle();
+        
         if (!active) return;
-        if (error) {
-          console.error("Certificate load failed", error);
-          toast({
-            title: "Certificate Unavailable",
-            description: "We couldn't load your certificate record yet.",
-            variant: "destructive",
-          });
-        } else {
-          setCertificate(data);
-        }
-      })
-      .finally(() => {
+        if (error) throw error;
+        setCertificate(data);
+      } catch (error) {
+        if (!active) return;
+        console.error("Certificate load failed", error);
+        toast({
+          title: "Certificate Unavailable",
+          description: "We couldn't load your certificate record yet.",
+          variant: "destructive",
+        });
+      } finally {
         if (active) setLoadingCertificate(false);
-      });
+      }
+    };
+    fetchCert();
 
     return () => {
       active = false;
@@ -324,27 +385,30 @@ export default function CertificatePage() {
     let active = true;
     setLoadingPaymentStatus(true);
 
-    supabase
-      .from("profiles")
-      .select("certificate_fee_paid, certificate_fee_amount, certificate_payment_verified_at")
-      .eq("id", user.uid)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const fetchPayment = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("certificate_fee_paid, certificate_fee_amount, certificate_payment_verified_at")
+          .eq("id", user.uid)
+          .maybeSingle();
+
         if (!active) return;
-        if (error) {
-          console.error("Payment status load failed", error);
-          toast({
-            title: "Payment Status Unavailable",
-            description: "We couldn't verify your certificate payment status yet.",
-            variant: "destructive",
-          });
-        } else {
-          setPaymentProfile(data);
-        }
-      })
-      .finally(() => {
+        if (error) throw error;
+        setPaymentProfile(data);
+      } catch (error) {
+        if (!active) return;
+        console.error("Payment status load failed", error);
+        toast({
+          title: "Payment Status Unavailable",
+          description: "We couldn't verify your certificate payment status yet.",
+          variant: "destructive",
+        });
+      } finally {
         if (active) setLoadingPaymentStatus(false);
-      });
+      }
+    };
+    fetchPayment();
 
     return () => {
       active = false;
@@ -397,6 +461,10 @@ export default function CertificatePage() {
         scale: 3, // High resolution
         useCORS: true,
         backgroundColor: "#ffffff",
+        logging: false,
+        removeContainer: true,
+        windowWidth: 1000,
+        windowHeight: 707,
       });
       
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
@@ -481,6 +549,10 @@ export default function CertificatePage() {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
+        logging: false,
+        removeContainer: true,
+        windowWidth: 1000,
+        windowHeight: 707,
       });
       const link = document.createElement("a");
       link.download = `${profileName.replace(/\s+/g, "_")}_pymaster_certificate.png`;
@@ -586,8 +658,13 @@ export default function CertificatePage() {
             animate={{ opacity: 1, rotateY: 0, scale: 1 }}
             transition={{ duration: 1.2, type: "spring", bounce: 0.3 }}
           >
-            <div className="overflow-x-auto rounded-lg">
-              {renderCertificateDocument(true)}
+            <div ref={setContainerWrapperRef} className="w-full relative overflow-hidden rounded-lg mx-auto" style={{ height: 707 * certScale }}>
+              <div className="absolute top-0 left-0 origin-top-left" style={{ transform: `scale(${certScale})` }}>
+                {renderCertificateDocument(true)}
+              </div>
+            </div>
+            <div className="fixed -left-[10000px] top-0 opacity-0 pointer-events-none" aria-hidden>
+              {renderCertificateDocument(true, { attachExportRef: true })}
             </div>
           </motion.div>
 
@@ -665,14 +742,14 @@ export default function CertificatePage() {
   // UNLOCKED STATE
   // --------------------------------------------------------------------------
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-12">
+    <div className="max-w-[1400px] mx-auto px-4 py-8">
       <Helmet>
         <title>Python Mastery Certificate | PyMaster</title>
       </Helmet>
 
       {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={800} gravity={0.15} style={{ zIndex: 9999, position: 'fixed' }} />}
 
-      <div className="text-center mb-10">
+      <div className="text-center mb-6">
         <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3 flex items-center justify-center gap-3">
             <Award className="w-8 h-8 text-python-yellow" /> Python Mastery Certificate
@@ -684,7 +761,7 @@ export default function CertificatePage() {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         {pageStats.map((stat) => (
           <div key={stat.label} className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
             <div className="flex items-center gap-3">
@@ -710,8 +787,13 @@ export default function CertificatePage() {
           transition={{ duration: 1.2, type: "spring", bounce: 0.3 }}
         >
           {/* Actual Certificate Document (Optimized for A4 Print: 297x210 aspect) */}
-          <div className="overflow-x-auto rounded-lg">
-            {renderCertificateDocument(false)}
+          <div ref={setContainerWrapperRef} className="w-full relative overflow-hidden rounded-lg mx-auto" style={{ height: 707 * certScale }}>
+            <div className="absolute top-0 left-0 origin-top-left" style={{ transform: `scale(${certScale})` }}>
+              {renderCertificateDocument(false)}
+            </div>
+          </div>
+          <div className="fixed -left-[10000px] top-0 opacity-0 pointer-events-none" aria-hidden>
+            {renderCertificateDocument(false, { attachExportRef: true })}
           </div>
         </motion.div>
 

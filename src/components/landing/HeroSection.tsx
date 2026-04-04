@@ -8,7 +8,7 @@
 
 import { Link, useNavigate } from "react-router-dom";
 import { motion, type Easing } from "framer-motion";
-import { ArrowRight, BookOpen, Code, Flame, Target, Sparkles, Rocket, Brain, ChevronDown, Star } from "lucide-react";
+import { ArrowRight, BookOpen, Code, Flame, Target, Sparkles, Rocket, Brain, ChevronDown, Star, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -58,8 +58,8 @@ export function HeroSection() {
   // ---------- Parallax scroll effect ----------
   // As user scrolls down, the hero fades out and slightly shrinks
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7, 1], [1, 1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.7, 1], [1, 1, 0.95]);
   const isDarkTheme = theme === "dark";
 
   const guide = useMemo(() => {
@@ -243,7 +243,7 @@ export function HeroSection() {
       </motion.div>
 
       {/* Main hero content with parallax */}
-      <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative isolate mx-auto w-full max-w-5xl px-4 py-24 text-center sm:px-6 md:py-32">
+      <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative isolate mx-auto w-full max-w-5xl px-4 pb-24 pt-8 text-center sm:px-6 md:pb-32 md:pt-12">
         <div className={`absolute inset-x-2 top-8 -bottom-2 -z-10 rounded-[3rem] blur-3xl sm:inset-x-6 sm:top-10 ${heroGlowClasses}`} />
         
         {/* "Free Python Learning Platform" badge */}
@@ -315,7 +315,7 @@ export function HeroSection() {
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={2.5} className="flex justify-center mb-6">
             <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 backdrop-blur-sm ${streakCardClasses}`}>
               <StreakFire streak={progress.streak} />
-              <span className="text-sm font-bold tracking-wide">{progress.streak} <span className="opacity-70 font-medium">Day Streak!</span></span>
+              <span className="text-sm font-bold tracking-wide opacity-70">Day Streak!</span>
             </div>
           </motion.div>
         )}
@@ -361,6 +361,32 @@ export function HeroSection() {
               <Code className="w-4 h-4" /> Browse Problems
             </Link>
           </Button>
+          <Button asChild variant="outline" size="lg" className="gap-2 text-base h-12 px-8 border-primary/40 text-primary hover:bg-primary/10 bg-background/70 backdrop-blur-sm">
+            <Link to="/python-game">
+              <Gamepad2 className="w-4 h-4" /> Try Drag & Drop Game
+            </Link>
+          </Button>
+        </motion.div>
+
+        <motion.div
+          className="mb-10 flex flex-wrap items-center justify-center gap-2"
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          custom={3.05}
+        >
+          {["Interactive Coding", "Live Practice Flow", "Game-Like Learning"].map((pill) => (
+            <span
+              key={pill}
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                isDarkTheme
+                  ? "border-primary/30 bg-primary/10 text-sky-200"
+                  : "border-sky-300/50 bg-sky-50 text-sky-700"
+              }`}
+            >
+              {pill}
+            </span>
+          ))}
         </motion.div>
 
         <motion.div

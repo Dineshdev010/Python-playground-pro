@@ -19,6 +19,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProgressProvider } from "@/contexts/ProgressContext";
+import { SoundProvider } from "@/contexts/SoundContext";
+import { GlobalConfetti } from "@/components/GlobalConfetti";
 
 // --- Lazy-loaded Pages ---
 // Each page is loaded on-demand when the user visits its route
@@ -43,6 +45,7 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const CertificatePage = lazy(() => import("./pages/CertificatePage"));
 const CertificateVerificationPage = lazy(() => import("./pages/CertificateVerificationPage"));
 const QuickPrepPage = lazy(() => import("./pages/QuickPrepPage"));
+const PythonGamePage = lazy(() => import("./pages/PythonGamePage"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -82,6 +85,7 @@ const appRoutes: AppRoute[] = [
   { path: "/certificate", element: <CertificatePage />, fallback: <PageSkeleton />, protected: true },
   { path: "/certificate/verify/:certificateId", element: <CertificateVerificationPage />, fallback: <PageSkeleton /> },
   { path: "/quick-prep", element: <QuickPrepPage />, fallback: <PageSkeleton /> },
+  { path: "/python-game", element: <PythonGamePage />, fallback: <PageSkeleton /> },
   { path: "/u/:userId", element: <PublicProfilePage />, fallback: <PageSkeleton /> },
   { path: "/privacy", element: <PrivacyPolicyPage />, fallback: <PageSkeleton /> },
   { path: "/contact", element: <ContactPage />, fallback: <PageSkeleton /> },
@@ -104,26 +108,29 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <ProgressProvider>
-                <Toaster />
-                <Sonner />
-                <AppLayout>
-                  <ErrorBoundary>
-                    <Routes>
-                      {appRoutes.map((route) => (
-                        <Route key={route.path} path={route.path} element={renderRouteElement(route)} />
-                      ))}
-                    </Routes>
-                  </ErrorBoundary>
-                </AppLayout>
-              </ProgressProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-    </ThemeProvider>
+        <SoundProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <ProgressProvider>
+                  <Toaster />
+                  <Sonner />
+                  <GlobalConfetti />
+                  <AppLayout>
+                    <ErrorBoundary>
+                      <Routes>
+                        {appRoutes.map((route) => (
+                          <Route key={route.path} path={route.path} element={renderRouteElement(route)} />
+                        ))}
+                      </Routes>
+                    </ErrorBoundary>
+                  </AppLayout>
+                </ProgressProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SoundProvider>
+      </ThemeProvider>
   </QueryClientProvider>
   </HelmetProvider>
 );

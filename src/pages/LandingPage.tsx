@@ -8,6 +8,8 @@
 
 import { Helmet } from "react-helmet-async";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Gamepad2 } from "lucide-react";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { SkyBackground } from "@/components/landing/SkyBackground";
 
@@ -99,7 +101,7 @@ export default function LandingPage() {
       {/* Sky background (auto day/night) */}
       <SkyBackground />
       {/* Clickable shooting stars that quiz users with Python riddles for XP */}
-      {deferFx && clockIsNight && (
+      {deferFx && (
         <Suspense fallback={null}>
           <ShootingStars />
         </Suspense>
@@ -118,6 +120,29 @@ export default function LandingPage() {
       )}
       {/* Main hero with headline, CTA buttons, and quick stats */}
       <HeroSection />
+      <section className="container mx-auto px-4 sm:px-6 py-3">
+        <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-background/80 p-2 text-primary">
+                <Gamepad2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Try Our Drag and Drop Python Game</h2>
+                <p className="text-sm text-muted-foreground">
+                  Build Python code by dragging blocks and dropping them into the canvas.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/python-game"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Open Python Game
+            </Link>
+          </div>
+        </div>
+      </section>
       {/* Visual divider between sections */}
       <div className="section-divider py-2" />
       {/* 4-step getting started guide for new users */}

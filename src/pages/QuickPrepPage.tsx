@@ -89,29 +89,77 @@ total = add(4, 7)`,
       {
         title: "Lists",
         snippet: `nums = [2, 4, 6]
-nums.append(8)
-nums.pop()
-print(nums[0], len(nums))`,
+nums.append(8)              # add one
+nums.extend([10, 12])       # add many
+nums.insert(1, 3)           # insert at index
+nums.remove(10)             # remove by value
+last = nums.pop()           # remove last or nums.pop(i)
+
+print(nums.index(6))        # first index of value
+print(nums.count(4))        # frequency
+
+nums.sort()                 # in-place sort
+nums.sort(reverse=True)
+nums.reverse()              # reverse in-place
+
+clone = nums.copy()         # shallow copy
+nums.clear()                # remove all`,
       },
       {
-        title: "Tuples and Sets",
-        snippet: `point = (2, 5)
-tags = {"py", "api", "py"}
-print(point[1])
-print("py" in tags)`,
+        title: "Tuples",
+        snippet: `point = (2, 5, 5, 9)
+print(point[0])             # indexing
+print(point[1:3])           # slicing
+print(point.count(5))       # count occurrences
+print(point.index(9))       # index of value
+
+x, y, *_ = point            # unpacking
+single = (42,)              # one-item tuple`,
+      },
+      {
+        title: "Sets",
+        snippet: `a = {1, 2, 3}
+b = {3, 4, 5}
+
+a.add(7)
+a.update([8, 9])
+a.discard(2)                # no error if missing
+# a.remove(2)               # error if missing
+
+print(a | b)                # union
+print(a & b)                # intersection
+print(a - b)                # difference
+print(a ^ b)                # symmetric difference
+
+print({1, 2}.issubset(a))
+print(a.issuperset({1}))
+a.clear()`,
       },
       {
         title: "Dictionaries",
         snippet: `user = {"name": "Ana", "xp": 120}
 user["streak"] = 5
-print(user.get("name"))
-print(user.keys())`,
+user.update({"city": "Delhi"})
+
+print(user.get("name", "NA"))
+print(list(user.keys()))
+print(list(user.values()))
+print(list(user.items()))
+
+user.setdefault("level", 1) # add only if missing
+removed = user.pop("city", None)
+last = user.popitem()       # removes last inserted pair
+
+template = dict.fromkeys(["a", "b"], 0)
+squares = {n: n * n for n in range(4)}`,
       },
       {
         title: "Comprehensions",
         snippet: `squares = [n * n for n in range(6)]
 evens = [n for n in squares if n % 2 == 0]
-lookup = {n: n * n for n in range(4)}`,
+lookup = {n: n * n for n in range(4)}
+unique = {n % 3 for n in range(10)}
+total = sum(n for n in range(100))`,
       },
     ],
   },
@@ -119,11 +167,23 @@ lookup = {n: n * n for n in range(4)}`,
     title: "Strings and Files",
     cards: [
       {
-        title: "String Basics",
-        snippet: `text = "python"
+        title: "String Methods (Must Know)",
+        snippet: `text = "  python,api,prep  "
+
+print(text.strip())         # trim spaces
+print(text.lower())
 print(text.upper())
-print(text[:3])
-print("-".join(["a", "b", "c"]))`,
+print(text.title())
+print(text.replace("api", "backend"))
+
+parts = text.strip().split(",")
+print("-".join(parts))
+
+print("py" in text)         # membership
+print(text.startswith("  py"))
+print(text.endswith("prep  "))
+print("42".isdigit())
+print("alpha".isalpha())`,
       },
       {
         title: "f-Strings",
@@ -341,6 +401,8 @@ while left < right:
 ];
 
 export default function QuickPrepPage() {
+  const totalCheatSnippets = cheatSheetSections.reduce((count, section) => count + section.cards.length, 0);
+
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
@@ -452,7 +514,7 @@ export default function QuickPrepPage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-sky-500/20 bg-background/75 px-4 py-3">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Core</div>
-                <div className="mt-1 text-lg font-bold text-foreground">24</div>
+                <div className="mt-1 text-lg font-bold text-foreground">{totalCheatSnippets}</div>
                 <div className="text-xs text-muted-foreground">key patterns</div>
               </div>
               <div className="rounded-2xl border border-amber-500/20 bg-background/75 px-4 py-3">

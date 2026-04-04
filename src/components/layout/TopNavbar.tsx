@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, Clock, HeartHandshake, LogIn, LogOut, Menu, Moon, Settings, Sun, Trophy, User, Wallet } from "lucide-react";
+import { ChevronDown, Clock, HeartHandshake, LogIn, LogOut, Menu, Moon, Settings, Sun, Trophy, User, Wallet, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,6 +9,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProgress } from "@/contexts/ProgressContext";
+import { useSound } from "@/contexts/SoundContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -78,12 +79,12 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   const { progress } = useProgress();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { muted, toggleMuted } = useSound();
   const { toast } = useToast();
   const levelNumber = Math.floor(progress.xp / 500) + 1;
   const levelLabel = getUserLevelLabel(progress.xp);
-  const primaryNavRoutes = ["/", "/learn", "/dsa", "/compiler", "/quick-prep", "/certificate"];
+  const primaryNavRoutes = ["/", "/learn", "/dsa", "/compiler", "/quick-prep", "/python-game"];
   const primaryNavItems = navItems.filter((item) => primaryNavRoutes.includes(item.to));
-  const secondaryNavItems = navItems.filter((item) => !primaryNavRoutes.includes(item.to));
 
   const handleSignOut = async () => {
     try {
@@ -170,38 +171,14 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
               }`}
             >
               <span className="text-sm">{item.emoji}</span>
-              {item.to === "/quick-prep" ? "Quick" : item.to === "/certificate" ? "Cert" : item.label.split(" ")[0]}
+              {item.to === "/quick-prep"
+                ? "Quick"
+                : item.to === "/python-game"
+                  ? "Game"
+                  : item.label.split(" ")[0]}
             </Link>
           ))}
           </div>
-          {secondaryNavItems.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-[11px] transition-all duration-200 xl:gap-1.5 xl:px-2.5 xl:text-xs ${
-                    secondaryNavItems.some((item) => location.pathname === item.to)
-                      ? "bg-secondary text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                  }`}
-                  aria-label="Open more navigation links"
-                >
-                  <span className="text-sm">⋯</span>
-                  More
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="mt-2 w-52">
-                {secondaryNavItems.map((item) => (
-                  <DropdownMenuItem key={item.to} asChild>
-                    <Link to={item.to} className="flex w-full cursor-pointer items-center gap-2">
-                      <span className="text-sm">{item.emoji}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </nav>
       </div>
       <div className="ml-2 flex shrink-0 items-center gap-2 sm:gap-3">
@@ -224,6 +201,14 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         )}
+        <button
+          onClick={toggleMuted}
+          className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+          title={muted ? "Unmute sounds" : "Mute sounds"}
+        >
+          {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
         <div className="hidden md:flex">
           <StreakFire streak={progress.streak} size="sm" showQuote />
         </div>
@@ -295,3 +280,5 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
     </>
   );
 }
+
+

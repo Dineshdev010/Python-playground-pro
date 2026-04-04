@@ -4,7 +4,7 @@
 // top navbar, and mobile bottom nav.
 // ============================================================
 
-import { Home, BookOpen, Brain, Terminal, Code, Briefcase, Trophy, LayoutDashboard, Heart, Info, Award, Zap, Mail, Calculator } from "lucide-react";
+import { Home, BookOpen, Brain, Terminal, Code, Briefcase, Trophy, LayoutDashboard, Heart, Info, Zap, Mail, Calculator, Gamepad2 } from "lucide-react";
 
 // Each item has: route path, Lucide icon, label text, and emoji (for mobile nav)
 export const navItems = [
@@ -15,9 +15,9 @@ export const navItems = [
   { to: "/problems", icon: Code, label: "Problems", emoji: "🔥" },
   { to: "/aptitude", icon: Calculator, label: "Aptitude", emoji: "🧮" },
   { to: "/quick-prep", icon: Zap, label: "Quick Prep", emoji: "⚡" },
+  { to: "/python-game", icon: Gamepad2, label: "Python Game", emoji: "🎮" },
   { to: "/jobs", icon: Briefcase, label: "Job Portal", emoji: "💼" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard", emoji: "🏆" },
-  { to: "/certificate", icon: Award, label: "Certificate", emoji: "📜" },
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", emoji: "📊" },
   { to: "/donate", icon: Heart, label: "Donate", emoji: "❤️" },
   { to: "/about", icon: Info, label: "About Us", emoji: "ℹ️" },
