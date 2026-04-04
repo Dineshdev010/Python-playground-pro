@@ -5,34 +5,20 @@
 // ============================================================
 
 // --- UI Components ---
-import { Toaster } from "@/components/ui/toaster"; // Toast notification system (shadcn)
-import { Toaster as Sonner } from "@/components/ui/sonner"; // Alternative toast system (sonner)
-import { TooltipProvider } from "@/components/ui/tooltip"; // Enables tooltips across the app
-
-// --- Data Fetching ---
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // React Query for server state
-
-// --- Routing ---
-import { BrowserRouter, Routes, Route } from "react-router-dom"; // Client-side routing
-
-// --- Context Providers (global state) ---
-import { ProgressProvider } from "@/contexts/ProgressContext"; // Tracks user progress (XP, streak, wallet)
-import { AuthProvider } from "@/contexts/AuthContext"; // Handles authentication (login/signup)
-import { ThemeProvider } from "@/components/ThemeProvider"; // Dark/light theme toggle
+import { Suspense, lazy, type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
-
-// --- Error Handling ---
-import { ErrorBoundary } from "@/components/ErrorBoundary"; // Catches runtime errors gracefully
-
-// --- Layout ---
-import { AppLayout } from "@/components/AppLayout"; // Main layout with navbar, sidebar, footer
-
-// --- Performance: Lazy Loading ---
-// lazy() loads pages only when user navigates to them (code splitting)
-// This makes the initial page load much faster
-import { lazy, Suspense } from "react";
-import { PageSkeleton, EditorSkeleton, DashboardSkeleton, ProblemsListSkeleton } from "@/components/Skeletons";
-import { ProtectedRoute } from "@/components/ProtectedRoute"; // Redirects to /auth if not logged in
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { AppLayout } from "@/components/AppLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { DashboardSkeleton, EditorSkeleton, PageSkeleton, ProblemsListSkeleton } from "@/components/Skeletons";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProgressProvider } from "@/contexts/ProgressContext";
 
 // --- Lazy-loaded Pages ---
 // Each page is loaded on-demand when the user visits its route
@@ -60,10 +46,52 @@ const QuickPrepPage = lazy(() => import("./pages/QuickPrepPage"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// --- React Query Configuration ---
-// retry: 1 = retry failed requests once
-// staleTime: 5000 = data is "fresh" for 5 seconds before refetching
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 5000 } } });
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5000,
+    },
+  },
+});
+
+type AppRoute = {
+  path: string;
+  element: ReactNode;
+  fallback?: ReactNode;
+  protected?: boolean;
+};
+
+const appRoutes: AppRoute[] = [
+  { path: "/", element: <LandingPage />, fallback: <PageSkeleton /> },
+  { path: "/about", element: <AboutPage />, fallback: <PageSkeleton /> },
+  { path: "/learn", element: <LearnPage />, fallback: <EditorSkeleton /> },
+  { path: "/career/:trackId", element: <CareerLearnPage />, fallback: <EditorSkeleton /> },
+  { path: "/compiler", element: <CompilerPage />, fallback: <EditorSkeleton /> },
+  { path: "/problems", element: <ProblemsListPage />, fallback: <ProblemsListSkeleton /> },
+  { path: "/problems/:id", element: <ProblemPage />, fallback: <EditorSkeleton /> },
+  { path: "/dashboard", element: <DashboardPage />, fallback: <DashboardSkeleton />, protected: true },
+  { path: "/leaderboard", element: <LeaderboardPage />, fallback: <PageSkeleton /> },
+  { path: "/jobs", element: <JobsPage />, fallback: <PageSkeleton /> },
+  { path: "/dsa", element: <DSAPage />, fallback: <PageSkeleton /> },
+  { path: "/aptitude", element: <AptitudePage />, fallback: <PageSkeleton /> },
+  { path: "/donate", element: <DonatePage />, fallback: <PageSkeleton /> },
+  { path: "/auth", element: <AuthPage />, fallback: <PageSkeleton /> },
+  { path: "/reset-password", element: <ResetPasswordPage />, fallback: <PageSkeleton /> },
+  { path: "/complete-profile", element: <CompleteProfilePage />, fallback: <PageSkeleton />, protected: true },
+  { path: "/certificate", element: <CertificatePage />, fallback: <PageSkeleton />, protected: true },
+  { path: "/certificate/verify/:certificateId", element: <CertificateVerificationPage />, fallback: <PageSkeleton /> },
+  { path: "/quick-prep", element: <QuickPrepPage />, fallback: <PageSkeleton /> },
+  { path: "/u/:userId", element: <PublicProfilePage />, fallback: <PageSkeleton /> },
+  { path: "/privacy", element: <PrivacyPolicyPage />, fallback: <PageSkeleton /> },
+  { path: "/contact", element: <ContactPage />, fallback: <PageSkeleton /> },
+  { path: "*", element: <NotFound />, fallback: <PageSkeleton /> },
+];
+
+function renderRouteElement(route: AppRoute) {
+  const content = <Suspense fallback={route.fallback ?? <PageSkeleton />}>{route.element}</Suspense>;
+  return route.protected ? <ProtectedRoute>{content}</ProtectedRoute> : content;
+}
 
 // ============================================================
 // THE APP TREE (Provider Hierarchy):
@@ -76,52 +104,25 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-      <TooltipProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <ProgressProvider>
-              {/* Toast notifications (two systems for different styles) */}
-              <Toaster />
-              <Sonner />
-
-              {/* AppLayout adds navbar, sidebar, and footer */}
-              <AppLayout>
-                {/* ErrorBoundary catches any crash inside routes */}
-                <ErrorBoundary>
-                  <Routes>
-                    {/* Each route maps a URL path to a page component */}
-                    {/* Suspense shows a skeleton loader while the page loads */}
-                    <Route path="/" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
-                    <Route path="/about" element={<Suspense fallback={<PageSkeleton />}><AboutPage /></Suspense>} />
-                    <Route path="/learn" element={<Suspense fallback={<EditorSkeleton />}><LearnPage /></Suspense>} />
-                    <Route path="/career/:trackId" element={<Suspense fallback={<EditorSkeleton />}><CareerLearnPage /></Suspense>} />
-                    <Route path="/compiler" element={<Suspense fallback={<EditorSkeleton />}><CompilerPage /></Suspense>} />
-                    <Route path="/problems" element={<Suspense fallback={<ProblemsListSkeleton />}><ProblemsListPage /></Suspense>} />
-                    <Route path="/problems/:id" element={<Suspense fallback={<EditorSkeleton />}><ProblemPage /></Suspense>} />
-                    <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<DashboardSkeleton />}><DashboardPage /></Suspense></ProtectedRoute>} />
-                    <Route path="/leaderboard" element={<Suspense fallback={<PageSkeleton />}><LeaderboardPage /></Suspense>} />
-                    <Route path="/jobs" element={<Suspense fallback={<PageSkeleton />}><JobsPage /></Suspense>} />
-                    <Route path="/dsa" element={<Suspense fallback={<PageSkeleton />}><DSAPage /></Suspense>} />
-                    <Route path="/aptitude" element={<Suspense fallback={<PageSkeleton />}><AptitudePage /></Suspense>} />
-                    <Route path="/donate" element={<Suspense fallback={<PageSkeleton />}><DonatePage /></Suspense>} />
-                    <Route path="/auth" element={<Suspense fallback={<PageSkeleton />}><AuthPage /></Suspense>} />
-                    <Route path="/reset-password" element={<Suspense fallback={<PageSkeleton />}><ResetPasswordPage /></Suspense>} />
-                    <Route path="/complete-profile" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CompleteProfilePage /></Suspense></ProtectedRoute>} />
-                    <Route path="/certificate" element={<ProtectedRoute><Suspense fallback={<PageSkeleton />}><CertificatePage /></Suspense></ProtectedRoute>} />
-                    <Route path="/certificate/verify/:certificateId" element={<Suspense fallback={<PageSkeleton />}><CertificateVerificationPage /></Suspense>} />
-                    <Route path="/quick-prep" element={<Suspense fallback={<PageSkeleton />}><QuickPrepPage /></Suspense>} />
-                    <Route path="/u/:userId" element={<Suspense fallback={<PageSkeleton />}><PublicProfilePage /></Suspense>} />
-                    <Route path="/privacy" element={<Suspense fallback={<PageSkeleton />}><PrivacyPolicyPage /></Suspense>} />
-                    <Route path="/contact" element={<Suspense fallback={<PageSkeleton />}><ContactPage /></Suspense>} />
-                    {/* Catch-all: any unknown URL shows 404 */}
-                    <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
-                  </Routes>
-                </ErrorBoundary>
-              </AppLayout>
-            </ProgressProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <ProgressProvider>
+                <Toaster />
+                <Sonner />
+                <AppLayout>
+                  <ErrorBoundary>
+                    <Routes>
+                      {appRoutes.map((route) => (
+                        <Route key={route.path} path={route.path} element={renderRouteElement(route)} />
+                      ))}
+                    </Routes>
+                  </ErrorBoundary>
+                </AppLayout>
+              </ProgressProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
   </HelmetProvider>

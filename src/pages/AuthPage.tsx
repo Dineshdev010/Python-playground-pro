@@ -15,6 +15,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 type AuthMode = "login" | "signup" | "forgot";
+type PasswordRequirements = {
+  length: boolean;
+  upper: boolean;
+  lower: boolean;
+  number: boolean;
+  special: boolean;
+};
+
+const AUTH_COPY: Record<AuthMode, { subtitle: string; submit: string }> = {
+  login: {
+    subtitle: "Welcome back! Sign in to continue learning.",
+    submit: "Sign In",
+  },
+  signup: {
+    subtitle: "Create your secure account and start coding.",
+    submit: "Create Secure Account",
+  },
+  forgot: {
+    subtitle: "Enter your email to reset your password.",
+    submit: "Send Reset Link",
+  },
+};
 
 // Requirement row component extracted to prevent React unmount loops
 const ReqItem = ({ met, text }: { met: boolean; text: string }) => (
@@ -27,6 +49,22 @@ const ReqItem = ({ met, text }: { met: boolean; text: string }) => (
     <span>{text}</span>
   </motion.div>
 );
+
+function getPasswordRequirements(password: string): PasswordRequirements {
+  return {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+}
+
+function getStrengthColor(score: number) {
+  if (score <= 2) return "bg-red-500";
+  if (score <= 4) return "bg-python-yellow";
+  return "bg-green-500";
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -44,23 +82,13 @@ export default function AuthPage() {
   const { login, signup, resetPassword } = useAuth();
 
   // Instant password validation memoized for maximum performance
-  const reqs = useMemo(() => ({
-    length: password.length >= 8,
-    upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[^A-Za-z0-9]/.test(password)
-  }), [password]);
+  const reqs = useMemo(() => getPasswordRequirements(password), [password]);
 
   const strengthScore = Object.values(reqs).filter(Boolean).length;
   const isPasswordValid = strengthScore === 5;
   const doPasswordsMatch = password === confirmPassword && password.length > 0;
-
-  // Determine strength color
-  const strengthColor = 
-    strengthScore <= 2 ? "bg-red-500" : 
-    strengthScore <= 4 ? "bg-python-yellow" : 
-    "bg-green-500";
+  const strengthColor = getStrengthColor(strengthScore);
+  const currentCopy = AUTH_COPY[mode];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,11 +145,7 @@ export default function AuthPage() {
             <img src="/logo.png" alt="PyMaster" className="w-10 h-10 rounded-xl shadow-lg" decoding="async" fetchPriority="high" />
             <span className="font-bold text-2xl text-foreground">PyMaster</span>
           </Link>
-          <p className="text-muted-foreground text-sm font-medium">
-            {mode === "login" && "Welcome back! Sign in to continue learning."}
-            {mode === "signup" && "Create your secure account and start coding."}
-            {mode === "forgot" && "Enter your email to reset your password."}
-          </p>
+          <p className="text-muted-foreground text-sm font-medium">{currentCopy.subtitle}</p>
         </div>
 
         {/* Animated Auth Card */}
@@ -273,9 +297,7 @@ export default function AuthPage() {
                 <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
               ) : (
                 <>
-                  {mode === "login" && "Sign In"}
-                  {mode === "signup" && "Create Secure Account"}
-                  {mode === "forgot" && "Send Reset Link"}
+                  {currentCopy.submit}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

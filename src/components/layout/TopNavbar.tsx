@@ -96,6 +96,16 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   };
 
   const [showAd, setShowAd] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.dataset.navProfileOpen = profileMenuOpen ? "true" : "false";
+    window.dispatchEvent(new CustomEvent("pymaster-sidebar-change", { detail: { profileOpen: profileMenuOpen } }));
+
+    return () => {
+      delete document.body.dataset.navProfileOpen;
+    };
+  }, [profileMenuOpen]);
 
   return (
     <>
@@ -226,7 +236,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
           <span className="text-muted-foreground">{levelLabel} • Lv {levelNumber}</span>
         </div>
         {user ? (
-          <DropdownMenu>
+          <DropdownMenu open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-secondary/50 hover:bg-secondary transition-colors outline-none cursor-pointer shrink-0">
                 <Avatar className="h-7 w-7 shrink-0 border border-primary/25 ring-2 ring-primary/10 shadow-sm">

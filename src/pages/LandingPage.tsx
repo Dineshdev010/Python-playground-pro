@@ -65,10 +65,15 @@ export default function LandingPage() {
 
   useEffect(() => {
     const syncSidebarState = (event?: Event) => {
-      const nextOpen =
-        event && "detail" in event && typeof (event as CustomEvent<{ open?: boolean }>).detail?.open === "boolean"
-          ? Boolean((event as CustomEvent<{ open?: boolean }>).detail.open)
-          : document.body.dataset.sidebarOpen === "true";
+      const detail =
+        event && "detail" in event
+          ? ((event as CustomEvent<{ sidebarOpen?: boolean; profileOpen?: boolean }>).detail ?? {})
+          : {};
+      const sidebarOpen =
+        typeof detail.sidebarOpen === "boolean" ? detail.sidebarOpen : document.body.dataset.sidebarOpen === "true";
+      const profileOpen =
+        typeof detail.profileOpen === "boolean" ? detail.profileOpen : document.body.dataset.navProfileOpen === "true";
+      const nextOpen = sidebarOpen || profileOpen;
       setHideFloatingBadges(nextOpen);
     };
 

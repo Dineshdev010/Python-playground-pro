@@ -4,7 +4,7 @@
 // Switched from Firebase to Supabase!
 // ============================================================
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { useCallback, useContext, useEffect, useState, type ReactNode, createContext } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -42,21 +42,56 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+const PROFILE_COLUMNS = "display_name, bio, avatar_url, skills, profile_complete";
+
+// Pure function — no component deps, safe to live outside the component
+function mapUser(sbUser: SupabaseUser | null | undefined): AppUser | null {
+  if (!sbUser) return null;
+  return {
+    uid: sbUser.id,
+    email: sbUser.email || null,
+    displayName: sbUser.user_metadata?.displayName || sbUser.user_metadata?.full_name || null,
+  };
+}
+
+function createEmptyProfile(displayName: string | null = null): AppProfile {
+  return {
+    displayName,
+    bio: "",
+    avatarUrl: "",
+    skills: [],
+    profileComplete: false,
+  };
+}
+
+function createProfileUpsertPayload(user: SupabaseUser, displayName: string) {
+  return {
+    id: user.id,
+    email: user.email,
+    display_name: displayName,
+    wallet: 0,
+    streak: 0,
+    xp: 0,
+    stars_caught: 0,
+    daily_stars: 0,
+    solved_problems: [],
+    completed_lessons: [],
+    completed_exercises: [],
+    unlocked_lessons: [],
+    activity_map: {},
+    previous_streak: 0,
+    time_spent: 0,
+    bio: "",
+    avatar_url: "",
+    skills: [],
+    profile_complete: false,
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [profile, setProfile] = useState<AppProfile | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Map Supabase User to our local AppUser interface safely
-  const mapUser = (sbUser: SupabaseUser | null | undefined): AppUser | null => {
-    if (!sbUser) return null;
-    return {
-      uid: sbUser.id,
-      email: sbUser.email || null,
-      displayName: sbUser.user_metadata?.displayName || sbUser.user_metadata?.full_name || null,
-    };
-  };
 
   const syncLocalProfileCache = useCallback((nextProfile: AppProfile | null, fallbackUser?: AppUser | null) => {
     if (!nextProfile) {
@@ -101,9 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select(
-          "display_name, bio, avatar_url, skills, profile_complete, email, wallet, streak, xp, stars_caught, daily_stars, solved_problems, completed_lessons, completed_exercises, unlocked_lessons, activity_map, last_coding_date, previous_streak, streak_broken_date, last_star_date, time_spent",
-        )
+        .select(PROFILE_COLUMNS)
         .eq("id", sbUser.id)
         .maybeSingle();
 
@@ -114,39 +147,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const initialName = appUser?.displayName || sbUser.email?.split("@")[0] || "";
 
       if (!data) {
-        const { error: upsertError } = await supabase.from("profiles").upsert({
-          id: sbUser.id,
-          email: sbUser.email,
-          display_name: initialName,
-          wallet: 0,
-          streak: 0,
-          xp: 0,
-          stars_caught: 0,
-          daily_stars: 0,
-          solved_problems: [],
-          completed_lessons: [],
-          completed_exercises: [],
-          unlocked_lessons: [],
-          activity_map: {},
-          previous_streak: 0,
-          time_spent: 0,
-          bio: "",
-          avatar_url: "",
-          skills: [],
-          profile_complete: false,
-        });
+        const { error: upsertError } = await supabase.from("profiles").upsert(createProfileUpsertPayload(sbUser, initialName));
 
         if (upsertError) {
           throw upsertError;
         }
 
-        const createdProfile = {
-          displayName: initialName || null,
-          bio: "",
-          avatarUrl: "",
-          skills: [],
-          profileComplete: false,
-        };
+        const createdProfile = createEmptyProfile(initialName || null);
 
         setProfile(createdProfile);
         syncLocalProfileCache(createdProfile, appUser);
@@ -216,27 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Supabase Auth officially created the user. Now create their profiles row.
     if (data.user) {
-      await supabase.from("profiles").upsert({
-        id: data.user.id,
-        email: data.user.email,
-        display_name: name,
-        wallet: 0,
-        streak: 0,
-        xp: 0,
-        stars_caught: 0,
-        daily_stars: 0,
-        solved_problems: [],
-        completed_lessons: [],
-        completed_exercises: [],
-        unlocked_lessons: [],
-        activity_map: {},
-        previous_streak: 0,
-        time_spent: 0,
-        bio: "",
-        avatar_url: "",
-        skills: [],
-        profile_complete: false,
-      });
+      await supabase.from("profiles").upsert(createProfileUpsertPayload(data.user, name));
     }
 
     const nextUser = mapUser(data.user);

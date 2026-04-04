@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, Code, Flame, Wallet, Trophy, Target, Zap, Star, Award, Camera, Pencil, Check, ShoppingBag, Clock, Share2, Copy, Download, Palette, Medal, CheckCircle2, Crown, ArrowUpRight, Sparkles, Save, Github, Linkedin, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getPublicUrl } from "@/lib/public-url";
 
 const trophyMilestones = [
 { stars: 20, emoji: "🥉", title: "Bronze Trophy", color: "bg-reward-gold/10 border-reward-gold/30" },
@@ -283,8 +284,8 @@ export default function DashboardPage() {
   };
 
   const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === dashboardTheme) || DASHBOARD_THEMES[0];
-  const dashboardUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : "/dashboard";
-  const publicProfileUrl = typeof window !== "undefined" && user?.uid ? `${window.location.origin}/u/${user.uid}` : dashboardUrl;
+  const dashboardUrl = getPublicUrl("/dashboard");
+  const publicProfileUrl = user?.uid ? getPublicUrl(`/u/${user.uid}`) : dashboardUrl;
   const solvedPct = problems.length ? Math.round(progress.solvedProblems.length / problems.length * 100) : 0;
   const lessonPct = lessons.length ? Math.round(progress.completedLessons.length / lessons.length * 100) : 0;
   const levelNumber = Math.floor(progress.xp / 500) + 1;

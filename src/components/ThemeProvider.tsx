@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 // Only two themes supported
 type Theme = "dark" | "light";
+type ThemeMode = "auto" | "manual";
 
 // Context shape: current theme + toggle function
 interface ThemeContextType {
@@ -17,6 +18,13 @@ interface ThemeContextType {
 
 // Default: dark mode, no-op toggle (overridden by provider)
 const ThemeContext = createContext<ThemeContextType>({ theme: "dark", toggleTheme: () => {} });
+const THEME_KEY = "pymaster_theme";
+const THEME_MODE_KEY = "pymaster_theme_mode";
+
+function getClockTheme(): Theme {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18 ? "light" : "dark";
+}
 
 /**
  * useTheme() — Access the current theme and toggle function.
@@ -35,34 +43,50 @@ export function useTheme() {
  * 3. toggleTheme() switches between "dark" and "light"
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage, else fallback to clock detection
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    try {
+      return localStorage.getItem(THEME_MODE_KEY) === "manual" ? "manual" : "auto";
+    } catch {
+      return "auto";
+    }
+  });
   const [theme, setTheme] = useState<Theme>(() => {
     try {
-      const stored = localStorage.getItem("pymaster_theme");
-      if (stored) return stored as Theme;
-      
-      // Auto-detect based on local clock
-      const hour = new Date().getHours();
-      // 6 AM (6) to 5:59 PM (17) is Light Mode. 6 PM (18) to 5:59 AM (5) is Dark Mode.
-      if (hour >= 6 && hour < 18) {
-        return "light";
+      const storedTheme = localStorage.getItem(THEME_KEY);
+      const storedMode = localStorage.getItem(THEME_MODE_KEY);
+      if (storedMode === "manual" && (storedTheme === "light" || storedTheme === "dark")) {
+        return storedTheme;
       }
-      return "dark";
+      return getClockTheme();
     } catch {
-      return "dark";
+      return getClockTheme();
     }
   });
 
-  // When theme changes, update the <html> class and save to localStorage
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark"); // Remove old theme class
-    root.classList.add(theme); // Add new theme class
-    localStorage.setItem("pymaster_theme", theme); // Persist preference
-  }, [theme]);
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.setItem(THEME_KEY, theme);
+    localStorage.setItem(THEME_MODE_KEY, themeMode);
+  }, [theme, themeMode]);
 
-  // Toggle between dark and light
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  useEffect(() => {
+    if (themeMode !== "auto") return;
+
+    const syncThemeWithClock = () => {
+      setTheme(getClockTheme());
+    };
+
+    syncThemeWithClock();
+    const interval = window.setInterval(syncThemeWithClock, 2 * 60 * 1000);
+    return () => window.clearInterval(interval);
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    setThemeMode("manual");
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

@@ -4,9 +4,21 @@
 // No audio files needed — sounds are generated programmatically!
 // ============================================================
 
-function createAudioContext(): AudioContext {
-  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-  return new AudioContextCtor();
+// Shared AudioContext — reused across all sound calls.
+// Browsers cap the number of AudioContext instances (~6), so a
+// single shared instance avoids hitting that limit.
+let sharedAudioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!sharedAudioCtx || sharedAudioCtx.state === "closed") {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    sharedAudioCtx = new Ctor();
+  }
+  // Resume if suspended by browser autoplay policy
+  if (sharedAudioCtx.state === "suspended") {
+    sharedAudioCtx.resume().catch(() => undefined);
+  }
+  return sharedAudioCtx;
 }
 
 /**
@@ -15,8 +27,7 @@ function createAudioContext(): AudioContext {
  */
 export function playCelebrationSound() {
   try {
-    // Create a new audio context (browser's audio engine)
-    const audioCtx = createAudioContext();
+    const audioCtx = getAudioContext();
 
     // Musical notes: C5, E5, G5, C6 (a happy ascending chord)
     const notes = [523.25, 659.25, 783.99, 1046.5];
@@ -45,9 +56,6 @@ export function playCelebrationSound() {
 
       startTime += durations[i]; // Next note starts after this one ends
     });
-
-    // Clean up audio context after sounds finish
-    setTimeout(() => audioCtx.close(), 2000);
   } catch {
     // Audio not supported — fail silently (don't crash the app)
   }
@@ -59,7 +67,7 @@ export function playCelebrationSound() {
  */
 export function playApplauseSound() {
   try {
-    const audioCtx = createAudioContext();
+    const audioCtx = getAudioContext();
 
     const duration = 1.5;
     const bufferSize = audioCtx.sampleRate * duration;
@@ -89,8 +97,6 @@ export function playApplauseSound() {
     source.connect(filter);
     filter.connect(audioCtx.destination);
     source.start();
-
-    setTimeout(() => audioCtx.close(), 3000);
   } catch {
     // Audio not supported
   }
@@ -102,7 +108,7 @@ export function playApplauseSound() {
  */
 export function playLevelUpSound() {
   try {
-    const audioCtx = createAudioContext();
+    const audioCtx = getAudioContext();
 
     // Rising scale: C4 → E4 → G4 → C5 → E5 → G5
     const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
@@ -128,8 +134,6 @@ export function playLevelUpSound() {
 
       startTime += 0.08; // Overlap notes slightly for a smoother sound
     });
-
-    setTimeout(() => audioCtx.close(), 2000);
   } catch {
     // Audio not supported
   }

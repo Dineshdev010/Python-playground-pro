@@ -16,14 +16,75 @@ import { toast } from "sonner";
 import { GoogleAd } from "@/components/ads/GoogleAd";
 import { Helmet } from "react-helmet-async";
 
-// Group lessons by category
-const categories = ["Beginner", "Intermediate", "Advanced"] as const;
+const categoryOrder = ["Beginner", "Intermediate", "Advanced", "Expert"] as const;
+
+const categoryTone: Record<(typeof categoryOrder)[number], { label: string; heading: string; badge: string }> = {
+  Beginner: {
+    label: "text-streak-green",
+    heading: "🟢 Beginner",
+    badge: "bg-streak-green/10 text-streak-green border-streak-green/20",
+  },
+  Intermediate: {
+    label: "text-primary",
+    heading: "🔵 Intermediate",
+    badge: "bg-primary/10 text-primary border-primary/20",
+  },
+  Advanced: {
+    label: "text-expert-purple",
+    heading: "🟣 Advanced",
+    badge: "bg-expert-purple/10 text-expert-purple border-expert-purple/20",
+  },
+  Expert: {
+    label: "text-reward-gold",
+    heading: "🟡 Expert",
+    badge: "bg-reward-gold/10 text-reward-gold border-reward-gold/20",
+  },
+};
+
+const topicCoverage = [
+  {
+    title: "Core Python",
+    items: ["Syntax", "variables", "data types", "strings", "input/output", "numbers", "control flow", "loops"],
+  },
+  {
+    title: "Collections",
+    items: ["Lists", "tuples", "sets", "dictionaries", "comprehensions", "sorting", "itertools", "functional tools"],
+  },
+  {
+    title: "Functions To OOP",
+    items: ["Functions", "recursion", "modules", "imports", "classes", "inheritance", "decorators", "context managers"],
+  },
+  {
+    title: "Real-World Python",
+    items: ["Files", "exceptions", "regex", "testing", "debugging", "APIs", "web scraping", "concurrency"],
+  },
+];
+
+const beginnerMastery = [
+  "Read and write basic Python syntax confidently",
+  "Use variables, data types, strings, and numbers correctly",
+  "Make decisions with if, elif, else, and boolean logic",
+  "Repeat work with for loops, while loops, and range()",
+  "Work with lists, tuples, sets, and dictionaries",
+  "Write simple reusable functions with parameters and return values",
+  "Handle input, formatted output, and common beginner mistakes",
+  "Read small programs and explain what each line is doing",
+];
+
+function getLessonHeadings(content: string) {
+  return content
+    .split("\n")
+    .filter((line) => line.startsWith("## ") || line.startsWith("### "))
+    .map((line) => line.replace(/^###?\s+/, ""))
+    .slice(0, 5);
+}
 
 export default function LearnPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { progress, completeLesson, unlockLesson } = useProgress();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const categories = categoryOrder.filter((category) => lessons.some((lesson) => lesson.category === category));
 
   const selectedLesson = lessons.find(l => l.id === selectedId);
 
@@ -92,6 +153,7 @@ export default function LearnPage() {
   };
 
   const getLessonsByCategory = (cat: string) => lessons.filter(l => l.category === cat);
+  const selectedLessonHeadings = selectedLesson ? getLessonHeadings(selectedLesson.content) : [];
 
   useEffect(() => {
     if (!selectedLesson) return;
@@ -137,10 +199,8 @@ export default function LearnPage() {
             const catLessons = getLessonsByCategory(cat);
             return (
               <div key={cat} className="mb-3">
-                <div className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${
-                  cat === "Beginner" ? "text-streak-green" : cat === "Intermediate" ? "text-primary" : "text-expert-purple"
-                }`}>
-                  {cat === "Beginner" ? "🟢" : cat === "Intermediate" ? "🔵" : "🟣"} {cat}
+                <div className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${categoryTone[cat].label}`}>
+                  {categoryTone[cat].heading}
                 </div>
                 {catLessons.map((lesson) => {
                   const globalIndex = lessons.indexOf(lesson);
@@ -213,11 +273,7 @@ export default function LearnPage() {
               <ArrowLeft className="w-4 h-4" /> All Lessons
             </button>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 flex-wrap">
-              <span className={`px-2 py-0.5 rounded-full border ${
-                selectedLesson.category === "Beginner" ? "bg-streak-green/10 text-streak-green border-streak-green/20" :
-                selectedLesson.category === "Intermediate" ? "bg-primary/10 text-primary border-primary/20" :
-                "bg-expert-purple/10 text-expert-purple border-expert-purple/20"
-              }`}>
+              <span className={`px-2 py-0.5 rounded-full border ${categoryTone[selectedLesson.category as keyof typeof categoryTone]?.badge ?? "bg-secondary text-foreground border-border"}`}>
                 {selectedLesson.category}
               </span>
               {getLessonProgress(selectedLesson.id) === 3 && (
@@ -228,6 +284,19 @@ export default function LearnPage() {
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{selectedLesson.title}</h1>
             <p className="text-muted-foreground mb-6">{selectedLesson.description}</p>
+
+            {selectedLessonHeadings.length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/60 p-4">
+                <div className="text-sm font-semibold text-foreground mb-3">In This Lesson</div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedLessonHeadings.map((heading) => (
+                    <span key={heading} className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+                      {heading}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Content */}
             <div className="mb-8">
@@ -346,16 +415,43 @@ export default function LearnPage() {
           <div className="flex flex-col items-center md:justify-center h-full text-center px-4 sm:px-6 py-6 overflow-y-auto">
             <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4 hidden md:block" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Select a Lesson</h2>
-            <p className="text-muted-foreground mb-6 hidden md:block">Choose a topic from the sidebar to start learning</p>
+            <p className="text-muted-foreground mb-6 hidden md:block">Choose a topic from the sidebar to start learning with a broader, clearer Python track.</p>
+
+            <div className="w-full max-w-5xl mb-8 grid gap-4 sm:grid-cols-2 text-left">
+              {topicCoverage.map((group) => (
+                <div key={group.title} className="rounded-2xl border border-border bg-card/60 p-4">
+                  <div className="text-sm font-semibold text-foreground mb-3">{group.title}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.items.map((item) => (
+                      <span key={item} className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="w-full max-w-5xl mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-left">
+              <div className="text-base font-semibold text-foreground mb-3">Beginner Mastery On PyMaster</div>
+              <p className="text-sm text-muted-foreground mb-4">
+                If someone completes the beginner track carefully, these are the core skills they should understand clearly before moving ahead.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {beginnerMastery.map((item) => (
+                  <div key={item} className="rounded-xl border border-border bg-background/80 px-3 py-2 text-sm text-muted-foreground">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Mobile lesson list grouped by category */}
             <div className="md:hidden w-full max-w-md space-y-4 text-left">
               {categories.map(cat => (
                 <div key={cat}>
-                  <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${
-                    cat === "Beginner" ? "text-streak-green" : cat === "Intermediate" ? "text-primary" : "text-expert-purple"
-                  }`}>
-                    {cat === "Beginner" ? "🟢" : cat === "Intermediate" ? "🔵" : "🟣"} {cat}
+                  <h3 className={`text-sm font-bold uppercase tracking-wider mb-2 ${categoryTone[cat].label}`}>
+                    {categoryTone[cat].heading}
                   </h3>
                   <div className="space-y-2">
                     {getLessonsByCategory(cat).map(lesson => {

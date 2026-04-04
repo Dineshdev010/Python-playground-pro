@@ -5,6 +5,7 @@ import { ShieldCheck, Copy, Share2, ArrowLeft, BadgeCheck, CalendarDays, Award }
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { getPublicUrl } from "@/lib/public-url";
 
 type VerifiedCertificate = {
   id: string;
@@ -55,7 +56,7 @@ export default function CertificateVerificationPage() {
     };
   }, [certificateId]);
 
-  const publicUrl = typeof window !== "undefined" ? window.location.href : "";
+  const publicUrl = getPublicUrl(certificateId ? `/certificate/verify/${certificateId}` : "/certificate");
   const publicCertId = useMemo(() => {
     if (!certificate) return "Unavailable";
     return `PY-${certificate.id.replace(/-/g, "").slice(0, 12).toUpperCase()}`;

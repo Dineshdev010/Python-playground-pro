@@ -203,6 +203,132 @@ export const lessons: Lesson[] = [
   },
 
   // ═══════════════════════════════════════
+  {
+    id: "operators-expressions",
+    title: "Operators & Expressions",
+    category: "Beginner",
+    description: "Understand arithmetic, comparison, assignment, and how expressions produce values",
+    content: `## Operators & Expressions\n\nOperators tell Python to do work with values.\n\n### Arithmetic operators\n- \`+\` add\n- \`-\` subtract\n- \`*\` multiply\n- \`/\` divide\n- \`//\` floor divide\n- \`%\` remainder\n- \`**\` power\n\n### Comparison operators\n- \`==\`, \`!=\`, \`>\`, \`<\`, \`>=\`, \`<=\`\n\n### Assignment operators\n- \`=\`\n- \`+=\`, \`-=\`, \`*=\`\n\n### Crystal-clear rule\nAn expression is any code that becomes a value. \`2 + 3\` becomes \`5\`. \`age >= 18\` becomes \`True\`.`,
+    codeExample: `a = 10\nb = 3\n\nprint(a + b)\nprint(a - b)\nprint(a * b)\nprint(a / b)\nprint(a // b)\nprint(a % b)\nprint(a ** b)\n\nscore = 50\nscore += 10\nprint(score)\nprint(score >= 60)`,
+    exercises: {
+      beginner: {
+        prompt: "Given a=12 and b=5, print the sum and the remainder on separate lines.",
+        starterCode: `a = 12\nb = 5\n\n# Print the sum\n# Print the remainder\n`,
+        expectedOutput: "17\n2",
+      },
+      intermediate: {
+        prompt: "Given points=40, increase it by 15 using += and print the final value.",
+        starterCode: `points = 40\n\n# Increase and print\n`,
+        expectedOutput: "55",
+      },
+      advanced: {
+        prompt: "Given x=7 and y=7, print the result of x == y and x >= y on separate lines.",
+        starterCode: `x = 7\ny = 7\n\n# Print both comparisons\n`,
+        expectedOutput: "True\nTrue",
+      },
+    },
+  },
+  {
+    id: "indexing-slicing",
+    title: "Indexing & Slicing",
+    category: "Beginner",
+    description: "Access characters and items by position in strings and lists",
+    content: `## Indexing & Slicing\n\nPython lets you access items by position.\n\n### Indexing\n- First item is index \`0\`\n- Last item can be accessed with negative indexes like \`-1\`\n\n### Slicing\n- \`items[start:stop]\` gets part of a sequence\n- The stop position is not included\n- \`items[::-1]\` is a simple way to reverse\n\n### Why beginners must master this\nIndexing and slicing appear in strings, lists, loops, validation, and many real interview questions.`,
+    codeExample: `word = "Python"\nprint(word[0])\nprint(word[-1])\nprint(word[1:4])\nprint(word[::-1])\n\nnums = [10, 20, 30, 40, 50]\nprint(nums[2])\nprint(nums[:3])`,
+    exercises: {
+      beginner: {
+        prompt: "Given word='PyMaster', print the first character.",
+        starterCode: `word = "PyMaster"\n\n# Print the first character\n`,
+        expectedOutput: "P",
+      },
+      intermediate: {
+        prompt: "Given text='Programming', print the slice 'gram'.",
+        starterCode: `text = "Programming"\n\n# Print gram\n`,
+        expectedOutput: "gram",
+      },
+      advanced: {
+        prompt: "Given nums=[1,2,3,4,5], print the list in reverse order using slicing.",
+        starterCode: `nums = [1, 2, 3, 4, 5]\n\n# Reverse and print\n`,
+        expectedOutput: "[5, 4, 3, 2, 1]",
+      },
+    },
+  },
+  {
+    id: "lists-basics",
+    title: "Lists & List Basics",
+    category: "Beginner",
+    description: "Store many values in one place and update them easily",
+    content: `## Lists\n\nA list is an ordered, changeable collection.\n\n### What beginners should know\n- Lists use square brackets: \`[]\`\n- Items can be read by index\n- Lists can be changed after creation\n- Common tools are \`.append()\`, \`.remove()\`, and \`len()\`\n\n### Real-world use\nUse lists for marks, names, tasks, products, scores, and any group of related values.`,
+    codeExample: `fruits = ["apple", "banana", "mango"]\nprint(fruits[0])\n\nfruits.append("orange")\nprint(fruits)\n\nfruits.remove("banana")\nprint(fruits)\nprint(len(fruits))`,
+    exercises: {
+      beginner: {
+        prompt: "Create a list with ['red', 'green', 'blue'] and print it.",
+        starterCode: `# Create the list and print it\n`,
+        expectedOutput: "['red', 'green', 'blue']",
+      },
+      intermediate: {
+        prompt: "Given nums=[1,2,3], append 4 and print the updated list.",
+        starterCode: `nums = [1, 2, 3]\n\n# Append and print\n`,
+        expectedOutput: "[1, 2, 3, 4]",
+      },
+      advanced: {
+        prompt: "Given items=['pen', 'book', 'bag'], remove 'book' and print the list length on the first line, then the list.",
+        starterCode: `items = ["pen", "book", "bag"]\n\n# Remove and print length and list\n`,
+        expectedOutput: "2\n['pen', 'bag']",
+      },
+    },
+  },
+  {
+    id: "tuples-sets-dicts-basics",
+    title: "Tuples, Sets & Dictionary Basics",
+    category: "Beginner",
+    description: "Learn the core collection types and when to use each one",
+    content: `## Tuples, Sets, and Dictionaries\n\nPython has different collection types for different jobs.\n\n### Tuple\n- Ordered\n- Usually used for fixed data\n- Written with parentheses like \`(10, 20)\`\n\n### Set\n- Unordered\n- Keeps only unique values\n- Great for removing duplicates\n\n### Dictionary\n- Stores key-value pairs\n- Written with curly braces like \`{"name": "Asha"}\`\n- Excellent for structured data\n\n### Quick rule\nUse a list for ordered items, a tuple for fixed groups, a set for uniqueness, and a dictionary for named data.`,
+    codeExample: `point = (10, 20)\nprint(point[0])\n\ncolors = {"red", "blue", "red"}\nprint(colors)\n\nuser = {"name": "Asha", "city": "Chennai"}\nprint(user["name"])\nuser["level"] = "beginner"\nprint(user)`,
+    exercises: {
+      beginner: {
+        prompt: "Create a tuple (5, 10, 15) and print the second value.",
+        starterCode: `# Create tuple and print second value\n`,
+        expectedOutput: "10",
+      },
+      intermediate: {
+        prompt: "Given nums=[1,1,2,2,3,3], convert it to a set and print the result.",
+        starterCode: `nums = [1, 1, 2, 2, 3, 3]\n\n# Convert to set and print\n`,
+        expectedOutput: "{1, 2, 3}",
+      },
+      advanced: {
+        prompt: "Create a dictionary student={'name': 'Ravi', 'marks': 90}. Print the name on the first line and marks on the second line.",
+        starterCode: `# Create dictionary and print values\n`,
+        expectedOutput: "Ravi\n90",
+      },
+    },
+  },
+  {
+    id: "functions-basics",
+    title: "Functions Basics",
+    category: "Beginner",
+    description: "Write small reusable blocks of code with parameters and return values",
+    content: `## Functions Basics\n\nA function is a named block of code that does one job.\n\n### Why functions matter\nFunctions help you avoid repeating code and make programs easier to read.\n\n### Core parts\n- \`def\` starts a function\n- Parameters receive input values\n- \`return\` sends a value back\n\n### Beginner goal\nAfter this lesson, a learner should be able to write a small function, call it, and understand what input goes in and what value comes out.`,
+    codeExample: `def greet(name):\n    return f"Hello, {name}"\n\nprint(greet("PyMaster"))\n\n\ndef add(a, b):\n    return a + b\n\nprint(add(4, 6))`,
+    exercises: {
+      beginner: {
+        prompt: "Write a function say_hi() that prints 'Hi'. Call it once.",
+        starterCode: `# Define say_hi and call it\n`,
+        expectedOutput: "Hi",
+      },
+      intermediate: {
+        prompt: "Write a function add(a, b) that returns the sum. Print add(7, 8).",
+        starterCode: `# Define add and print add(7, 8)\n`,
+        expectedOutput: "15",
+      },
+      advanced: {
+        prompt: "Write a function is_even(n) that returns True for even numbers. Print is_even(12) and is_even(7) on separate lines.",
+        starterCode: `# Define is_even and test it\n`,
+        expectedOutput: "True\nFalse",
+      },
+    },
+  },
+
   // INTERMEDIATE
   // ═══════════════════════════════════════
   {
@@ -839,6 +965,106 @@ export const lessons: Lesson[] = [
         prompt: "Use itertools.chain to combine [1,2], [3,4], [5,6] into one list. Print it.",
         starterCode: `from itertools import chain\n\n# Chain and print\n`,
         expectedOutput: "[1, 2, 3, 4, 5, 6]",
+      },
+    },
+  },
+  {
+    id: "boolean-none",
+    title: "Boolean Logic & None",
+    category: "Beginner",
+    description: "Understand truthy values, boolean expressions, and the None object",
+    content: `## Boolean Logic\n\nBooleans represent truth values: \`True\` and \`False\`.\n\n### Common ideas\n- Comparison expressions return booleans\n- \`and\`, \`or\`, and \`not\` combine conditions\n- Empty strings, empty collections, 0, and \`None\` are falsy\n- \`None\` means “no value” and should be checked with \`is None\`\n\n### Why it matters\nBoolean logic controls decisions, loops, filtering, and validation in real Python programs.`,
+    codeExample: `user_name = ""\nage = 20\nscore = None\n\nprint(bool(user_name))      # False\nprint(age >= 18 and age < 60)\nprint(score is None)        # True\n\nstatus = "ready" if user_name or age >= 18 else "wait"\nprint(status)`,
+    exercises: {
+      beginner: {
+        prompt: "Given is_logged_in=True and has_token=False, print the result of is_logged_in and has_token.",
+        starterCode: `is_logged_in = True\nhas_token = False\n\n# Print the combined result\n`,
+        expectedOutput: "False",
+      },
+      intermediate: {
+        prompt: "Given value=None, print 'Missing' if the value is None, otherwise print 'Present'.",
+        starterCode: `value = None\n\n# Check and print\n`,
+        expectedOutput: "Missing",
+      },
+      advanced: {
+        prompt: "Given nums=[0, 1, 2, 3], print only the truthy values as a list using a comprehension.",
+        starterCode: `nums = [0, 1, 2, 3]\n\n# Filter truthy values and print\n`,
+        expectedOutput: "[1, 2, 3]",
+      },
+    },
+  },
+  {
+    id: "json-serialization",
+    title: "JSON & Serialization",
+    category: "Intermediate",
+    description: "Convert Python data to JSON and back again",
+    content: `## JSON in Python\n\nJSON is a text format used to exchange structured data.\n\n### Core functions\n- \`json.dumps()\` converts Python data to a JSON string\n- \`json.loads()\` parses a JSON string into Python data\n- \`json.dump()\` and \`json.load()\` work with files\n\n### When to use it\nUse JSON when working with APIs, config files, browser apps, and saved structured data.`,
+    codeExample: `import json\n\nuser = {"name": "PyMaster", "level": "beginner", "xp": 120}\njson_text = json.dumps(user, indent=2)\nprint(json_text)\n\nparsed = json.loads('{"ok": true, "count": 3}')\nprint(parsed["count"])`,
+    exercises: {
+      beginner: {
+        prompt: "Convert {'name': 'Alice', 'age': 25} to a JSON string and print it.",
+        starterCode: `import json\n\ndata = {"name": "Alice", "age": 25}\n\n# Convert and print\n`,
+        expectedOutput: '{"name": "Alice", "age": 25}',
+      },
+      intermediate: {
+        prompt: "Parse the JSON string '{\"city\": \"Chennai\", \"pin\": 600001}' and print the city value.",
+        starterCode: `import json\n\ntext = '{"city": "Chennai", "pin": 600001}'\n\n# Parse and print city\n`,
+        expectedOutput: "Chennai",
+      },
+      advanced: {
+        prompt: "Convert [{'id': 1}, {'id': 2}] to pretty JSON with indent=2 and print it.",
+        starterCode: `import json\n\nitems = [{"id": 1}, {"id": 2}]\n\n# Print pretty JSON\n`,
+        expectedOutput: '[\n  {\n    "id": 1\n  },\n  {\n    "id": 2\n  }\n]',
+      },
+    },
+  },
+  {
+    id: "datetime",
+    title: "Datetime & Time Utilities",
+    category: "Intermediate",
+    description: "Work with dates, times, timedeltas, and formatting",
+    content: `## Datetime\n\nPython's \`datetime\` module helps you create, compare, and format dates and times.\n\n### Key tools\n- \`datetime.now()\` for current date and time\n- \`date()\` and \`time()\` parts of a datetime\n- \`timedelta\` for adding or subtracting time\n- \`strftime()\` for formatting output\n\n### Common use cases\nScheduling, timestamps, logs, expiration checks, reminders, and date math.`,
+    codeExample: `from datetime import datetime, timedelta\n\nnow = datetime(2026, 4, 3, 10, 30)\nprint(now.strftime("%Y-%m-%d"))\n\nnext_week = now + timedelta(days=7)\nprint(next_week.strftime("%d %b %Y"))`,
+    exercises: {
+      beginner: {
+        prompt: "Create a datetime for 2026-01-01 and print it formatted as YYYY-MM-DD.",
+        starterCode: `from datetime import datetime\n\n# Create and print formatted date\n`,
+        expectedOutput: "2026-01-01",
+      },
+      intermediate: {
+        prompt: "Given a datetime for 2026-04-03, add 5 days and print the new date as YYYY-MM-DD.",
+        starterCode: `from datetime import datetime, timedelta\n\nday = datetime(2026, 4, 3)\n\n# Add 5 days and print\n`,
+        expectedOutput: "2026-04-08",
+      },
+      advanced: {
+        prompt: "Create two datetimes: 2026-04-01 and 2026-04-10. Print the number of days between them.",
+        starterCode: `from datetime import datetime\n\nstart = datetime(2026, 4, 1)\nend = datetime(2026, 4, 10)\n\n# Print day difference\n`,
+        expectedOutput: "9",
+      },
+    },
+  },
+  {
+    id: "typing-dataclasses",
+    title: "Type Hints & Dataclasses",
+    category: "Advanced",
+    description: "Write clearer Python with annotations and lightweight data models",
+    content: `## Type Hints & Dataclasses\n\nType hints document what values a function expects and returns.\n\n### Type hints\n- \`name: str\`\n- \`age: int\`\n- \`def greet(user: str) -> str:\`\n\n### Dataclasses\nUse \`@dataclass\` when a class mostly stores data. Python creates \`__init__\`, \`__repr__\`, and comparison helpers for you.\n\n### Why this helps\nYour code becomes easier to read, maintain, and check with tools.`,
+    codeExample: `from dataclasses import dataclass\n\n@dataclass\nclass User:\n    name: str\n    xp: int\n\n\ndef level_label(xp: int) -> str:\n    return "pro" if xp >= 100 else "starter"\n\nuser = User("Asha", 140)\nprint(user)\nprint(level_label(user.xp))`,
+    exercises: {
+      beginner: {
+        prompt: "Write a function greet(name: str) -> str that returns 'Hello, <name>'. Print greet('PyMaster').",
+        starterCode: `# Define greet with type hints\n\n# Print the result\n`,
+        expectedOutput: "Hello, PyMaster",
+      },
+      intermediate: {
+        prompt: "Create a dataclass Product with fields name:str and price:int. Make Product('Book', 500) and print its name.",
+        starterCode: `from dataclasses import dataclass\n\n# Define Product and test it\n`,
+        expectedOutput: "Book",
+      },
+      advanced: {
+        prompt: "Create a dataclass Point with x:int and y:int. Make Point(3, 4) and print x + y.",
+        starterCode: `from dataclasses import dataclass\n\n# Define Point and print x + y\n`,
+        expectedOutput: "7",
       },
     },
   },

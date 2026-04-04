@@ -42,7 +42,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.body.dataset.sidebarOpen = sidebarOpen ? "true" : "false";
-    window.dispatchEvent(new CustomEvent("pymaster-sidebar-change", { detail: { open: sidebarOpen } }));
+    window.dispatchEvent(new CustomEvent("pymaster-sidebar-change", { detail: { sidebarOpen } }));
 
     return () => {
       delete document.body.dataset.sidebarOpen;

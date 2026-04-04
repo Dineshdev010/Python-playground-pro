@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { problems } from "@/data/problems";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/lib/supabase";
+import { getPublicUrl } from "@/lib/public-url";
 import { Link } from "react-router-dom";
 import gpayQR from "@/assets/gpay-qr.jpg";
 
@@ -105,7 +106,7 @@ export default function CertificatePage() {
     [certificate],
   );
   const verificationPath = certificate ? `/certificate/verify/${certificate.id}` : "/certificate";
-  const certificateUrl = typeof window !== "undefined" ? `${window.location.origin}${verificationPath}` : verificationPath;
+  const certificateUrl = getPublicUrl(verificationPath);
   const certificateShareText = `${profileName} unlocked a ${effectiveLevel} Python certificate on PyMaster.\nCertificate ID: ${certId}\nXP: ${progress.xp.toLocaleString()}`;
   const pageStats = [
     { label: "XP Earned", value: progress.xp.toLocaleString(), icon: Sparkles },

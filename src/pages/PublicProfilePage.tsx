@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProgress } from "@/contexts/ProgressContext";
 import { getStreakTitle } from "@/lib/progress";
 import { readLeaderboardCache, writeLeaderboardCache, type CachedLeaderboardRow } from "@/lib/leaderboardCache";
+import { getPublicUrl } from "@/lib/public-url";
 
 type PublicProfileRow = {
   user_id: string;
@@ -107,7 +108,7 @@ export default function PublicProfilePage() {
     };
   }, [localOwnEntry, userId]);
 
-  const publicUrl = typeof window !== "undefined" ? window.location.href : "";
+  const publicUrl = getPublicUrl(`/u/${userId ?? ""}`);
   const shareText = useMemo(() => {
     if (!entry) return "";
     return `${entry.display_name}'s PyMaster profile\nXP: ${entry.xp.toLocaleString()} • Problems: ${entry.solved_count} • Streak: ${entry.streak} days`;
