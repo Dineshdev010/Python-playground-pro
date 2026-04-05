@@ -10,6 +10,7 @@ import App from "./App.tsx"; // The main App component
 import "./index.css"; // Global styles (Tailwind CSS + custom styles)
 
 const CHUNK_RELOAD_KEY = "pymaster_chunk_reload_once";
+let appMounted = false;
 
 function hideLoaderSafely() {
   if (typeof window !== "undefined" && window.__hideLoader) {
@@ -55,11 +56,22 @@ window.addEventListener("unhandledrejection", (event) => {
     return;
   }
 
+  if (appMounted) {
+    // Non-fatal async errors can happen after app mount; don't replace the UI.
+    console.error("Unhandled promise rejection:", event.reason);
+    return;
+  }
+
   hideLoaderSafely();
   showBootError("A startup promise failed. Open DevTools Console and share the first red error line.");
 });
 
 window.addEventListener("error", (event) => {
+  if (appMounted) {
+    console.error("Runtime error:", event.error || event.message);
+    return;
+  }
+
   hideLoaderSafely();
   const msg = event.message || "A startup script failed.";
   showBootError(`${msg} Open DevTools Console and share the first red error line.`);
@@ -67,8 +79,14 @@ window.addEventListener("error", (event) => {
 
 // Mount the App component into the <div id="root"> in index.html
 try {
-  registerSW({ immediate: true });
+  registerSW({
+    immediate: true,
+    onRegisterError(error) {
+      console.warn("Service worker registration warning:", error);
+    },
+  });
   createRoot(document.getElementById("root")!).render(<App />);
+  appMounted = true;
   sessionStorage.removeItem(CHUNK_RELOAD_KEY);
 } catch (error) {
   console.error("App bootstrap failed:", error);

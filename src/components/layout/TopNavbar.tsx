@@ -117,13 +117,13 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
       completionTitle="Thanks for supporting PyMaster"
       completionDescription="You can keep learning while we grow the platform."
     />
-    <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md fixed top-0 left-0 right-0 z-[999] flex items-center px-2 sm:px-4 justify-between shrink-0">
+    <header className="h-16 sm:h-14 border-b border-border bg-card/80 backdrop-blur-md fixed top-0 left-0 right-0 z-[999] flex items-center px-2 sm:px-4 justify-between shrink-0">
       <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-3">
         <button
           onClick={onMenuToggle}
-          className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 sm:w-5 sm:h-5" />
         </button>
         <Link to="/" className="flex items-center gap-2 group relative overflow-hidden">
           <motion.img 
@@ -223,19 +223,19 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
         {!user && (
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === "dark" ? <Sun className="w-5 h-5 sm:w-4 sm:h-4" /> : <Moon className="w-5 h-5 sm:w-4 sm:h-4" />}
           </button>
         )}
         <button
           onClick={toggleMuted}
-          className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           aria-label={muted ? "Unmute sounds" : "Mute sounds"}
           title={muted ? "Unmute sounds" : "Mute sounds"}
         >
-          {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          {muted ? <VolumeX className="w-5 h-5 sm:w-4 sm:h-4" /> : <Volume2 className="w-5 h-5 sm:w-4 sm:h-4" />}
         </button>
         <div className="hidden md:flex">
           <StreakFire streak={progress.streak} size="sm" showQuote />

@@ -147,7 +147,7 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="w-full min-h-screen flex items-center justify-center text-foreground bg-[#020617] overflow-hidden relative"
+      className="w-full min-h-screen flex items-center justify-center text-foreground bg-[#0b1220] overflow-hidden relative"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -168,12 +168,12 @@ export default function AuthPage() {
         <motion.div 
           animate={{ rotate: 360, scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="absolute -top-[30%] -left-[10%] w-[70vw] h-[70vw] rounded-full bg-blue-600/20 blur-[130px]"
+          className="absolute -top-[30%] -left-[10%] w-[70vw] h-[70vw] rounded-full bg-primary/25 blur-[130px]"
         />
         <motion.div 
           animate={{ rotate: -360, scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[20%] -right-[20%] w-[80vw] h-[80vw] rounded-full bg-purple-600/20 blur-[150px]"
+          className="absolute top-[20%] -right-[20%] w-[80vw] h-[80vw] rounded-full bg-python-yellow/20 blur-[150px]"
         />
         <motion.div 
           animate={{ y: [0, -60, 0], x: [0, 40, 0], opacity: [0.1, 0.3, 0.1] }}
@@ -212,7 +212,7 @@ export default function AuthPage() {
       >
         <motion.div 
           layout
-          className="bg-[#0f111a]/60 md:bg-[#0f111a]/40 backdrop-blur-xl md:backdrop-blur-3xl border border-white/10 rounded-3xl md:rounded-[2.5rem] shadow-[0_0_50px_rgba(37,99,235,0.15)] md:shadow-[0_0_80px_rgba(37,99,235,0.2)] relative overflow-hidden"
+          className="bg-[#0f111a]/70 md:bg-[#0f111a]/50 backdrop-blur-xl md:backdrop-blur-3xl border border-primary/20 rounded-3xl md:rounded-[2.5rem] shadow-[0_0_50px_rgba(37,99,235,0.2)] md:shadow-[0_0_80px_rgba(250,204,21,0.15)] relative overflow-hidden"
         >
           {/* Top Edge Glow */}
           <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-60" />
@@ -221,8 +221,8 @@ export default function AuthPage() {
           <div className="p-6 sm:p-10 pb-4 sm:pb-6 text-center">
             <div className="flex justify-center mb-6">
               <div className="relative group">
-                <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-violet-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-80 transition duration-500 animate-pulse"></div>
-                <div className="relative bg-[#0d0f14] border border-white/10 p-2.5 rounded-2xl">
+                <div className="absolute -inset-2 bg-gradient-to-r from-primary to-python-yellow rounded-2xl blur-lg opacity-50 group-hover:opacity-80 transition duration-500 animate-pulse"></div>
+                <div className="relative bg-[#0d0f14] border border-primary/25 p-2.5 rounded-2xl">
                   <img src="/logo.png" alt="PyMaster" className="w-14 h-14 rounded-xl object-contain" />
                 </div>
               </div>
@@ -371,8 +371,8 @@ export default function AuthPage() {
                   disabled={loading}
                   className={`w-full h-14 rounded-full text-[16px] font-bold overflow-hidden relative group transition-all duration-300 border-none shadow-[0_0_40px_rgba(59,130,246,0.2)] hover:shadow-[0_0_60px_rgba(59,130,246,0.4)] hover:-translate-y-0.5
                     ${mode === "signup" && isPasswordValid && doPasswordsMatch 
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white" 
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                      ? "bg-gradient-to-r from-streak-green to-primary text-white" 
+                      : "bg-gradient-to-r from-primary to-python-yellow text-[#0b1220]"
                     }`}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide">

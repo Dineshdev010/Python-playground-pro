@@ -19,8 +19,8 @@ export function DailyWantedLevel() {
   ];
 
   return (
-    <div className="fixed right-2 top-[6.65rem] z-[998] pointer-events-none sm:right-4 sm:top-[4.15rem]">
-      <div className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-background/85 px-2 py-1 text-[10px] shadow-lg backdrop-blur-md sm:gap-1.5 sm:px-2.5 sm:text-[11px]">
+    <div className="pointer-events-none fixed right-[max(0.5rem,env(safe-area-inset-right))] top-[calc(env(safe-area-inset-top)+4.95rem)] z-[998] sm:right-4 sm:top-[4.15rem]">
+      <div className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-background/85 px-2 py-1 text-[10px] shadow-lg backdrop-blur-md max-[380px]:pr-1.5 sm:gap-1.5 sm:px-2.5 sm:text-[11px]">
         {starsArray.map((isCaught, idx) => (
           <motion.div
             key={idx}
@@ -37,7 +37,7 @@ export function DailyWantedLevel() {
             />
           </motion.div>
         ))}
-        <span className="pl-0.5 font-semibold text-foreground sm:pl-1">
+        <span className="pl-0.5 font-semibold text-foreground max-[360px]:hidden sm:pl-1">
           Daily Tasks
         </span>
       </div>

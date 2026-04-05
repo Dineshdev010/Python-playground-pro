@@ -921,6 +921,13 @@ function getLessonUsagePlaybook(title: string): LessonUsagePlaybook {
 }
 
 export default function LearnPage() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { progress, completeLesson, unlockLesson } = useProgress();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const categories = categoryOrder.filter((category) => lessons.some((lesson) => lesson.category === category));
+
+  const selectedLesson = lessons.find(l => l.id === selectedId);
   const canonical = "https://pymaster.pro/learn";
   const pageTitle = selectedLesson
     ? `${selectedLesson.title} Lesson | Learn Python on PyMaster`
@@ -1024,13 +1031,6 @@ export default function LearnPage() {
       },
     ],
   };
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const { progress, completeLesson, unlockLesson } = useProgress();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const categories = categoryOrder.filter((category) => lessons.some((lesson) => lesson.category === category));
-
-  const selectedLesson = lessons.find(l => l.id === selectedId);
   const exampleEditorHeight = useMemo(() => {
     if (!selectedLesson) return 220;
     const lineCount = selectedLesson.codeExample.split("\n").length;

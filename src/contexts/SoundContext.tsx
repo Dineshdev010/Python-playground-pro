@@ -14,7 +14,10 @@ const SoundContext = createContext<SoundContextValue | null>(null);
 
 function getStoredMutePreference() {
   if (typeof window === "undefined") return false;
-  return localStorage.getItem(SOUND_PREF_KEY) === "true";
+  const stored = localStorage.getItem(SOUND_PREF_KEY);
+  // Default to muted so first-time users don't hear unexpected tones.
+  if (stored === null) return true;
+  return stored === "true";
 }
 
 export function SoundProvider({ children }: { children: React.ReactNode }) {
@@ -133,4 +136,3 @@ export function useSound() {
   }
   return ctx;
 }
-

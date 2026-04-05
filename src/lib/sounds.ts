@@ -8,6 +8,15 @@
 // Browsers cap the number of AudioContext instances (~6), so a
 // single shared instance avoids hitting that limit.
 let sharedAudioCtx: AudioContext | null = null;
+const SOUND_PREF_KEY = "pymaster_sound_muted";
+
+function isSoundMuted(): boolean {
+  if (typeof window === "undefined") return true;
+  const stored = localStorage.getItem(SOUND_PREF_KEY);
+  // Keep first-time experience silent unless user explicitly enables sound.
+  if (stored === null) return true;
+  return stored === "true";
+}
 
 function getAudioContext(): AudioContext {
   if (!sharedAudioCtx || sharedAudioCtx.state === "closed") {
@@ -27,6 +36,7 @@ function getAudioContext(): AudioContext {
  */
 export function playCelebrationSound() {
   try {
+    if (isSoundMuted()) return;
     const audioCtx = getAudioContext();
 
     // Musical notes: C5, E5, G5, C6 (a happy ascending chord)
@@ -67,6 +77,7 @@ export function playCelebrationSound() {
  */
 export function playApplauseSound() {
   try {
+    if (isSoundMuted()) return;
     const audioCtx = getAudioContext();
 
     const duration = 1.5;
@@ -108,6 +119,7 @@ export function playApplauseSound() {
  */
 export function playLevelUpSound() {
   try {
+    if (isSoundMuted()) return;
     const audioCtx = getAudioContext();
 
     // Rising scale: C4 → E4 → G4 → C5 → E5 → G5

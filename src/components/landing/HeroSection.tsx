@@ -8,7 +8,7 @@
 
 import { Link } from "react-router-dom";
 import { motion, type Easing } from "framer-motion";
-import { ArrowRight, BookOpen, Code, Flame, Target, Sparkles, Rocket, ChevronDown, Star, Gamepad2 } from "lucide-react";
+import { ArrowRight, BookOpen, Code, Flame, Target, Sparkles, Rocket, ChevronDown, Star, Gamepad2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -111,6 +111,11 @@ export function HeroSection() {
   const statLabelClasses = isDarkTheme ? "text-slate-400" : "text-slate-500 font-medium";
   const statValueClasses = isDarkTheme ? "text-white" : "text-slate-900";
   const scrollHintClasses = isDarkTheme ? "text-slate-400" : "text-blue-500 font-medium";
+  const scrollToDownload = () => {
+    const target = document.getElementById("download-app");
+    if (!target) return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // ---------- Mouse Parallax tracking ----------
   const mouseX = useMotionValue(0);
@@ -195,7 +200,7 @@ export function HeroSection() {
   return (
     <section 
       ref={heroRef} 
-      className="relative flex min-h-[82vh] items-center overflow-hidden pt-2 sm:pt-4"
+      className="relative flex min-h-[82vh] items-center overflow-hidden pt-8 sm:pt-4"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
     >
@@ -240,7 +245,7 @@ export function HeroSection() {
       </motion.div>
 
       {/* Main hero content with parallax */}
-      <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative isolate mx-auto w-full max-w-[1320px] px-3 pb-16 pt-2 text-center sm:px-5 md:pb-20 md:pt-4">
+      <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative isolate mx-auto w-full max-w-[1320px] px-3 pb-16 pt-10 text-center sm:px-5 sm:pt-4 md:pb-20 md:pt-4">
         <div className={`absolute inset-x-2 top-8 -bottom-2 -z-10 rounded-[3rem] blur-3xl sm:inset-x-6 sm:top-10 ${heroGlowClasses}`} />
         
         {/* "Free Python Learning Platform" badge */}
@@ -293,12 +298,6 @@ export function HeroSection() {
         
         {/* Subtitle description */}
         <motion.p
-          className={`mx-auto mb-2 max-w-3xl text-lg leading-relaxed sm:text-2xl font-extrabold ${heroSubtitleBrandClasses}`}
-          initial="hidden" animate="visible" variants={fadeUp} custom={2}
-        >
-          Start in 60 seconds. No signup needed.
-        </motion.p>
-        <motion.p
           className={`mx-auto mb-8 max-w-3xl text-base leading-relaxed sm:text-xl font-medium ${heroSubtitleClasses}`}
           initial="hidden" animate="visible" variants={fadeUp} custom={2.2}
         >
@@ -326,6 +325,15 @@ export function HeroSection() {
             <Link to="/python-game">
               <Gamepad2 className="w-4 h-4" /> Try Drag & Drop Game
             </Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="gap-2 text-base h-12 px-8 border-python-yellow/50 text-python-yellow hover:bg-python-yellow/10 bg-background/70 backdrop-blur-sm"
+            onClick={scrollToDownload}
+          >
+            <Download className="w-4 h-4" /> Download App
           </Button>
         </motion.div>
 
