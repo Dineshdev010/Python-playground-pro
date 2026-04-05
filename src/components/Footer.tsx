@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, ArrowUpRight, Github, Linkedin, Youtube, Smartphone } from "lucide-react";
+import { Heart, ArrowUpRight, Github, Linkedin, Youtube, Smartphone, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
@@ -141,6 +141,17 @@ export function Footer() {
                     <p className="text-sm font-semibold text-foreground">Download PyMaster App</p>
                     <p className="text-xs text-muted-foreground mb-3">Install once, open instantly, and continue learning from your home screen.</p>
                     <AddToHomeScreenButton variant="footer" />
+                    <div className="mt-3 rounded-xl border border-border/70 bg-background/70 px-3 py-2">
+                      <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+                        <ShieldCheck className="h-3.5 w-3.5 text-streak-green" />
+                        Safe to install
+                      </p>
+                      <ul className="mt-1 space-y-1 text-[11px] text-muted-foreground">
+                        <li>No extra permissions requested.</li>
+                        <li>Low storage. Uninstall anytime.</li>
+                        <li>Your learning data stays private.</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
