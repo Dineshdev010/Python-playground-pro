@@ -6,10 +6,10 @@
 // Includes pre-built code templates for quick starts.
 // ============================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
-import { Play, RotateCcw, FileCode, Square } from "lucide-react";
+import { Play, RotateCcw, FileCode, Square, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProgress } from "@/contexts/ProgressContext";
 import {
@@ -46,6 +46,11 @@ export default function CompilerPage() {
   const [executionTime, setExecutionTime] = useState<number | null>(null); // Execution time in ms
   const [runtimeStatus, setRuntimeStatus] = useState<PythonRuntimeStatus>(getPythonRuntimeStatus());
   const [runtimeError, setRuntimeError] = useState(getPythonRuntimeError());
+  const [isEditorMounted, setIsEditorMounted] = useState(false);
+  const [showEditorFallback, setShowEditorFallback] = useState(false);
+  const [mobileView, setMobileView] = useState<"program" | "output">("program");
+  const editorPanelRef = useRef<HTMLDivElement | null>(null);
+  const outputPanelRef = useRef<HTMLDivElement | null>(null);
   const { logActivity } = useProgress();              // Record activity for streak
   const isMobile = useIsMobile();
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
@@ -63,6 +68,20 @@ export default function CompilerPage() {
       setRuntimeError(error);
     });
   }, []);
+
+  useEffect(() => {
+    if (isEditorMounted) return;
+    const timer = window.setTimeout(() => {
+      setShowEditorFallback(true);
+    }, 4500);
+    return () => window.clearTimeout(timer);
+  }, [isEditorMounted]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileView("program");
+    }
+  }, [isMobile]);
 
   // ---------- Run Python code ----------
   // Executes the code using Pyodide (WebAssembly) in the browser
@@ -147,34 +166,92 @@ export default function CompilerPage() {
               ▶ Run
             </Button>
           )}
+          <Button
+            size="sm"
+            variant={isMobile && mobileView === "program" ? "default" : "outline"}
+            className="h-8 text-xs gap-1 flex-1 sm:flex-none"
+            onClick={() => {
+              if (isMobile) {
+                setMobileView("program");
+                return;
+              }
+              editorPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <FileCode className="w-3 h-3" /> Program
+          </Button>
+          <Button
+            size="sm"
+            variant={isMobile && mobileView === "output" ? "default" : "outline"}
+            className="h-8 text-xs gap-1 flex-1 sm:flex-none"
+            onClick={() => {
+              if (isMobile) {
+                setMobileView("output");
+                return;
+              }
+              outputPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <Terminal className="w-3 h-3" /> Output
+          </Button>
         </div>
       </div>
 
       {/* ---------- Editor + Output split view ---------- */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto">
         {/* Monaco code editor (left/top panel) */}
-        <div className="flex-1 min-h-[52vh] md:min-h-0">
-          <Editor
-            height="100%"
-            language="python"
-            theme="vs-dark"
-            value={code}
-            onChange={(v) => setCode(v || "")}
-            options={{
-              fontSize: isMobile ? 13 : 14,
-              fontFamily: "'JetBrains Mono', monospace",
-              minimap: { enabled: false },
-              padding: { top: 16 },
-              scrollBeyondLastLine: false,
-              wordWrap: "on",
-              lineNumbers: isMobile ? "off" : "on",
-              renderLineHighlight: "gutter",
-              automaticLayout: true,
-            }}
-          />
+        <div
+          ref={editorPanelRef}
+          className={`${isMobile && mobileView === "output" ? "hidden" : "block"} flex-1 min-h-[52vh] md:min-h-0`}
+        >
+          {showEditorFallback && !isEditorMounted ? (
+            <div className="h-full bg-surface-0 border-b md:border-b-0 md:border-r border-border p-3 sm:p-4 flex flex-col gap-3">
+              <div className="text-xs text-muted-foreground">
+                Editor engine is taking longer than expected on this device. Fallback editor is active.
+              </div>
+              <textarea
+                className="flex-1 min-h-[45vh] md:min-h-0 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm font-mono text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                spellCheck={false}
+                aria-label="Python code editor fallback"
+              />
+            </div>
+          ) : (
+            <Editor
+              height="100%"
+              language="python"
+              theme="vs-dark"
+              value={code}
+              onChange={(v) => setCode(v || "")}
+              onMount={() => {
+                setIsEditorMounted(true);
+                setShowEditorFallback(false);
+              }}
+              loading={
+                <div className="h-full w-full flex items-center justify-center bg-surface-0">
+                  <span className="text-sm text-muted-foreground animate-pulse">Loading editor...</span>
+                </div>
+              }
+              options={{
+                fontSize: isMobile ? 13 : 14,
+                fontFamily: "'JetBrains Mono', monospace",
+                minimap: { enabled: false },
+                padding: { top: 16 },
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                lineNumbers: isMobile ? "off" : "on",
+                renderLineHighlight: "gutter",
+                automaticLayout: true,
+              }}
+            />
+          )}
         </div>
         {/* Output panel (right/bottom panel) */}
-        <div className="md:w-96 h-[40vh] min-h-[14rem] md:h-auto border-t md:border-t-0 md:border-l border-border bg-surface-0 flex flex-col">
+        <div
+          ref={outputPanelRef}
+          className={`${isMobile && mobileView === "program" ? "hidden" : "flex"} md:w-96 ${isMobile ? "flex-1 min-h-0" : "h-[40vh] min-h-[14rem] md:h-auto"} border-t md:border-t-0 md:border-l border-border bg-surface-0 flex-col`}
+        >
           {/* Output header with execution time */}
           <div className="px-4 py-2 border-b border-border bg-surface-1 text-xs text-muted-foreground font-mono flex items-center justify-between">
             <span className="flex items-center gap-2">
