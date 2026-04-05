@@ -11,19 +11,19 @@ type AuthMode = "login" | "signup" | "forgot";
 
 const AUTH_COPY: Record<AuthMode, { title: string; subtitle: string; submit: string }> = {
   login: {
-    title: "System Login",
-    subtitle: "Welcome back. Initialize your session.",
-    submit: "Initialize",
+    title: "Welcome Back",
+    subtitle: "Log in to continue your Python learning journey.",
+    submit: "Log In",
   },
   signup: {
-    title: "Request Access",
-    subtitle: "Join the elite network of Python developers.",
-    submit: "Create Instance",
+    title: "Create Your Account",
+    subtitle: "Start learning Python with lessons, quizzes, and practice.",
+    submit: "Create Account",
   },
   forgot: {
-    title: "Recover Override",
-    subtitle: "We'll route a recovery link to your inbox.",
-    submit: "Send Link",
+    title: "Reset Your Password",
+    subtitle: "Enter your email and we’ll send a reset link.",
+    submit: "Send Reset Link",
   },
 };
 
@@ -104,11 +104,11 @@ export default function AuthPage() {
     
     if (mode === "signup") {
       if (!isPasswordValid) {
-        toast({ title: "Syntax Error", description: "Your password does not meet security requirements.", variant: "destructive" });
+        toast({ title: "Password is too weak", description: "Use at least 8 characters with uppercase, lowercase, number, and symbol.", variant: "destructive" });
         return;
       }
       if (!doPasswordsMatch) {
-        toast({ title: "Mismatch", description: "Passwords must exactly match to proceed.", variant: "destructive" });
+        toast({ title: "Passwords do not match", description: "Please make sure both passwords are the same.", variant: "destructive" });
         return;
       }
     }
@@ -117,21 +117,21 @@ export default function AuthPage() {
     try {
       if (mode === "login") {
         const result = await login(email, password);
-        toast({ title: "Session active", description: "You've successfully authenticated." });
+        toast({ title: "Logged in successfully", description: "Welcome back." });
         navigate(result.profile?.profileComplete ? "/dashboard" : "/complete-profile");
       } else if (mode === "signup") {
         await signup(email, password, name);
-        toast({ title: "Account compiled!", description: "Your coding journey begins now." });
+        toast({ title: "Account created", description: "Your learning journey starts now." });
         navigate("/complete-profile");
       } else {
         await resetPassword(email);
-        toast({ title: "Signal sent", description: "Check your email for a password reset link." });
+        toast({ title: "Reset link sent", description: "Check your email for the password reset link." });
         setMode("login");
       }
     } catch (error) {
       toast({
-        title: "Runtime Warning",
-        description: error instanceof Error ? error.message : "An unexpected error occurred. Try again.",
+        title: "Something went wrong",
+        description: error instanceof Error ? error.message : "Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
@@ -250,9 +250,9 @@ export default function AuthPage() {
                       <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none text-white/30 group-focus-within:text-blue-400 transition-colors">
                         <User className="w-5 h-5" />
                       </div>
-                      <Input 
+                        <Input 
                         id="name" 
-                        placeholder="Developer Name" 
+                        placeholder="Your name" 
                         value={name} 
                         onChange={(e) => setName(e.target.value)} 
                         className="pl-14 h-14 bg-white/[0.03] border-white/10 text-white hover:bg-white/[0.05] focus-visible:bg-white/[0.08] focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 rounded-full transition-all font-medium text-[15px]" 
@@ -271,7 +271,7 @@ export default function AuthPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="Network Email Address" 
+                  placeholder="Email address" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   className="pl-14 h-14 bg-white/[0.03] border-white/10 text-white hover:bg-white/[0.05] focus-visible:bg-white/[0.08] focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 rounded-full transition-all font-medium text-[15px]" 
@@ -296,7 +296,7 @@ export default function AuthPage() {
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder={mode === "signup" ? "Set Access Key" : "Access Key"}
+                        placeholder={mode === "signup" ? "Create password" : "Password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-14 pr-14 h-14 bg-white/[0.03] border-white/10 text-white hover:bg-white/[0.05] focus-visible:bg-white/[0.08] focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 rounded-full transition-all font-medium tracking-wide text-[15px]"
@@ -317,7 +317,7 @@ export default function AuthPage() {
                         >
                           {/* Hyper-Modern Strength Meter */}
                           <div className="flex justify-between items-center px-4">
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">Security Integrity</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">Password strength</span>
                             <div className="flex gap-1">
                               {[1, 2, 3, 4, 5].map((block) => (
                                 <motion.div 
@@ -337,7 +337,7 @@ export default function AuthPage() {
                             <Input
                               id="confirmPassword"
                               type={showConfirmPassword ? "text" : "password"}
-                              placeholder="Verify Access Key"
+                              placeholder="Confirm password"
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
                               className={`pl-14 pr-14 h-14 bg-white/[0.03] text-white hover:bg-white/[0.05] focus-visible:bg-white/[0.08] transition-all font-medium rounded-full tracking-wide text-[15px] ${confirmPassword.length > 0 ? (doPasswordsMatch ? "border border-green-500/50 focus-visible:ring-1 focus-visible:ring-green-500/50" : "border border-red-500/50 focus-visible:ring-1 focus-visible:ring-red-500/50") : "border border-white/10 focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50"}`}
@@ -352,7 +352,7 @@ export default function AuthPage() {
                               <div className="absolute right-14 inset-y-0 flex items-center">
                                 {doPasswordsMatch 
                                   ? <span className="text-[10px] text-green-400 font-bold tracking-widest uppercase bg-green-500/10 px-2 py-0.5 rounded-full">Valid</span>
-                                  : <span className="text-[10px] text-red-400 font-bold tracking-widest uppercase bg-red-500/10 px-2 py-0.5 rounded-full">Error</span>
+                                  : <span className="text-[10px] text-red-400 font-bold tracking-widest uppercase bg-red-500/10 px-2 py-0.5 rounded-full">Mismatch</span>
                                 }
                               </div>
                             )}
@@ -379,7 +379,7 @@ export default function AuthPage() {
                     {loading ? (
                       <>
                         <span className="animate-spin w-5 h-5 border-2 border-white/20 border-t-white rounded-full" />
-                        Executing...
+                        Please wait...
                       </>
                     ) : (
                       <>
@@ -396,7 +396,7 @@ export default function AuthPage() {
             <div className="relative flex items-center py-6">
               <div className="flex-grow border-t border-white/5"></div>
               <span className="flex-shrink-0 mx-4 text-white/20 text-[10px] font-bold tracking-[0.2em] uppercase">
-                Or Continue With
+                Or continue with
               </span>
               <div className="flex-grow border-t border-white/5"></div>
             </div>
@@ -408,7 +408,7 @@ export default function AuthPage() {
                 try {
                   await signInWithGoogle();
                 } catch (error) {
-                  toast({ title: "Auth Error", description: "Failed to sign in with Google.", variant: "destructive" });
+                  toast({ title: "Google sign-in failed", description: "Please try again.", variant: "destructive" });
                 }
               }}
               variant="outline"
@@ -429,21 +429,21 @@ export default function AuthPage() {
             {mode === "login" && (
               <>
                 <button onClick={() => switchMode("signup")} className="text-14 font-medium text-white/50 hover:text-white transition-colors">
-                  Don't have an environment? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Compile Account</span>
+                  Don’t have an account? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Sign up</span>
                 </button>
                 <button onClick={() => switchMode("forgot")} className="text-[13px] font-medium text-white/30 hover:text-white/60 transition-colors">
-                  Forgot your access key?
+                  Forgot your password?
                 </button>
               </>
             )}
             {mode === "signup" && (
               <button onClick={() => switchMode("login")} className="text-14 font-medium text-white/50 hover:text-white transition-colors">
-                Environment already exists? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Initialize Session</span>
+                Already have an account? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Log in</span>
               </button>
             )}
             {mode === "forgot" && (
               <button onClick={() => switchMode("login")} className="text-14 font-medium text-white/50 hover:text-white transition-colors">
-                Exception resolved? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Return to Login</span>
+                Remembered your password? <span className="text-blue-400 font-bold ml-1 border-b border-blue-400/30 hover:border-blue-400">Back to login</span>
               </button>
             )}
           </div>

@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { Download, Share2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
+
+type AddToHomeScreenButtonProps = {
+  variant?: "default" | "footer";
+};
 
 function isIosDevice() {
   if (typeof window === "undefined") {
@@ -24,7 +29,7 @@ function isStandaloneMode() {
   return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-export function AddToHomeScreenButton() {
+export function AddToHomeScreenButton({ variant = "default" }: AddToHomeScreenButtonProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [showIosHint, setShowIosHint] = useState(false);
@@ -55,6 +60,7 @@ export function AddToHomeScreenButton() {
   }, []);
 
   const canShowInstall = ready && !installed && (Boolean(deferredPrompt) || isIosDevice());
+  const footerVariant = variant === "footer";
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -76,18 +82,23 @@ export function AddToHomeScreenButton() {
       {canShowInstall && (
         <Button
           type="button"
-          variant="outline"
+          variant={footerVariant ? "default" : "outline"}
           size="lg"
-          className="gap-2 text-base h-12 px-8 border-primary/20 bg-card/70 backdrop-blur-sm hover:bg-card"
+          className={cn(
+            "gap-2 text-base h-12 px-8",
+            footerVariant
+              ? "w-full rounded-xl border-0 bg-gradient-to-r from-primary via-blue-500 to-cyan-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.35)] hover:brightness-110"
+              : "border-primary/20 bg-card/70 backdrop-blur-sm hover:bg-card",
+          )}
           onClick={handleInstall}
         >
-          <Download className="w-4 h-4" />
-          Add to Home Screen
+          <Download className={cn("w-4 h-4", footerVariant ? "animate-pulse" : "")} />
+          {footerVariant ? "Download PyMaster App" : "Add to Home Screen"}
         </Button>
       )}
 
       {canShowInstall && showIosHint && (
-        <div className="max-w-sm rounded-2xl border border-border bg-card/90 px-4 py-3 text-left shadow-lg backdrop-blur-sm">
+        <div className={cn("max-w-sm rounded-2xl border border-border bg-card/90 px-4 py-3 text-left shadow-lg backdrop-blur-sm", footerVariant ? "max-w-none w-full" : "")}>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Smartphone className="w-4 h-4 text-primary" />
             Install on iPhone

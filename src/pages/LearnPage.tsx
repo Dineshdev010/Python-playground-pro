@@ -922,6 +922,16 @@ function getLessonUsagePlaybook(title: string): LessonUsagePlaybook {
 
 export default function LearnPage() {
   const canonical = "https://pymaster.pro/learn";
+  const pageTitle = selectedLesson
+    ? `${selectedLesson.title} Lesson | Learn Python on PyMaster`
+    : "Learn Python Online for Free | Beginner to Advanced Lessons | PyMaster";
+  const pageDescription = selectedLesson
+    ? `Learn ${selectedLesson.title} in Python with clear explanation, practical examples, and hands-on exercises on PyMaster.`
+    : "Learn Python online with step-by-step beginner to advanced lessons, practical examples, quizzes, and coding exercises on PyMaster.";
+  const pageKeywords = selectedLesson
+    ? `learn ${selectedLesson.title} python, ${selectedLesson.title} python tutorial, python ${selectedLesson.title} examples, python practice`
+    : "learn python, python tutorial, python for beginners, python exercises, python course online, python interview preparation, python coding practice, python lessons";
+
   const learnStructuredData = {
     "@context": "https://schema.org",
     "@type": "Course",
@@ -935,6 +945,54 @@ export default function LearnPage() {
     educationalLevel: "Beginner to Advanced",
     inLanguage: "en",
     url: canonical,
+  };
+  const webpageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: pageTitle,
+    description: pageDescription,
+    url: canonical,
+    inLanguage: "en",
+    isPartOf: {
+      "@type": "WebSite",
+      name: "PyMaster",
+      url: "https://pymaster.pro",
+    },
+    primaryImageOfPage: "https://pymaster.pro/og-image.png",
+    about: lessons.slice(0, 12).map((lesson) => ({
+      "@type": "Thing",
+      name: lesson.title,
+    })),
+  };
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://pymaster.pro/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Learn Python",
+        item: canonical,
+      },
+    ],
+  };
+  const lessonsItemListStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Python Lessons on PyMaster",
+    numberOfItems: lessons.length,
+    itemListElement: lessons.map((lesson, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: lesson.title,
+      description: lesson.description,
+    })),
   };
   const faqStructuredData = {
     "@context": "https://schema.org",
@@ -1082,25 +1140,32 @@ export default function LearnPage() {
   return (
     <>
     <Helmet>
-      <title>Learn Python | Structured Lessons on PyMaster</title>
+      <title>{pageTitle}</title>
       <meta
         name="description"
-        content="Study Python step by step with beginner, intermediate, and advanced lessons, code examples, and hands-on exercises."
+        content={pageDescription}
       />
-      <meta name="keywords" content="learn python, python course, python for beginners, python exercises, python practice, python tutorials online" />
+      <meta name="keywords" content={pageKeywords} />
+      <meta name="author" content="PyMaster" />
+      <meta name="language" content="en" />
       <meta name="robots" content="index, follow, max-image-preview:large" />
       <link rel="canonical" href={canonical} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={canonical} />
-      <meta property="og:title" content="Learn Python | PyMaster" />
-      <meta property="og:description" content="Step-by-step Python lessons with clear explanations, code examples, and exercises." />
+      <meta property="og:site_name" content="PyMaster" />
+      <meta property="og:locale" content="en_US" />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content="https://pymaster.pro/og-image.png" />
       <meta property="og:image:alt" content="Learn Python step by step with PyMaster lessons" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Learn Python | PyMaster" />
-      <meta name="twitter:description" content="Step-by-step Python lessons with clear explanations, code examples, and exercises." />
+      <meta name="twitter:title" content={pageTitle} />
+      <meta name="twitter:description" content={pageDescription} />
       <meta name="twitter:image" content="https://pymaster.pro/og-image.png" />
       <script type="application/ld+json">{JSON.stringify(learnStructuredData)}</script>
+      <script type="application/ld+json">{JSON.stringify(webpageStructuredData)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumbStructuredData)}</script>
+      <script type="application/ld+json">{JSON.stringify(lessonsItemListStructuredData)}</script>
       <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
     </Helmet>
     <AdViewModal

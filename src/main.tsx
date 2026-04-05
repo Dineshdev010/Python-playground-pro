@@ -5,6 +5,7 @@
 // ============================================================
 
 import { createRoot } from "react-dom/client"; // React 18's method to create a root
+import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx"; // The main App component
 import "./index.css"; // Global styles (Tailwind CSS + custom styles)
 
@@ -66,6 +67,7 @@ window.addEventListener("error", (event) => {
 
 // Mount the App component into the <div id="root"> in index.html
 try {
+  registerSW({ immediate: true });
   createRoot(document.getElementById("root")!).render(<App />);
   sessionStorage.removeItem(CHUNK_RELOAD_KEY);
 } catch (error) {

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Heart, ArrowUpRight, Github, Linkedin, Youtube } from "lucide-react";
+import { Heart, ArrowUpRight, Github, Linkedin, Youtube, Smartphone } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
 
 export function Footer() {
   const [sawPython, setSawPython] = useState<boolean | null>(null);
@@ -129,6 +130,21 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/90">Support</h4>
             <div className="mt-4 space-y-3">
+              <div className="rounded-2xl border border-border bg-card px-4 py-3">
+                <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-blue-500/10 to-cyan-500/10 p-4">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent_45%)] pointer-events-none" />
+                  <div className="relative">
+                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/60 px-3 py-1">
+                      <Smartphone className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-[11px] font-semibold text-foreground">Mobile App</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Download PyMaster App</p>
+                    <p className="text-xs text-muted-foreground mb-3">Install once, open instantly, and continue learning from your home screen.</p>
+                    <AddToHomeScreenButton variant="footer" />
+                  </div>
+                </div>
+              </div>
+
               <Link
                 to="/donate"
                 className="group flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 hover:bg-surface-2 transition-colors"
