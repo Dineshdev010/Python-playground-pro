@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
-import { Play, RotateCcw, FileCode, Square, Terminal } from "lucide-react";
+import { Play, RotateCcw, FileCode, Square, Terminal, Code2, Hash, ChevronRight, Quote, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProgress } from "@/contexts/ProgressContext";
 import {
@@ -51,6 +51,7 @@ export default function CompilerPage() {
   const [mobileView, setMobileView] = useState<"program" | "output">("program");
   const editorPanelRef = useRef<HTMLDivElement | null>(null);
   const outputPanelRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<any>(null); // Ref for Monaco editor instance
   const { logActivity } = useProgress();              // Record activity for streak
   const isMobile = useIsMobile();
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
@@ -82,6 +83,16 @@ export default function CompilerPage() {
       setMobileView("program");
     }
   }, [isMobile]);
+
+  // Fix: Force Monaco Editor to recalculate layout when switching back to 'program' view on mobile
+  useEffect(() => {
+    if (isMobile && mobileView === "program" && editorRef.current) {
+      // Small delay to ensure the container is visible in DOM
+      setTimeout(() => {
+        editorRef.current.layout();
+      }, 50);
+    }
+  }, [mobileView, isMobile]);
 
   // ---------- Run Python code ----------
   // Executes the code using Pyodide (WebAssembly) in the browser
@@ -115,10 +126,49 @@ export default function CompilerPage() {
     setIsRunning(false);
     // Log activity for streak tracking
     logActivity();
+
+    // Auto-switch to output view on mobile after running
+    if (isMobile) {
+      setMobileView("output");
+    }
   };
 
+  // ---------- Editor Helper ----------
+  // Inserts text at the current cursor position in Monaco
+  const insertText = (text: string) => {
+    if (!editorRef.current) return;
+    const editor = editorRef.current;
+    const selection = editor.getSelection();
+    const id = { major: 1, minor: 1 };
+    const op = { identifier: id, range: selection, text: text, forceMoveMarkers: true };
+    editor.executeEdits("my-source", [op]);
+    editor.focus();
+  };
+
+  const codingShortcuts = [
+    { label: "TAB", value: "    " },
+    { label: ":", value: ":" },
+    { label: "(", value: "(" },
+    { label: ")", value: ")" },
+    { label: "[", value: "[" },
+    { label: "]", value: "]" },
+    { label: "{", value: "{" },
+    { label: "}", value: "}" },
+    { label: "_", value: "_" },
+    { label: "\"", value: "\"" },
+    { label: "'", value: "'" },
+    { label: "=", value: " = " },
+    { label: "+", value: " + " },
+    { label: "-", value: " - " },
+    { label: "*", value: " * " },
+    { label: "/", value: " / " },
+    { label: "print", value: "print()" },
+    { label: "if", value: "if :" },
+    { label: "for", value: "for i in range():" },
+  ];
+
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)]">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
       {/* ---------- Toolbar ---------- */}
       <div className="h-auto min-h-[3rem] bg-surface-1 border-b border-border flex flex-wrap items-center justify-between px-3 sm:px-4 py-2 gap-2 shrink-0">
         <div className="flex items-center gap-2">
@@ -198,11 +248,11 @@ export default function CompilerPage() {
       </div>
 
       {/* ---------- Editor + Output split view ---------- */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         {/* Monaco code editor (left/top panel) */}
         <div
           ref={editorPanelRef}
-          className={`${isMobile && mobileView === "output" ? "hidden" : "block"} flex-1 min-h-[52vh] md:min-h-0`}
+          className={`${isMobile && mobileView === "output" ? "hidden" : "flex"} flex-1 flex-col h-full min-h-0 md:min-h-0`}
         >
           {showEditorFallback && !isEditorMounted ? (
             <div className="h-full bg-surface-0 border-b md:border-b-0 md:border-r border-border p-3 sm:p-4 flex flex-col gap-3">
@@ -224,7 +274,8 @@ export default function CompilerPage() {
               theme="vs-dark"
               value={code}
               onChange={(v) => setCode(v || "")}
-              onMount={() => {
+              onMount={(editor) => {
+                editorRef.current = editor;
                 setIsEditorMounted(true);
                 setShowEditorFallback(false);
               }}
@@ -245,6 +296,21 @@ export default function CompilerPage() {
                 automaticLayout: true,
               }}
             />
+          )}
+
+          {/* Mobile Coding Shortcut Bar */}
+          {isMobile && isEditorMounted && mobileView === "program" && (
+            <div className="h-10 bg-muted/30 border-t border-border flex items-center overflow-x-auto scrollbar-none px-2 gap-1.5 shrink-0 sticky bottom-0 z-10">
+              {codingShortcuts.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => insertText(item.value)}
+                  className="h-7 px-3 flex items-center justify-center bg-background border border-border/60 rounded-md text-[11px] font-mono font-bold text-foreground active:scale-95 active:bg-primary/5 transition-all shrink-0"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
         {/* Output panel (right/bottom panel) */}
