@@ -3,15 +3,16 @@
 const PYODIDE_VERSION = "0.26.4";
 const OUTPUT_LIMIT = 12000;
 const PYODIDE_BASE_URLS = [
-  "/pyodide/",
   `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`,
   `https://pyodide-cdn2.iodide.io/v${PYODIDE_VERSION}/full/`,
+  "/pyodide/",
 ];
 
 type PyodideRuntime = {
   setStdout: (options: { batched?: (message: string) => void }) => void;
   setStderr: (options: { batched?: (message: string) => void }) => void;
   runPythonAsync: (code: string) => Promise<void>;
+  loadPackage: (names: string | string[]) => Promise<void>;
 };
 
 type LoadPyodide = (options: { indexURL: string }) => Promise<PyodideRuntime>;
@@ -54,9 +55,9 @@ async function loadRuntime() {
           throw new Error("Pyodide loader did not initialize.");
         }
 
-        return await globalScope.loadPyodide({
+        return await (globalScope.loadPyodide as any)({
           indexURL: baseUrl,
-        });
+        }) as PyodideRuntime;
       } catch (error) {
         lastError = error;
       }
@@ -78,6 +79,11 @@ async function executeCode(requestId: number, code: string) {
     const pyodide = await loadRuntime();
     let stdout = "";
     let stderr = "";
+
+    // Load sqlite3 if needed (Pyodide 0.26.0+ unvendored it)
+    if (code.includes("import sqlite3")) {
+      await pyodide.loadPackage("sqlite3");
+    }
 
     pyodide.setStdout({
       batched: (message: string) => {

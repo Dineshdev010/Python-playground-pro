@@ -4,6 +4,7 @@ export interface CareerLesson {
   id: string;
   title: string;
   description: string;
+  category?: string;
   content: string;
   codeExample: string;
   exercises: {
@@ -18,6 +19,7 @@ export interface CareerTrack {
   title: string;
   description: string;
   color: string;
+  language?: "python" | "sql";
   lessons: CareerLesson[];
 }
 
@@ -561,11 +563,507 @@ function cs(): CareerLesson[] {
   ];
 }
 
+function githubMastery(): CareerLesson[] {
+  return [
+    {
+      id: "git-intro", title: "Git: The Starting Line", description: "Introduction to tracking changes and collaboration",
+      content: "## Why Version Control?\n\nAs a developer, you need to track changes, undo mistakes, and collaborate with others. Git is the world's most popular tool for this.\n\n### Key Concepts\n- **History** — Going back in time to any version of your project\n- **Branching** — Working on new features without breaking the main app\n- **Staging** — Preparing files for a commit\n- **Collaboration** — Sharing code via GitHub\n\n### Git's Areas\n1. **Working Directory** — Files you are editing now\n2. **Staging Area** — Files marked to be saved in the next snapshot\n3. **Local Repo** — Your local snapshots (commits)",
+      codeExample: "# Git state simulation\nrepo_state = {\"staged\": [], \"committed\": [\"init\"]}\n\ndef add(file):\n    repo_state[\"staged\"].append(file)\n\nprint(f\"Initial state: {repo_state}\")\nadd(\"main.py\")\nprint(f\"After staging: {repo_state}\")",
+      exercises: {
+        beginner: { prompt: "Create a list representing git states: ['modified', 'staged', 'committed']. Print the last state.", starterCode: "states = [\"modified\", \"staged\", \"committed\"]\n# Print the terminal committed state\n", expectedOutput: "committed" },
+        intermediate: { prompt: "Write add(files, file) that appends to list only if not already present. Test with ['a.py'], 'b.py'. Print list.", starterCode: "def add(staged, f):\n    if f not in staged:\n        staged.append(f)\n    return staged\n\nprint(add([\"a.py\"], \"b.py\"))\n", expectedOutput: "['a.py', 'b.py']" },
+        advanced: { prompt: "Implement commit(): move items from staged list to history list. Print length of history.", starterCode: "staged = [\"a.py\", \"b.py\"]\nhistory = []\n# Move staged items to history as a single commit\nhistory.append(list(staged))\nstaged.clear()\nprint(len(history))\n", expectedOutput: "1" },
+      },
+    },
+    {
+      id: "git-staging", title: "Staging: The Waiting Room", description: "Learn to prepare files for commit",
+      content: "## The Staging Area\n\nIn Git, you don't save every change immediately. You move them to a **Staging Area** first.\n\n### Commands\n- `git status`: See what is changed and staged\n- `git add <file>`: Stage a specific file\n- `git add .`: Stage ALL changes in the directory\n\nThink of staging as picking products for a shipping box before you seal it (commit it).",
+      codeExample: "files = [\"auth.py\", \"tests.py\", \"README.md\"]\nstaged = []\n\n# Pro-tip: Check status first\nprint(f\"Changes to stage: {files}\")\nstaged.append(files[0])\nprint(f\"Staged: {staged}\")",
+      exercises: {
+        beginner: { prompt: "Format the command to stage all files (use dot). Print it.", starterCode: "command = \"git add .\"\nprint(command)\n", expectedOutput: "git add ." },
+        intermediate: { prompt: "Write a loop to stage all files from a list 'modified'. Print the 'staged' list.", starterCode: "modified = [\"a.py\", \"b.py\"]\nstaged = []\nfor f in modified:\n    staged.append(f)\nprint(staged)\n", expectedOutput: "['a.py', 'b.py']" },
+        advanced: { prompt: "Filter a list of files to only stage '.py' files. Print the resulting list.", starterCode: "files = [\"notes.txt\", \"app.py\", \"util.py\", \"logo.png\"]\nstaged = [f for f in files if f.endswith(\".py\")]\nprint(staged)\n", expectedOutput: "['app.py', 'util.py']" },
+      },
+    },
+    {
+      id: "git-commits", title: "Committing: Taking Snapshots", description: "Save your progress permanently",
+      content: "## The Commit\n\nA commit is a permanent snapshot of your staged changes. It includes a message and a unique ID (hash).\n\n### Rules for Messages\n1. **Be Concise** — Keep it under 50 chars if possible\n2. **Imperative Mood** — Use 'Add login' NOT 'Added login'\n3. **Context** — Mention what changed and why\n\n### Command\n`git commit -m \"Your message here\"`",
+      codeExample: "commits = []\ndef commit(msg, files):\n    commits.append({\"id\": \"a1b2c3d\", \"msg\": msg, \"files\": files})\n\ncommit(\"Add payment gateway\", [\"stripe.py\"])\nprint(f\"Total Commits: {len(commits)}\")",
+      exercises: {
+        beginner: { prompt: "Format a commit command string with message 'Fix bug'. Print it.", starterCode: "m = \"Fix bug\"\nprint(f'git commit -m \"{m}\"')\n", expectedOutput: "git commit -m \"Fix bug\"" },
+        intermediate: { prompt: "Simulate a commit hash by taking the first 7 chars of 'f3e2d1c0b9a8'. Print it.", starterCode: "h = \"f3e2d1c0b9a8\"\nprint(h[:7])\n", expectedOutput: "f3e2d1c" },
+        advanced: { prompt: "Validate a commit message: Must be >= 5 chars and end with a letter. Test 'Fix'. Print False.", starterCode: "m = \"Fix\"\nis_valid = len(m) >= 5 and m[-1].isalpha()\nprint(is_valid)\n", expectedOutput: "False" },
+      },
+    },
+    {
+      id: "github-remotes", title: "Connecting to GitHub", description: "The Cloud: Remotes and SSH",
+      content: "## GitHub & Remotes\n\nGitHub is a host for your Git repositories. To connect your local computer to GitHub, you use **Remotes**.\n\n### Connection Types\n- **HTTPS**: Uses a Personal Access Token (PAT). Good for beginners.\n- **SSH**: Uses digital keys for passwordless security. Recommended for Pros.\n\n### Commands\n- `git remote add origin <url>`: Connect local repo to remote URL\n- `git remote -v`: Verify the connection",
+      codeExample: "config = {\"remote\": \"origin\", \"url\": \"https://github.com/user/py-pro.git\"}\nprint(f\"Connected to: {config['url']}\")",
+      exercises: {
+        beginner: { prompt: "Print the command to verify remote URLs.", starterCode: "print(\"git remote -v\")\n", expectedOutput: "git remote -v" },
+        intermediate: { prompt: "Check if a URL uses SSH (starts with 'git@'). Test 'git@github.com:user/repo.git'. Print True.", starterCode: "url = \"git@github.com:user/repo.git\"\nprint(url.startswith(\"git@\"))\n", expectedOutput: "True" },
+        advanced: { prompt: "Extract the owner from 'https://github.com/dinesh/app'. (Between github.com/ and /app). Print 'dinesh'.", starterCode: "url = \"https://github.com/dinesh/app\"\n# Use string split or slice\nprint(url.split(\"/\")[3])\n", expectedOutput: "dinesh" },
+      },
+    },
+    {
+      id: "git-push-pull", title: "Push & Pull: Syncing", description: "Sharing and receiving code",
+      content: "## Syncing Changes\n\n- `git push origin main`: Send your local commits to GitHub\n- `git pull origin main`: Get latest changes from teammates onto your machine\n- `git clone <url>`: Copy an entire repository from GitHub for the first time\n\n### Conflict Warning\nIf someone else pushed changes to the same lines you edited, `git pull` will ask you to resolve a **Merge Conflict**.",
+      codeExample: "local = 5\nremote = 7\nif local < remote:\n    print(f\"You are {remote - local} commits behind! Time to pull.\")",
+      exercises: {
+        beginner: { prompt: "Print the command to pull from origin branch 'main'.", starterCode: "print(\"git pull origin main\")\n", expectedOutput: "git pull origin main" },
+        intermediate: { prompt: "A repo has 10 commits. You pull 2 new ones. What is the total? Print it.", starterCode: "initial = 10\nnew = 2\nprint(initial + new)\n", expectedOutput: "12" },
+        advanced: { prompt: "Check if local and remote hashes match. Local 'abc', Remote '123'. Print 'Sync Error' if they differ.", starterCode: "l = \"abc\"\nr = \"123\"\nprint(\"Sync Error\" if l != r else \"OK\")\n", expectedOutput: "Sync Error" },
+      },
+    },
+    {
+      id: "git-branches", title: "Branches: Parallel Worlds", description: "Developing features in isolation",
+      content: "## Why Bench?\n\nBranches let you work on a New Feature or Bug Fix without breaking the Main code. This is called **Isolation**.\n\n### Commands\n- `git checkout -b <name>`: Create and switch to a new branch\n- `git branch`: List all branches\n- `git merge <name>`: Combine branch back into main\n- `git checkout <name>`: Switch between existing branches",
+      codeExample: "branches = [\"main\", \"feature-login\", \"fix-bug\"]\ncurrent = \"feature-login\"\nprint(f\"Working on: {current}\")",
+      exercises: {
+        beginner: { prompt: "Print the command to create and switch to 'dev' branch.", starterCode: "print(\"git checkout -b dev\")\n", expectedOutput: "git checkout -b dev" },
+        intermediate: { prompt: "Check if 'main' is in a list of branches. Print True.", starterCode: "b = [\"v1\", \"main\", \"qa\"]\nprint(\"main\" in b)\n", expectedOutput: "True" },
+        advanced: { prompt: "Given current='main', return command to switch to 'test'. Print it.", starterCode: "target = \"test\"\nprint(f\"git checkout {target}\")\n", expectedOutput: "git checkout test" },
+      },
+    },
+    {
+      id: "github-prs", title: "Pull Requests & Reviews", description: "How teams collaborate on GitHub",
+      content: "## The Pull Request (PR)\n\nA Pull Request is how you tell your team: \"I've finished a feature, please review it and merge it into the main project.\"\n\n### PR Lifecycle\n1. **Open PR**: Describe your changes\n2. **Review**: Teammates comment on your code\n3. **Approve**: Senior devs approve the logic\n4. **Merge**: code joins the project",
+      codeExample: "pr = {\"status\": \"open\", \"approvals\": 0}\ndef approve(): pr[\"approvals\"] += 1\n\napprove()\nif pr[\"approvals\"] >= 1:\n    print(\"Ready to merge!\")",
+      exercises: {
+        beginner: { prompt: "Print the status of a PR that requires 1 more approval (approvals=1, required=2). Print 'Pending'.", starterCode: "app = 1\nreq = 2\nprint(\"Pending\" if app < req else \"Verified\")\n", expectedOutput: "Pending" },
+        intermediate: { prompt: "Format a PR title: '[TASK-123] Fix Login'. Print it.", starterCode: "id = 123\nname = \"Fix Login\"\nprint(f\"[TASK-{id}] {name}\")\n", expectedOutput: "[TASK-123] Fix Login" },
+        advanced: { prompt: "Filter comments starting with 'FIX:' from a list. Print the list.", starterCode: "msgs = [\"Nice code\", \"FIX: Line 10\", \"Style fix\", \"FIX: Logic error\"]\nfixes = [m for m in msgs if m.startswith(\"FIX:\")]\nprint(fixes)\n", expectedOutput: "['FIX: Line 10', 'FIX: Logic error']" },
+      },
+    },
+    {
+      id: "github-forking", title: "Forking: Open Source Mastery", description: "Contributing to any project in the world",
+      content: "## Forking vs Branching\n\n- **Branch**: Internal development within one repo.\n- **Fork**: A copy of someone else's repo in YOUR GitHub account. You use this to contribute to Open Source.\n\n### Workflow\n1. **Fork** the Repo\n2. **Clone** your fork\n3. **Branch** & Update\n4. Push to your fork\n5. Open a **PR** to the original owner",
+      codeExample: "owner = \"google\"\nrepo = \"tensorflow\"\nprint(f\"Forking {owner}/{repo} to my-account/{repo}...\")",
+      exercises: {
+        beginner: { prompt: "Print the first step to contribute to a public repo.", starterCode: "print(\"Fork\")\n", expectedOutput: "Fork" },
+        intermediate: { prompt: "Map owner to repo: {'owner': 'py', 'repo': 'core'}. Print formatted 'py/core'.", starterCode: "d = {\"owner\": \"py\", \"repo\": \"core\"}\nprint(f\"{d['owner']}/{d['repo']}\")\n", expectedOutput: "py/core" },
+        advanced: { prompt: "Check if 'fork' is in a list of Git actions. Print True.", starterCode: "actions = [\"clone\", \"push\", \"fork\", \"pull\"]\nprint(\"fork\" in actions)\n", expectedOutput: "True" },
+      },
+    },
+    {
+      id: "git-conflicts", title: "Resolving Conflicts", description: "Handling overlapping changes (Simulated)",
+      content: "## What is a Conflict?\n\nA conflict happens when Git can't automatically merge two branches because they both changed the SAME line of the SAME file.\n\n### How to Fix\n1. Open the file\n2. Find the markers: `<<<<<<< HEAD` and `>>>>>>>`\n3. Choose which code to keep\n4. Remove markers, `git add`, and `git commit`",
+      codeExample: "file_content = \"\"\"\n<<<<<<< HEAD\nprint('Hello World')\n=======\nprint('Hello Universe')\n>>>>>>> feature-branch\n\"\"\"\nprint(\"Conflict detected! Choose one and delete markers.\")",
+      exercises: {
+        beginner: { prompt: "Check if '<<<<<<< HEAD' is in a string. Print True.", starterCode: "s = \"Line 1\\n<<<<<<< HEAD\\nLine 2\"\nprint(\"<<<<<<< HEAD\" in s)\n", expectedOutput: "True" },
+        intermediate: { prompt: "Write a function solve() that returns the second line of a conflict (the incoming change).", starterCode: "c = [\"<<<<\", \"Mine\", \"====\", \"Theirs\", \">>>>\"]\nprint(c[3])\n", expectedOutput: "Theirs" },
+        advanced: { prompt: "Simulate marker removal: Remove all lines starting with '<<' or '==' or '>>' from a list. Print list.", starterCode: "lines = [\"<<<<\", \"logic = 5\", \"====\", \"logic = 10\", \">>>>\"]\nclean = [l for l in lines if not any(x in l for x in [\"<\", \"=\", \">\"])]\n# Print the cleaned logic lines\nprint(clean)\n", expectedOutput: "['logic = 5', 'logic = 10']" },
+      },
+    },
+    {
+      id: "github-actions", title: "GitHub Actions: CI/CD Basics", description: "Automating your development with Workflows",
+      content: "## Automation with Actions\n\nGitHub Actions lets you run code every time you push to GitHub. This is used for **Automated Testing** and **Deployment**.\n\n### Key Terms\n- **Workflow**: The automation file (.yaml)\n- **Event**: What triggers the run (e.g., Push, PR)\n- **Job**: A set of steps (e.g., Run Tests, Deploy)\n- **Runner**: The cloud computer running your actions",
+      codeExample: "# Example Workflow simulation in Python (YAML representation)\nworkflow = {\n    \"name\": \"Test Suite\",\n    \"on\": [\"push\"],\n    \"jobs\": {\n        \"test\": {\"runs-on\": \"ubuntu-latest\", \"steps\": [\"pip install\", \"pytest\"]}\n    }\n}\nprint(f\"Triggered by: {workflow['on']}\")",
+      exercises: {
+        beginner: { prompt: "Print the directory where GitHub Actions workflows are stored.", starterCode: "print(\".github/workflows\")\n", expectedOutput: ".github/workflows" },
+        intermediate: { prompt: "Check if a workflow 'on' list contains 'push'. Print True.", starterCode: "on = [\"pull_request\", \"push\"]\nprint(\"push\" in on)\n", expectedOutput: "True" },
+        advanced: { prompt: "Validate if a job has 'runs-on' key. Job: {'steps': []}. Print False.", starterCode: "job = {\"steps\": []}\nprint(\"runs-on\" in job)\n", expectedOutput: "False" },
+      },
+    },
+    {
+      id: "github-pages", title: "GitHub Pages & Portfolios", description: "Hosting your portfolio with one click",
+      content: "## GitHub Pages\n\nGitHub Pages is a hosting service that turns your repository into a live website—for free!\n\n### How to enable\n1. Go to **Settings** > **Pages**\n2. Select your `main` branch\n3. Click Save\n\nYour site will be live at `https://username.github.io/repo-name`",
+      codeExample: "user = \"jane_doe\"\nrepo = \"portfolio\"\nurl = f\"https://{user}.github.io/{repo}\"\nprint(f\"Visit my site: {url}\")",
+      exercises: {
+        beginner: { prompt: "Construct the URL for user 'alex' and repo 'blog'. Print it.", starterCode: "u = \"alex\"\nr = \"blog\"\nprint(f\"https://{u}.github.io/{r}\")\n", expectedOutput: "https://alex.github.io/blog" },
+        intermediate: { prompt: "Check if 'index.html' is in a list of files (required for Pages). Print 'Ready' if present.", starterCode: "f = [\"style.css\", \"index.html\", \"script.js\"]\nprint(\"Ready\" if \"index.html\" in f else \"Missing\")\n", expectedOutput: "Ready" },
+        advanced: { prompt: "Check if branch is 'main' or 'gh-pages' for hosting. Test 'main'. Print True.", starterCode: "b = \"main\"\nprint(b in [\"main\", \"gh-pages\"])\n", expectedOutput: "True" },
+      },
+    },
+    {
+      id: "github-master-pro", title: "Master Profile & Portfolio", description: "Building the ultimate dev presence",
+      content: "## The Master Profile\n\nGitHub is your **Developer Resume**. \n\n### Essential Checklist\n- **Profile README**: Use a special repo named after your username to show a bio.\n- **Green Grass**: Keep a consistent commit streak.\n- **Pinned Repos**: Show your best work.\n- **Organizations**: Join teams to show professional experience.\n\nCongratulations! You have mastered the GitHub journey from Start to Finish.",
+      codeExample: "profile = {\n    \"username\": \"py_master\",\n    \"readme\": \"Hi, I build cool stuff!\",\n    \"pinned\": [\"AI-Bot\", \"Web-Scraper\"]\n}\nprint(f\"Welcome to {profile['username']}'s world!\")",
+      exercises: {
+        beginner: { prompt: "Print the name of the special repository for your profile README.", starterCode: "# It must be your username exactly\nprint(\"username/username\")\n", expectedOutput: "username/username" },
+        intermediate: { prompt: "Verify if at least 1 repo is pinned. Pinned: []. Print 'Empty'.", starterCode: "p = []\nprint(\"Empty\" if not p else \"Active\")\n", expectedOutput: "Empty" },
+        advanced: { prompt: "Format a bio: 'Bio: [txt]'. Test 'Python Dev'. Print it.", starterCode: "txt = \"Python Dev\"\nprint(f\"Bio: {txt}\")\n", expectedOutput: "Bio: Python Dev" },
+      },
+    },
+  ];
+}
+
+function sqlLessons(): CareerLesson[] {
+  return [
+    {
+      id: "sql-intro",
+      title: "SQL Foundations (DQL)",
+      description: "SELECT, FROM, ORDER BY, LIMIT — your first queries",
+      category: "DQL (SELECT)",
+      content:
+        "## SQL Foundations\n\nSQL is the language used to **query and analyze** data in relational databases.\n\n### What you will practice here\n- `SELECT` columns\n- `FROM` tables\n- `ORDER BY` for stable output\n- `LIMIT` to reduce rows\n\n### Practice database (built-in)\nYou will query a small practice dataset with tables like `customers`, `orders`, `order_items`, and `products`.",
+      codeExample:
+        "-- Explore customers\nSELECT id, name, city\nFROM customers\nORDER BY id\nLIMIT 5;",
+      exercises: {
+        beginner: {
+          prompt: "Select all customers (id, name) ordered by id.",
+          starterCode: "-- Write your SQL here\nSELECT id, name\nFROM customers\nORDER BY id;\n",
+          expectedOutput: "id,name\n1,Alice\n2,Bob\n3,Charlie\n4,Diana\n5,Ethan",
+        },
+        intermediate: {
+          prompt: "List Electronics products (name, price) ordered by price DESC.",
+          starterCode: "-- Write your SQL here\nSELECT name, price\nFROM products\nWHERE category = 'Electronics'\nORDER BY price DESC;\n",
+          expectedOutput: "name,price\nKeyboard,2500\nHeadphones,1500\nMouse,800",
+        },
+        advanced: {
+          prompt: "Show the top 3 most expensive products (name, price).",
+          starterCode: "-- Write your SQL here\nSELECT name, price\nFROM products\nORDER BY price DESC\nLIMIT 3;\n",
+          expectedOutput: "name,price\nKeyboard,2500\nHeadphones,1500\nMouse,800",
+        },
+      },
+    },
+    {
+      id: "sql-filtering",
+      title: "Filtering & Sorting",
+      description: "WHERE, AND/OR, LIKE, BETWEEN, IN, ORDER BY",
+      category: "Filtering & Sorting",
+      content:
+        "## Filtering & Sorting\n\n### Core clauses\n- `WHERE` filters rows\n- `AND` / `OR` combine conditions\n- `IN` checks membership\n- `BETWEEN` checks ranges\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: Always add an `ORDER BY` when you care about the exact row order (especially for exercises).",
+      codeExample:
+        "-- Customers in Mumbai\nSELECT name, city\nFROM customers\nWHERE city = 'Mumbai'\nORDER BY name;",
+      exercises: {
+        beginner: {
+          prompt: "List customers from Mumbai (name, city) ordered by name.",
+          starterCode: "-- Write your SQL here\nSELECT name, city\nFROM customers\nWHERE city = 'Mumbai'\nORDER BY name;\n",
+          expectedOutput: "name,city\nAlice,Mumbai\nDiana,Mumbai",
+        },
+        intermediate: {
+          prompt: "Show March 2026 orders (id, order_date, status) ordered by order_date.",
+          starterCode:
+            "-- Write your SQL here\nSELECT id, order_date, status\nFROM orders\nWHERE order_date >= '2026-03-01' AND order_date < '2026-04-01'\nORDER BY order_date;\n",
+          expectedOutput: "id,order_date,status\n4,2026-03-12,completed\n5,2026-03-15,completed",
+        },
+        advanced: {
+          prompt: "List products priced between 100 and 2000 (name, price) ordered by price.",
+          starterCode:
+            "-- Write your SQL here\nSELECT name, price\nFROM products\nWHERE price BETWEEN 100 AND 2000\nORDER BY price;\n",
+          expectedOutput: "name,price\nCoffee,120\nMouse,800\nHeadphones,1500",
+        },
+      },
+    },
+    {
+      id: "sql-aggregations",
+      title: "Aggregations & GROUP BY",
+      description: "COUNT, SUM, AVG, GROUP BY, HAVING",
+      category: "Aggregations",
+      content:
+        "## Aggregations\n\n### Common functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nGroups rows so aggregates are calculated per group.\n\n### HAVING\nFilters *groups* (after aggregation).",
+      codeExample:
+        "-- Orders per status\nSELECT status, COUNT(*) AS count\nFROM orders\nGROUP BY status\nORDER BY status;",
+      exercises: {
+        beginner: {
+          prompt: "Count orders by status (status, count) ordered by status.",
+          starterCode:
+            "-- Write your SQL here\nSELECT status, COUNT(*) AS count\nFROM orders\nGROUP BY status\nORDER BY status;\n",
+          expectedOutput: "status,count\ncancelled,1\ncompleted,4",
+        },
+        intermediate: {
+          prompt: "For completed orders only, compute total quantity sold per product (name, total_qty) ordered by total_qty DESC then name.",
+          starterCode:
+            "-- Write your SQL here\nSELECT p.name, SUM(oi.quantity) AS total_qty\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.id\nJOIN products p ON p.id = oi.product_id\nWHERE o.status = 'completed'\nGROUP BY p.id, p.name\nORDER BY total_qty DESC, p.name;\n",
+          expectedOutput: "name,total_qty\nPen,5\nCoffee,4\nHeadphones,3\nNotebook,3\nKeyboard,1",
+        },
+        advanced: {
+          prompt: "Compute revenue per completed order (order_id, revenue) ordered by order_id.",
+          starterCode:
+            "-- Write your SQL here\nSELECT o.id AS order_id, SUM(p.price * oi.quantity) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.id\nJOIN products p ON p.id = oi.product_id\nWHERE o.status = 'completed'\nGROUP BY o.id\nORDER BY o.id;\n",
+          expectedOutput: "order_id,revenue\n1,270\n2,1500\n4,2860\n5,3050",
+        },
+      },
+    },
+    {
+      id: "sql-joins",
+      title: "JOINs",
+      description: "INNER JOIN, LEFT JOIN, joining multiple tables",
+      category: "Joins",
+      content:
+        "## JOINs\n\n### The big idea\nA JOIN combines rows from tables using a matching key.\n\n### Most used JOINs\n- `INNER JOIN`: only matching rows\n- `LEFT JOIN`: keep all left rows (even if no match)\n\nTip: When totals can be missing, use `COALESCE(x, 0)` to turn NULL into 0.",
+      codeExample:
+        "-- Orders with customer names\nSELECT o.id AS order_id, c.name, o.status\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nORDER BY o.id;",
+      exercises: {
+        beginner: {
+          prompt: "List all orders with customer name (order_id, name, status) ordered by order_id.",
+          starterCode:
+            "-- Write your SQL here\nSELECT o.id AS order_id, c.name, o.status\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nORDER BY o.id;\n",
+          expectedOutput: "order_id,name,status\n1,Alice,completed\n2,Bob,completed\n3,Alice,cancelled\n4,Charlie,completed\n5,Diana,completed",
+        },
+        intermediate: {
+          prompt: "For order_id=1, list items (order_id, product, quantity) ordered by product.",
+          starterCode:
+            "-- Write your SQL here\nSELECT oi.order_id, p.name AS product, oi.quantity\nFROM order_items oi\nJOIN products p ON p.id = oi.product_id\nWHERE oi.order_id = 1\nORDER BY p.name;\n",
+          expectedOutput: "order_id,product,quantity\n1,Coffee,1\n1,Notebook,2\n1,Pen,5",
+        },
+        advanced: {
+          prompt: "Total spent per customer on completed orders (include customers with 0). Output (name, total_spent) ordered by total_spent DESC.",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.id AS order_id, o.customer_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, o.customer_id\n)\nSELECT c.name, COALESCE(SUM(orv.revenue), 0) AS total_spent\nFROM customers c\nLEFT JOIN order_revenue orv ON orv.customer_id = c.id\nGROUP BY c.id, c.name\nORDER BY total_spent DESC;\n",
+          expectedOutput: "name,total_spent\nDiana,3050\nCharlie,2860\nBob,1500\nAlice,270\nEthan,0",
+        },
+      },
+    },
+    {
+      id: "sql-subqueries",
+      title: "Subqueries",
+      description: "IN, EXISTS, scalar subqueries, derived tables",
+      category: "Subqueries",
+      content:
+        "## Subqueries\n\nSubqueries let you use one query inside another.\n\n### Common patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- Subquery in `FROM` (derived table)\n\nTip: Prefer `EXISTS` when you only need to check presence (not values).",
+      codeExample:
+        "-- Customers with any cancelled order\nSELECT name\nFROM customers\nWHERE id IN (\n  SELECT customer_id FROM orders WHERE status = 'cancelled'\n)\nORDER BY name;",
+      exercises: {
+        beginner: {
+          prompt: "Find customers who have a cancelled order (name).",
+          starterCode:
+            "-- Write your SQL here\nSELECT name\nFROM customers\nWHERE id IN (SELECT customer_id FROM orders WHERE status = 'cancelled')\nORDER BY name;\n",
+          expectedOutput: "name\nAlice",
+        },
+        intermediate: {
+          prompt: "Find products that were never ordered (name) ordered by name.",
+          starterCode:
+            "-- Write your SQL here\nSELECT p.name\nFROM products p\nWHERE NOT EXISTS (\n  SELECT 1 FROM order_items oi WHERE oi.product_id = p.id\n)\nORDER BY p.name;\n",
+          expectedOutput: "name\nMouse",
+        },
+        advanced: {
+          prompt: "Find customers whose completed total_spent is greater than the average total_spent across all customers (include 0). Output (name, total_spent) ordered by total_spent DESC.",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.id AS order_id, o.customer_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, o.customer_id\n),\ncustomer_spend AS (\n  SELECT c.id, c.name, COALESCE(SUM(orv.revenue), 0) AS total_spent\n  FROM customers c\n  LEFT JOIN order_revenue orv ON orv.customer_id = c.id\n  GROUP BY c.id, c.name\n),\navg_spend AS (\n  SELECT AVG(total_spent) AS avg_total FROM customer_spend\n)\nSELECT cs.name, cs.total_spent\nFROM customer_spend cs\nCROSS JOIN avg_spend a\nWHERE cs.total_spent > a.avg_total\nORDER BY cs.total_spent DESC;\n",
+          expectedOutput: "name,total_spent\nDiana,3050\nCharlie,2860",
+        },
+      },
+    },
+    {
+      id: "sql-ctes",
+      title: "CTEs (WITH)",
+      description: "Readable multi-step queries with WITH",
+      category: "CTEs",
+      content:
+        "## Common Table Expressions (CTEs)\n\nCTEs make complex queries easier to read by giving names to intermediate results.\n\n### Benefits\n- Break logic into steps\n- Reuse computed sets\n- Safer than repeating subqueries",
+      codeExample:
+        "-- Monthly revenue for completed orders\nWITH order_revenue AS (\n  SELECT o.id, substr(o.order_date, 1, 7) AS month, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, month\n)\nSELECT month, SUM(revenue) AS revenue\nFROM order_revenue\nGROUP BY month\nORDER BY month;",
+      exercises: {
+        beginner: {
+          prompt: "Using a CTE, compute completed order revenue (order_id, revenue) ordered by order_id.",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.id AS order_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id\n)\nSELECT order_id, revenue\nFROM order_revenue\nORDER BY order_id;\n",
+          expectedOutput: "order_id,revenue\n1,270\n2,1500\n4,2860\n5,3050",
+        },
+        intermediate: {
+          prompt: "Compute monthly completed revenue (month, revenue) ordered by month.",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.id, substr(o.order_date, 1, 7) AS month, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, month\n)\nSELECT month, SUM(revenue) AS revenue\nFROM order_revenue\nGROUP BY month\nORDER BY month;\n",
+          expectedOutput: "month,revenue\n2026-01,1770\n2026-03,5910",
+        },
+        advanced: {
+          prompt: "Find the top customer by completed total_spent (name, total_spent).",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.customer_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, o.customer_id\n),\ncustomer_spend AS (\n  SELECT c.name, COALESCE(SUM(orv.revenue), 0) AS total_spent\n  FROM customers c\n  LEFT JOIN order_revenue orv ON orv.customer_id = c.id\n  GROUP BY c.id, c.name\n)\nSELECT name, total_spent\nFROM customer_spend\nORDER BY total_spent DESC\nLIMIT 1;\n",
+          expectedOutput: "name,total_spent\nDiana,3050",
+        },
+      },
+    },
+    {
+      id: "sql-windows",
+      title: "Window Functions",
+      description: "RANK, DENSE_RANK, OVER(), running totals",
+      category: "Window Functions",
+      content:
+        "## Window Functions\n\nWindow functions compute values across a set of rows **without collapsing** them like GROUP BY.\n\n### Examples\n- Ranking within a category\n- Running totals\n- Moving averages\n\nSyntax pattern:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
+      codeExample:
+        "-- Rank products by price within category\nSELECT category, name, price,\n       RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank\nFROM products\nORDER BY category, name;",
+      exercises: {
+        beginner: {
+          prompt: "Rank products by price within each category (category, name, price, price_rank) ordered by category, name.",
+          starterCode:
+            "-- Write your SQL here\nSELECT category, name, price,\n       RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank\nFROM products\nORDER BY category, name;\n",
+          expectedOutput:
+            "category,name,price,price_rank\nElectronics,Headphones,1500,2\nElectronics,Keyboard,2500,1\nElectronics,Mouse,800,3\nGrocery,Coffee,120,1\nStationery,Notebook,50,1\nStationery,Pen,10,2",
+        },
+        intermediate: {
+          prompt: "Show completed daily revenue and running_total (order_date, revenue, running_total) ordered by order_date.",
+          starterCode:
+            "-- Write your SQL here\nWITH daily AS (\n  SELECT o.order_date, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.order_date\n)\nSELECT order_date, revenue,\n       SUM(revenue) OVER (ORDER BY order_date) AS running_total\nFROM daily\nORDER BY order_date;\n",
+          expectedOutput: "order_date,revenue,running_total\n2026-01-05,270,270\n2026-01-06,1500,1770\n2026-03-12,2860,4630\n2026-03-15,3050,7680",
+        },
+        advanced: {
+          prompt: "Top 2 customers by completed total_spent with rank (name, total_spent, spend_rank) ordered by spend_rank.",
+          starterCode:
+            "-- Write your SQL here\nWITH order_revenue AS (\n  SELECT o.id AS order_id, o.customer_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, o.customer_id\n),\ncustomer_spend AS (\n  SELECT c.name, COALESCE(SUM(orv.revenue), 0) AS total_spent\n  FROM customers c\n  LEFT JOIN order_revenue orv ON orv.customer_id = c.id\n  GROUP BY c.id, c.name\n)\nSELECT name, total_spent,\n       DENSE_RANK() OVER (ORDER BY total_spent DESC) AS spend_rank\nFROM customer_spend\nORDER BY spend_rank\nLIMIT 2;\n",
+          expectedOutput: "name,total_spent,spend_rank\nDiana,3050,1\nCharlie,2860,2",
+        },
+      },
+    },
+    {
+      id: "sql-ddl",
+      title: "DDL (CREATE / ALTER / DROP)",
+      description: "Define tables, constraints, and schema",
+      category: "DDL",
+      content:
+        "## DDL (Data Definition Language)\n\nDDL changes the database structure.\n\n### Common commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nIn the practice editor, you can run multiple statements in one execution (separated by `;`).",
+      codeExample:
+        "CREATE TABLE temp_notes(\n  id INTEGER,\n  note TEXT\n);\n\nSELECT name\nFROM sqlite_master\nWHERE type='table' AND name='temp_notes';",
+      exercises: {
+        beginner: {
+          prompt: "Create table temp_notes(id INTEGER, note TEXT) then select its name from sqlite_master.",
+          starterCode:
+            "-- Write your SQL here\nCREATE TABLE temp_notes(\n  id INTEGER,\n  note TEXT\n);\n\nSELECT name\nFROM sqlite_master\nWHERE type='table' AND name='temp_notes';\n",
+          expectedOutput: "name\ntemp_notes",
+        },
+        intermediate: {
+          prompt: "Create table projects(id INTEGER PRIMARY KEY, name TEXT NOT NULL), insert 1 row, then select count.",
+          starterCode:
+            "-- Write your SQL here\nCREATE TABLE projects(\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\nINSERT INTO projects(id, name) VALUES (1, 'Roadmap');\nSELECT COUNT(*) AS count FROM projects;\n",
+          expectedOutput: "count\n1",
+        },
+        advanced: {
+          prompt: "Create table emails(email TEXT UNIQUE), insert 2 distinct emails, then select count.",
+          starterCode:
+            "-- Write your SQL here\nCREATE TABLE emails(\n  email TEXT UNIQUE\n);\nINSERT INTO emails(email) VALUES ('a@example.com');\nINSERT INTO emails(email) VALUES ('b@example.com');\nSELECT COUNT(*) AS count FROM emails;\n",
+          expectedOutput: "count\n2",
+        },
+      },
+    },
+    {
+      id: "sql-dml",
+      title: "DML (INSERT / UPDATE / DELETE)",
+      description: "Modify rows safely with conditions",
+      category: "DML",
+      content:
+        "## DML (Data Manipulation Language)\n\nDML changes row data.\n\n### Commands\n- `INSERT` add rows\n- `UPDATE` change rows (always use a WHERE unless you intend to update all)\n- `DELETE` remove rows\n\nTip: For practice, you can run changes and immediately verify with a SELECT.",
+      codeExample:
+        "-- Insert a new customer and verify\nINSERT INTO customers(id, name, city, signup_date)\nVALUES (6, 'Farah', 'Delhi', '2026-04-01');\n\nSELECT name, city\nFROM customers\nWHERE id = 6;",
+      exercises: {
+        beginner: {
+          prompt: "Insert a customer (id=6, Farah, Delhi) then select (name, city) for id=6.",
+          starterCode:
+            "-- Write your SQL here\nINSERT INTO customers(id, name, city, signup_date)\nVALUES (6, 'Farah', 'Delhi', '2026-04-01');\n\nSELECT name, city\nFROM customers\nWHERE id = 6;\n",
+          expectedOutput: "name,city\nFarah,Delhi",
+        },
+        intermediate: {
+          prompt: "Update order 3 from cancelled to completed, then count completed orders (count).",
+          starterCode:
+            "-- Write your SQL here\nUPDATE orders\nSET status = 'completed'\nWHERE id = 3;\n\nSELECT COUNT(*) AS count\nFROM orders\nWHERE status = 'completed';\n",
+          expectedOutput: "count\n5",
+        },
+        advanced: {
+          prompt: "Delete order_items for order_id=3, then show total_qty for order 3 as 0 (use COALESCE).",
+          starterCode:
+            "-- Write your SQL here\nDELETE FROM order_items WHERE order_id = 3;\n\nSELECT COALESCE(SUM(quantity), 0) AS total_qty\nFROM order_items\nWHERE order_id = 3;\n",
+          expectedOutput: "total_qty\n0",
+        },
+      },
+    },
+    {
+      id: "sql-transactions",
+      title: "Transactions (TCL)",
+      description: "BEGIN, COMMIT, ROLLBACK for safe changes",
+      category: "Transactions (TCL)",
+      content:
+        "## Transactions\n\nTransactions let you group changes so they either all happen or none happen.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` save changes\n- `ROLLBACK` undo changes\n\nThis is essential for correctness in real systems (payments, inventory, etc.).",
+      codeExample:
+        "BEGIN;\nUPDATE products SET price = 15 WHERE name = 'Pen';\nCOMMIT;\nSELECT price FROM products WHERE name = 'Pen';",
+      exercises: {
+        beginner: {
+          prompt: "BEGIN; insert a customer (id=6); ROLLBACK; then count customers (count).",
+          starterCode:
+            "-- Write your SQL here\nBEGIN;\nINSERT INTO customers(id, name, city, signup_date) VALUES (6, 'Farah', 'Delhi', '2026-04-01');\nROLLBACK;\nSELECT COUNT(*) AS count FROM customers;\n",
+          expectedOutput: "count\n5",
+        },
+        intermediate: {
+          prompt: "BEGIN; update Pen price to 9999; ROLLBACK; then select Pen price (price).",
+          starterCode:
+            "-- Write your SQL here\nBEGIN;\nUPDATE products SET price = 9999 WHERE name = 'Pen';\nROLLBACK;\nSELECT price FROM products WHERE name = 'Pen';\n",
+          expectedOutput: "price\n10",
+        },
+        advanced: {
+          prompt: "BEGIN; update Pen price to 15; COMMIT; then select Pen price (price).",
+          starterCode:
+            "-- Write your SQL here\nBEGIN;\nUPDATE products SET price = 15 WHERE name = 'Pen';\nCOMMIT;\nSELECT price FROM products WHERE name = 'Pen';\n",
+          expectedOutput: "price\n15",
+        },
+      },
+    },
+    {
+      id: "sql-indexes",
+      title: "Indexes & Performance Basics",
+      description: "What indexes do and when to use them",
+      category: "Indexes",
+      content:
+        "## Indexes\n\nIndexes speed up lookups by creating an additional data structure.\n\n### Key idea\nIndexes can improve read performance but may slow down writes.\n\nIn SQLite, you can inspect indexes via `sqlite_master`.",
+      codeExample:
+        "CREATE INDEX idx_orders_customer ON orders(customer_id);\n\nSELECT name\nFROM sqlite_master\nWHERE type='index' AND tbl_name='orders'\nORDER BY name;",
+      exercises: {
+        beginner: {
+          prompt: "Create index idx_orders_customer on orders(customer_id) then list index names for orders (name).",
+          starterCode:
+            "-- Write your SQL here\nCREATE INDEX idx_orders_customer ON orders(customer_id);\n\nSELECT name\nFROM sqlite_master\nWHERE type='index' AND tbl_name='orders'\nORDER BY name;\n",
+          expectedOutput: "name\nidx_orders_customer",
+        },
+        intermediate: {
+          prompt: "Create two indexes on orders: idx_orders_customer and idx_orders_status, then list them ordered by name.",
+          starterCode:
+            "-- Write your SQL here\nCREATE INDEX idx_orders_customer ON orders(customer_id);\nCREATE INDEX idx_orders_status ON orders(status);\n\nSELECT name\nFROM sqlite_master\nWHERE type='index' AND tbl_name='orders'\nORDER BY name;\n",
+          expectedOutput: "name\nidx_orders_customer\nidx_orders_status",
+        },
+        advanced: {
+          prompt: "After creating the two indexes, count how many indexes exist on orders (count).",
+          starterCode:
+            "-- Write your SQL here\nCREATE INDEX idx_orders_customer ON orders(customer_id);\nCREATE INDEX idx_orders_status ON orders(status);\n\nSELECT COUNT(*) AS count\nFROM sqlite_master\nWHERE type='index' AND tbl_name='orders';\n",
+          expectedOutput: "count\n2",
+        },
+      },
+    },
+    {
+      id: "sql-views",
+      title: "Views",
+      description: "Saved queries for reuse and simplicity",
+      category: "Views",
+      content:
+        "## Views\n\nA view is a saved query that acts like a virtual table.\n\n### Why views?\n- Reuse common joins\n- Simplify reporting queries\n- Keep application queries cleaner",
+      codeExample:
+        "CREATE VIEW v_completed_orders AS\nSELECT o.id AS order_id, c.name, o.order_date\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nWHERE o.status = 'completed';\n\nSELECT order_id, name\nFROM v_completed_orders\nORDER BY order_id\nLIMIT 2;",
+      exercises: {
+        beginner: {
+          prompt: "Create view v_completed_orders (orders + customers for completed) then select first 2 rows (order_id, name) ordered by order_id.",
+          starterCode:
+            "-- Write your SQL here\nCREATE VIEW v_completed_orders AS\nSELECT o.id AS order_id, c.name, o.order_date\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nWHERE o.status = 'completed';\n\nSELECT order_id, name\nFROM v_completed_orders\nORDER BY order_id\nLIMIT 2;\n",
+          expectedOutput: "order_id,name\n1,Alice\n2,Bob",
+        },
+        intermediate: {
+          prompt: "Create view v_customer_spend (name,total_spent for completed) then list customers with total_spent > 2000 ordered by total_spent DESC.",
+          starterCode:
+            "-- Write your SQL here\nCREATE VIEW v_customer_spend AS\nWITH order_revenue AS (\n  SELECT o.id AS order_id, o.customer_id, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, o.customer_id\n)\nSELECT c.name, COALESCE(SUM(orv.revenue), 0) AS total_spent\nFROM customers c\nLEFT JOIN order_revenue orv ON orv.customer_id = c.id\nGROUP BY c.id, c.name;\n\nSELECT name, total_spent\nFROM v_customer_spend\nWHERE total_spent > 2000\nORDER BY total_spent DESC;\n",
+          expectedOutput: "name,total_spent\nDiana,3050\nCharlie,2860",
+        },
+        advanced: {
+          prompt: "Create then DROP view v_customer_spend, then verify it no longer exists (count).",
+          starterCode:
+            "-- Write your SQL here\nCREATE VIEW v_customer_spend AS\nSELECT 1 AS x;\n\nDROP VIEW v_customer_spend;\n\nSELECT COUNT(*) AS count\nFROM sqlite_master\nWHERE type='view' AND name='v_customer_spend';\n",
+          expectedOutput: "count\n0",
+        },
+      },
+    },
+  ];
+}
+
 export const careerTracks: CareerTrack[] = [
+  {
+    id: "sql",
+    title: "SQL & Databases",
+    description: "Learn SQL with structured lessons and a built-in practice database",
+    color: "primary",
+    language: "sql",
+    lessons: sqlLessons(),
+  },
   { id: "data-analysis", title: "Data Analysis", description: "Master data analysis with Python", color: "primary", lessons: da() },
   { id: "web-development", title: "Web Development", description: "Build web apps and APIs", color: "streak-green", lessons: wd() },
   { id: "ai-ml", title: "AI & Machine Learning", description: "Build intelligent systems", color: "expert-purple", lessons: aiml() },
   { id: "automation", title: "Automation & Scripting", description: "Automate tasks with Python", color: "python-yellow", lessons: auto() },
   { id: "data-engineering", title: "Data Engineering", description: "Build data pipelines", color: "reward-gold", lessons: de() },
   { id: "cybersecurity", title: "Cybersecurity", description: "Security with Python", color: "destructive", lessons: cs() },
+  { id: "git", title: "GitHub Mastery (Start to Master)", description: "Master Git and GitHub for teams", color: "expert-purple", lessons: githubMastery() },
 ];

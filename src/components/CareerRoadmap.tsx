@@ -10,6 +10,20 @@ import { Button } from "@/components/ui/button";
 
 const careerPaths = [
   {
+    id: "sql",
+    title: "SQL & Databases",
+    icon: Database,
+    color: "from-primary to-primary/60",
+    borderColor: "border-primary/40",
+    bgColor: "bg-primary/10",
+    textColor: "text-primary",
+    salary: "Core Skill",
+    description: "Learn SQL from scratch with hands-on queries, joins, and analytics patterns using a built-in practice database.",
+    skills: ["SELECT Queries", "Joins & Aggregations", "CTEs & Subqueries", "Window Functions", "Indexes & Transactions"],
+    tools: ["SQLite (Practice)", "PostgreSQL", "MySQL", "BigQuery", "SQL Server"],
+    lessons: ["SQL Basics", "Filtering & Sorting", "Aggregates & Group By", "Joins", "CTEs & Windows", "DDL & Constraints", "Optimization"],
+  },
+  {
     id: "data-analysis",
     title: "Data Analysis",
     icon: BarChart3,
@@ -92,6 +106,20 @@ const careerPaths = [
     skills: ["Network Security", "Pen Testing", "Cryptography", "Forensics", "Security Automation"],
     tools: ["Scapy", "Nmap", "Metasploit", "Burp Suite", "Wireshark"],
     lessons: ["Python Fundamentals", "Control Flow", "Modules & Packages", "Regular Expressions", "Error Handling", "Secure Coding", "Detection Basics"],
+  },
+  {
+    id: "git",
+    title: "GitHub Mastery",
+    icon: Code,
+    color: "from-expert-purple to-expert-purple/60",
+    borderColor: "border-expert-purple/40",
+    bgColor: "bg-expert-purple/10",
+    textColor: "text-expert-purple",
+    salary: "Essential Skill",
+    description: "Master Git and GitHub: from local commits to professional CI/CD workflows and collaborative team projects.",
+    skills: ["Local Git (Commit, Branch)", "Pull Requests & Review", "GitHub Actions (CI/CD)", "Conflict Resolution", "Forking & Open Source"],
+    tools: ["Git", "GitHub Actions", "SSH / GPG Keys", "Markdown"],
+    lessons: ["Git Essentials", "Syncing & Remotes", "PR Workflows", "Conflict Basics", "Automation & Actions", "Profile Portfolio"],
   },
 ];
 

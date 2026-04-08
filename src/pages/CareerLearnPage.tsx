@@ -3,19 +3,30 @@
 // Individual career track learning page (Data Science, Web Dev,
 // AI/ML, etc.) with sequential lesson unlocking.
 // ============================================================
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { careerTracks } from "@/data/careerLessons";
 import { useProgress } from "@/contexts/ProgressContext";
 import { ExerciseEditor } from "@/components/ExerciseEditor";
-import { BookOpen, CheckCircle2, ChevronRight, Lock, ArrowLeft, Terminal } from "lucide-react";
+import { SqlExerciseEditor } from "@/components/SqlExerciseEditor";
+import Editor from "@monaco-editor/react";
+import { SQL_PRACTICE_DB_NAME, SQL_PRACTICE_DB_SETUP_SQL, SQL_PRACTICE_DB_TABLES } from "@/data/sqlSampleData";
+import { executeSql } from "@/lib/sqlRunner";
+import { cancelActivePythonExecution, getPythonExecutionTimeoutMs } from "@/lib/piston";
+import { BookOpen, CheckCircle2, ChevronRight, Lock, ArrowLeft, Terminal, Database, Play, RotateCcw, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function CareerLearnPage() {
   const { trackId } = useParams<{ trackId: string }>();
   const track = careerTracks.find(t => t.id === trackId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sqlPlayground, setSqlPlayground] = useState("");
+  const [sqlOutput, setSqlOutput] = useState("");
+  const [isSqlRunning, setIsSqlRunning] = useState(false);
+  const [showDataset, setShowDataset] = useState(false);
   const { progress } = useProgress();
+  const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
 
   // Auto-open the first lesson so the page never feels empty on first visit.
   useEffect(() => {
@@ -38,6 +49,24 @@ export default function CareerLearnPage() {
   }
 
   const selectedLesson = track.lessons.find(l => l.id === selectedId);
+  const isSqlTrack = (track.language ?? "python") === "sql" || track.id === "sql";
+
+  const sqlCategories = useMemo(() => {
+    if (!isSqlTrack) return [];
+    const set = new Set<string>();
+    for (const lesson of track.lessons) {
+      if (lesson.category) set.add(lesson.category);
+    }
+    return Array.from(set);
+  }, [isSqlTrack, track.lessons]);
+
+  useEffect(() => {
+    if (!isSqlTrack) return;
+    if (!selectedLesson) return;
+    setSqlPlayground(selectedLesson.codeExample);
+    setSqlOutput("");
+    setIsSqlRunning(false);
+  }, [isSqlTrack, selectedLesson?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isLessonUnlocked = (index: number): boolean => {
     if (index === 0) return true;
@@ -55,6 +84,18 @@ export default function CareerLearnPage() {
   const getLessonProgress = (lessonId: string) => {
     const levels = ["beginner", "intermediate", "advanced"] as const;
     return levels.filter(l => progress.completedExercises.includes(`${lessonId}:${l}`)).length;
+  };
+
+  const runSqlPlayground = async () => {
+    setIsSqlRunning(true);
+    setSqlOutput(`Running SQL (up to ${timeoutSeconds}s)...`);
+    const result = await executeSql(sqlPlayground);
+    if (result.error && !result.output) {
+      setSqlOutput(`Error:\n${result.error}`);
+    } else {
+      setSqlOutput(result.output || result.error);
+    }
+    setIsSqlRunning(false);
   };
 
   return (
@@ -115,6 +156,11 @@ export default function CareerLearnPage() {
               <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                 {track.title}
               </span>
+              {isSqlTrack && selectedLesson.category && (
+                <span className="px-2 py-0.5 rounded-full bg-secondary/60 text-foreground border border-border">
+                  {selectedLesson.category}
+                </span>
+              )}
               {getLessonProgress(selectedLesson.id) === 3 && (
                 <span className="px-2 py-0.5 rounded-full bg-streak-green/10 text-streak-green border border-streak-green/20">
                   ✓ Complete
@@ -123,6 +169,32 @@ export default function CareerLearnPage() {
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{selectedLesson.title}</h1>
             <p className="text-muted-foreground mb-6">{selectedLesson.description}</p>
+
+            {isSqlTrack && sqlCategories.length > 0 && (
+              <div className="mb-6">
+                <div className="text-xs text-muted-foreground mb-2">SQL lesson types</div>
+                <div className="flex flex-wrap gap-2">
+                  {sqlCategories.map((cat) => (
+                    <Button
+                      key={cat}
+                      size="sm"
+                      variant={selectedLesson.category === cat ? "default" : "outline"}
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const first = track.lessons.find((l) => l.category === cat);
+                        if (!first) return;
+                        const firstIndex = track.lessons.findIndex((l) => l.id === first.id);
+                        if (firstIndex >= 0 && isLessonUnlocked(firstIndex)) {
+                          setSelectedId(first.id);
+                        }
+                      }}
+                    >
+                      {cat}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Content */}
             <div className="mb-8">
@@ -138,33 +210,137 @@ export default function CareerLearnPage() {
             {/* Code Example */}
             <div className="code-block mb-8">
               <div className="flex items-center justify-between px-4 py-2 border-b border-border">
-                <span className="text-xs text-muted-foreground font-mono">example.py</span>
-                <Button asChild size="sm" variant="outline" className="h-7 text-xs gap-1">
-                  <Link to={`/compiler?code=${encodeURIComponent(selectedLesson.codeExample)}`}>
-                    <Terminal className="w-3 h-3" /> Try in Compiler
-                  </Link>
-                </Button>
+                <span className="text-xs text-muted-foreground font-mono">{isSqlTrack ? "example.sql" : "example.py"}</span>
+                {isSqlTrack ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => {
+                      setSqlPlayground(selectedLesson.codeExample);
+                      setSqlOutput("");
+                    }}
+                  >
+                    <Terminal className="w-3 h-3" /> Load into SQL Editor
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" variant="outline" className="h-7 text-xs gap-1">
+                    <Link to={`/compiler?code=${encodeURIComponent(selectedLesson.codeExample)}`}>
+                      <Terminal className="w-3 h-3" /> Try in Compiler
+                    </Link>
+                  </Button>
+                )}
               </div>
-              <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto leading-relaxed">
-                {selectedLesson.codeExample}
-              </pre>
-            </div>
+	              <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto leading-relaxed">
+	                {selectedLesson.codeExample}
+	              </pre>
+	            </div>
 
-            {/* Exercises */}
-            <div className="mb-8">
+	            {/* SQL Playground */}
+	            {isSqlTrack && (
+	              <div className="mb-8">
+	                <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+	                  <div className="min-w-[14rem]">
+	                    <h3 className="text-lg font-semibold text-foreground">SQL Editor</h3>
+	                    <p className="text-xs text-muted-foreground">
+	                      Dataset: <span className="font-mono text-foreground">{SQL_PRACTICE_DB_NAME}</span> ({SQL_PRACTICE_DB_TABLES.join(", ")})
+	                    </p>
+	                  </div>
+	                  <div className="flex items-center gap-2 flex-wrap">
+	                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShowDataset(true)}>
+	                      <Database className="w-3 h-3" /> View Example Data
+	                    </Button>
+	                    <Button
+	                      size="sm"
+	                      variant="ghost"
+	                      className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
+	                      onClick={() => {
+	                        setSqlPlayground(selectedLesson.codeExample);
+	                        setSqlOutput("");
+	                      }}
+	                    >
+	                      <RotateCcw className="w-3 h-3" /> Reset
+	                    </Button>
+	                    {isSqlRunning ? (
+	                      <Button size="sm" variant="destructive" className="h-7 text-xs gap-1" onClick={cancelActivePythonExecution}>
+	                        <Square className="w-3 h-3" /> Stop
+	                      </Button>
+	                    ) : (
+	                      <Button size="sm" className="h-7 text-xs gap-1" onClick={runSqlPlayground}>
+	                        <Play className="w-3 h-3" /> Run SQL
+	                      </Button>
+	                    )}
+	                  </div>
+	                </div>
+
+	                <div className="border border-border rounded-lg overflow-hidden bg-card">
+	                  <div className="h-56">
+	                    <Editor
+	                      height="100%"
+	                      language="sql"
+	                      theme="vs-dark"
+	                      value={sqlPlayground}
+	                      onChange={(v) => setSqlPlayground(v || "")}
+	                      options={{
+	                        fontSize: 13,
+	                        fontFamily: "'JetBrains Mono', monospace",
+	                        minimap: { enabled: false },
+	                        padding: { top: 12 },
+	                        scrollBeyondLastLine: false,
+	                        wordWrap: "on",
+	                        lineNumbers: "on",
+	                        automaticLayout: true,
+	                      }}
+	                    />
+	                  </div>
+	                  {sqlOutput && (
+	                    <pre className="border-t border-border px-4 py-3 text-xs font-mono whitespace-pre-wrap text-foreground">
+	                      {sqlOutput}
+	                    </pre>
+	                  )}
+	                </div>
+
+	                <Dialog open={showDataset} onOpenChange={setShowDataset}>
+	                  <DialogContent className="max-w-3xl">
+	                    <DialogHeader>
+	                      <DialogTitle>Example Data (SQLite)</DialogTitle>
+	                      <DialogDescription>
+	                        This SQL script is loaded before every run so the editor always starts with the same data.
+	                      </DialogDescription>
+	                    </DialogHeader>
+	                    <pre className="max-h-[60vh] overflow-auto rounded-lg border border-border bg-surface-1 p-3 text-xs font-mono whitespace-pre-wrap text-foreground">
+	                      {SQL_PRACTICE_DB_SETUP_SQL}
+	                    </pre>
+	                  </DialogContent>
+	                </Dialog>
+	              </div>
+	            )}
+	
+	            {/* Exercises */}
+	            <div className="mb-8">
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 Exercises
                 <span className="text-sm font-normal text-muted-foreground ml-2">— Complete beginner to unlock next</span>
               </h3>
               <div className="space-y-3">
                 {(["beginner", "intermediate", "advanced"] as const).map(level => (
-                  <ExerciseEditor
-                    key={level}
-                    exercise={selectedLesson.exercises[level]}
-                    level={level}
-                    lessonId={selectedLesson.id}
-                    locked={!isExerciseUnlocked(selectedLesson.id, level)}
-                  />
+                  isSqlTrack ? (
+                    <SqlExerciseEditor
+                      key={level}
+                      exercise={selectedLesson.exercises[level]}
+                      level={level}
+                      lessonId={selectedLesson.id}
+                      locked={!isExerciseUnlocked(selectedLesson.id, level)}
+                    />
+                  ) : (
+                    <ExerciseEditor
+                      key={level}
+                      exercise={selectedLesson.exercises[level]}
+                      level={level}
+                      lessonId={selectedLesson.id}
+                      locked={!isExerciseUnlocked(selectedLesson.id, level)}
+                    />
+                  )
                 ))}
               </div>
             </div>

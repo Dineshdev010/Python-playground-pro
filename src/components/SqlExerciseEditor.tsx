@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import confetti from "canvas-confetti";
 import { Exercise } from "@/data/lessons";
 import { useProgress } from "@/contexts/ProgressContext";
-import { cancelActivePythonExecution, executePython, getPythonExecutionTimeoutMs } from "@/lib/piston";
+import { cancelActivePythonExecution, getPythonExecutionTimeoutMs } from "@/lib/piston";
+import { executeSql } from "@/lib/sqlRunner";
 import { Button } from "@/components/ui/button";
 import { AdViewModal } from "@/components/AdViewModal";
 import { SPONSOR_DESTINATIONS } from "@/data/ads";
 import { Play, CheckCircle2, ChevronDown, ChevronUp, Lock, RotateCcw, Lightbulb, Eye, Tv, Square } from "lucide-react";
 
-interface ExerciseEditorProps {
+interface SqlExerciseEditorProps {
   exercise: Exercise;
   level: "beginner" | "intermediate" | "advanced";
   lessonId: string;
@@ -18,34 +19,23 @@ interface ExerciseEditorProps {
 
 function generateHint(exercise: Exercise): string {
   const expected = exercise.expectedOutput;
-  if (expected.includes("(") || expected.includes("[") || expected.includes("{")) {
-    return `💡 Your output should use a data structure. Expected format starts with: "${expected.substring(0, 30)}..."`;
-  }
   if (expected.includes("\n")) {
-    return `💡 The output has ${expected.split("\n").length} lines. First line: "${expected.split("\n")[0]}"`;
+    return `Your result has ${expected.split("\n").length} lines. First line: "${expected.split("\n")[0]}"`;
   }
-  return `💡 The expected output is: "${expected.length > 50 ? expected.substring(0, 50) + "..." : expected}"`;
+  return `Expected output starts with: "${expected.substring(0, 40)}${expected.length > 40 ? "..." : ""}"`;
 }
 
-function generateSolution(exercise: Exercise): string {
-  // Derive a likely solution from the starter code and expected output
-  const starter = exercise.starterCode;
-  const expected = exercise.expectedOutput;
-  
-  // If there's an explicit solution, use it
-  if (exercise.solution) return exercise.solution;
-  
-  // Simple heuristic: add a print statement for the expected output
-  if (starter.includes("# Print") || starter.includes("# print")) {
-    return `${starter.trimEnd()}\nprint(${JSON.stringify(expected).includes("\\n") ? "..." : `"${expected}"`})`;
-  }
-  
-  return `# Solution: Your code should produce:\n# ${expected.replace(/\n/g, "\n# ")}`;
+function stripSqlCommentsAndWhitespace(sql: string): string {
+  return sql
+    .split("\n")
+    .map((line) => line.replace(/--.*$/g, ""))
+    .join("\n")
+    .trim();
 }
 
-export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEditorProps) {
+export function SqlExerciseEditor({ exercise, level, lessonId, locked }: SqlExerciseEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [code, setCode] = useState(exercise.starterCode);
+  const [sql, setSql] = useState(exercise.starterCode);
   const [output, setOutput] = useState("");
   const [passed, setPassed] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -61,7 +51,7 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
 
   useEffect(() => {
     setIsOpen(false);
-    setCode(exercise.starterCode);
+    setSql(exercise.starterCode);
     setOutput("");
     setPassed(false);
     setIsRunning(false);
@@ -71,39 +61,39 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
     setShowAdModal(false);
   }, [exerciseKey, exercise.starterCode]);
 
-  const levelColors = {
-    beginner: "bg-streak-green/10 border-streak-green/30 text-streak-green",
-    intermediate: "bg-python-yellow/10 border-python-yellow/30 text-python-yellow",
-    advanced: "bg-destructive/10 border-destructive/30 text-destructive",
-  };
+  const levelColors = useMemo(
+    () => ({
+      beginner: "bg-streak-green/10 border-streak-green/30 text-streak-green",
+      intermediate: "bg-python-yellow/10 border-python-yellow/30 text-python-yellow",
+      advanced: "bg-destructive/10 border-destructive/30 text-destructive",
+    }),
+    [],
+  );
 
   const runAndCheck = async () => {
-    const userCode = code.trim();
-    const starterCode = exercise.starterCode.trim();
-    const hasNewCode = userCode.length > starterCode.length + 3;
-
-    if (!hasNewCode) {
-      setOutput("⚠️ Write your code first, then click Run.");
+    const userSql = sql.trim();
+    if (!stripSqlCommentsAndWhitespace(userSql)) {
+      setOutput("Write a SQL query first, then click Run.");
       setPassed(false);
       return;
     }
 
     setIsRunning(true);
-    setOutput(`⏳ Running in browser worker (up to ${timeoutSeconds}s)...`);
+    setOutput(`Running SQL (up to ${timeoutSeconds}s)...`);
 
-    const result = await executePython(userCode);
+    const result = await executeSql(userSql);
     const actualOutput = result.output.trim();
     const expected = exercise.expectedOutput.trim();
 
     if (result.error && !result.output) {
-      setOutput(`❌ Error:\n${result.error}`);
+      setOutput(`Error:\n${result.error}`);
       setPassed(false);
       setIsRunning(false);
       return;
     }
 
     if (actualOutput === expected) {
-      setOutput(`✅ Output:\n${actualOutput}\n\n🎉 Correct! Exercise completed!`);
+      setOutput(`Output:\n${actualOutput}\n\nCorrect! Exercise completed!`);
       setPassed(true);
       if (!alreadyCompleted) {
         completeExercise(exerciseKey);
@@ -115,7 +105,7 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
         });
       }
     } else {
-      setOutput(`Your output:\n${actualOutput || "(no output)"}\n\nExpected:\n${expected}\n\n❌ Not quite right. Check your code.`);
+      setOutput(`Your output:\n${actualOutput || "(no output)"}\n\nExpected:\n${expected}\n\nNot quite right. Check your query.`);
       setPassed(false);
     }
 
@@ -155,12 +145,14 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
   }
 
   const hint = exercise.hint || generateHint(exercise);
-  const solution = exercise.solution || generateSolution(exercise);
+  const solution = exercise.solution || "";
 
   return (
-    <div className={`border rounded-lg overflow-hidden transition-all ${
-      alreadyCompleted ? "border-streak-green/30 bg-streak-green/5" : "border-border bg-card"
-    }`}>
+    <div
+      className={`border rounded-lg overflow-hidden transition-all ${
+        alreadyCompleted ? "border-streak-green/30 bg-streak-green/5" : "border-border bg-card"
+      }`}
+    >
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-1/50 transition-colors"
@@ -182,10 +174,10 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
           <div className="h-48">
             <Editor
               height="100%"
-              language="python"
+              language="sql"
               theme="vs-dark"
-              value={code}
-              onChange={(v) => setCode(v || "")}
+              value={sql}
+              onChange={(v) => setSql(v || "")}
               options={{
                 fontSize: 13,
                 fontFamily: "'JetBrains Mono', monospace",
@@ -199,21 +191,20 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
             />
           </div>
 
-          {/* Hint & Solution panels */}
           {(showHint || showSolution) && (
-            <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-4">
+            <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-2">
               {showHint && !showSolution && (
-                <div className="text-xs text-muted-foreground animate-in fade-in slide-in-from-top-1">
-                  <span className="font-semibold text-python-yellow">💡 Hint:</span>{" "}
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-medium text-python-yellow">Hint:</span>{" "}
                   {hint}
                 </div>
               )}
-              {showSolution && (
+              {showSolution && solution && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 pt-1 border-t border-border/50 first:border-0 first:pt-0">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs font-semibold text-primary/90 uppercase tracking-wider">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      Solution Code
+                      Solution SQL
                     </div>
                     <pre className="text-xs font-mono bg-background/50 border border-primary/20 rounded-md p-3 text-foreground whitespace-pre-wrap shadow-sm">
                       {solution}
@@ -236,26 +227,47 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
           <div className="border-t border-border">
             <div className="flex items-center justify-between px-4 py-2 bg-surface-1 gap-2 flex-wrap">
               <div className="text-xs text-muted-foreground font-mono">
-                Expected: <span className="text-foreground">{exercise.expectedOutput.split("\n")[0]}{exercise.expectedOutput.includes("\n") ? "..." : ""}</span>
+                Expected:{" "}
+                <span className="text-foreground">
+                  {exercise.expectedOutput.split("\n")[0]}
+                  {exercise.expectedOutput.includes("\n") ? "..." : ""}
+                </span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <Button
                   size="sm"
                   variant="ghost"
                   className="h-7 text-xs gap-1 text-python-yellow/70 hover:text-python-yellow"
-                  onClick={() => { setShowHint(!showHint); setShowSolution(false); }}
+                  onClick={() => {
+                    setShowHint(!showHint);
+                    setShowSolution(false);
+                  }}
                 >
                   <Lightbulb className="w-3 h-3" /> {showHint ? "Hide Hint" : "Hint"}
                 </Button>
+                {exercise.solution && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs gap-1 text-primary/70 hover:text-primary"
+                    onClick={() => {
+                      setShowSolution(!showSolution);
+                      setShowHint(false);
+                    }}
+                  >
+                    <Eye className="w-3 h-3" /> {showSolution ? "Hide Solution" : "Solution"}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-xs gap-1 text-primary/70 hover:text-primary"
-                  onClick={() => { setShowSolution(!showSolution); setShowHint(false); }}
+                  className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSql(exercise.starterCode);
+                    setOutput("");
+                    setPassed(false);
+                  }}
                 >
-                  <Eye className="w-3 h-3" /> {showSolution ? "Hide Solution" : "Solution"}
-                </Button>
-                <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground" onClick={() => { setCode(exercise.starterCode); setOutput(""); setPassed(false); }}>
                   <RotateCcw className="w-3 h-3" /> Reset
                 </Button>
                 {isRunning ? (
@@ -270,9 +282,7 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
               </div>
             </div>
             {output && (
-              <pre className={`px-4 py-3 text-xs font-mono whitespace-pre-wrap ${
-                passed ? "text-streak-green" : "text-foreground"
-              }`}>
+              <pre className={`px-4 py-3 text-xs font-mono whitespace-pre-wrap ${passed ? "text-streak-green" : "text-foreground"}`}>
                 {output}
               </pre>
             )}
@@ -282,3 +292,4 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
     </div>
   );
 }
+
