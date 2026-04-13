@@ -155,7 +155,7 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="w-full min-h-screen flex items-center justify-center text-foreground bg-[#0b1220] overflow-hidden relative"
+      className="w-full min-h-screen flex items-center justify-center text-foreground bg-[#0b1220] overflow-x-hidden relative"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >

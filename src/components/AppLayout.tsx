@@ -156,7 +156,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="w-full h-full"
+            className="w-full min-h-full"
           >
             {children}
           </motion.div>

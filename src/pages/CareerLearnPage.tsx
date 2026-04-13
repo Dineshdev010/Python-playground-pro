@@ -18,6 +18,38 @@ import { BookOpen, CheckCircle2, ChevronRight, Lock, ArrowLeft, Terminal as Term
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+function buildLessonPattern(strokeHex: string) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'><g fill='none' stroke='${strokeHex}' stroke-width='1'><circle cx='30' cy='30' r='20'/><circle cx='190' cy='50' r='16'/><path d='M0 110h220M110 0v220'/><path d='M20 200L80 140L140 200'/></g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+function getLessonWallpaper(trackId: string, lessonTitle?: string, category?: string) {
+  const topic = `${trackId} ${lessonTitle ?? ""} ${category ?? ""}`.toLowerCase();
+
+  if (topic.includes("cloud") || topic.includes("mlops") || topic.includes("deploy")) {
+    return `linear-gradient(140deg, rgba(9, 22, 45, 0.92), rgba(37, 99, 235, 0.26)), ${buildLessonPattern("#60a5fa")}`;
+  }
+  if (topic.includes("sql") || topic.includes("database") || topic.includes("etl")) {
+    return `linear-gradient(140deg, rgba(8, 24, 32, 0.92), rgba(8, 145, 178, 0.24)), ${buildLessonPattern("#22d3ee")}`;
+  }
+  if (topic.includes("linux") || topic.includes("bash") || topic.includes("terminal") || topic.includes("git")) {
+    return `linear-gradient(140deg, rgba(8, 26, 16, 0.92), rgba(34, 197, 94, 0.24)), ${buildLessonPattern("#4ade80")}`;
+  }
+  if (topic.includes("ai") || topic.includes("ml") || topic.includes("neural") || topic.includes("nlp")) {
+    return `linear-gradient(140deg, rgba(24, 14, 42, 0.92), rgba(147, 51, 234, 0.24)), ${buildLessonPattern("#c084fc")}`;
+  }
+  if (topic.includes("web") || topic.includes("api") || topic.includes("http") || topic.includes("auth")) {
+    return `linear-gradient(140deg, rgba(13, 20, 40, 0.92), rgba(59, 130, 246, 0.24)), ${buildLessonPattern("#60a5fa")}`;
+  }
+  if (topic.includes("data") || topic.includes("pandas") || topic.includes("analysis")) {
+    return `linear-gradient(140deg, rgba(16, 21, 35, 0.92), rgba(234, 179, 8, 0.2)), ${buildLessonPattern("#facc15")}`;
+  }
+  if (topic.includes("security") || topic.includes("cyber")) {
+    return `linear-gradient(140deg, rgba(38, 12, 16, 0.92), rgba(239, 68, 68, 0.2)), ${buildLessonPattern("#f87171")}`;
+  }
+  return `linear-gradient(140deg, rgba(10, 18, 35, 0.92), rgba(99, 102, 241, 0.18)), ${buildLessonPattern("#475569")}`;
+}
+
 export default function CareerLearnPage() {
   const { trackId } = useParams<{ trackId: string }>();
   const track = careerTracks.find(t => t.id === trackId);
@@ -43,6 +75,10 @@ export default function CareerLearnPage() {
   }, [isSqlTrack, track]);
 
   const selectedLesson = track?.lessons.find(l => l.id === selectedId);
+  const lessonWallpaper = useMemo(
+    () => getLessonWallpaper(track?.id ?? "", selectedLesson?.title, selectedLesson?.category),
+    [selectedLesson?.category, selectedLesson?.title, track?.id],
+  );
 
   // Auto-open the first lesson so the page never feels empty on first visit.
   useEffect(() => {
@@ -63,7 +99,7 @@ export default function CareerLearnPage() {
 
   if (!track) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Career track not found</p>
           <Button asChild variant="outline"><Link to="/">Go Home</Link></Button>
@@ -103,7 +139,7 @@ export default function CareerLearnPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-72 border-r border-border bg-surface-1 overflow-y-auto shrink-0 hidden md:block">
         <div className="p-4 border-b border-border">
@@ -146,7 +182,18 @@ export default function CareerLearnPage() {
       </aside>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative">
+        <div
+          className="pointer-events-none absolute inset-0 transition-all duration-500"
+          style={{
+            backgroundImage: lessonWallpaper,
+            backgroundSize: "cover, 220px 220px",
+            backgroundPosition: "center, center",
+            opacity: 0.55,
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-background/25 to-background/70" />
+        <div className="relative z-10">
         {selectedLesson ? (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-8">
             {/* Mobile back button */}
@@ -429,6 +476,7 @@ export default function CareerLearnPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

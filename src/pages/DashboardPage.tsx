@@ -121,6 +121,9 @@ function formatCountdown(totalSeconds: number) {
 
 const TIME_GIFT_INTERVAL_SECONDS = 60 * 60;
 const QUIZ_PROGRESS_STORAGE_KEY = "pymaster_quiz_progress_v1";
+const DASHBOARD_DENSITY_KEY = "pymaster_dashboard_density";
+const DASHBOARD_VIEW_KEY = "pymaster_dashboard_view";
+const DASHBOARD_GOAL_PRESET_KEY = "pymaster_dashboard_goal_preset";
 
 type QuizProgressSnapshot = {
   allTotal: number;
@@ -209,6 +212,15 @@ export default function DashboardPage() {
   const [savingProfileDetails, setSavingProfileDetails] = useState(false);
   const [giftTick, setGiftTick] = useState(0);
   const [quizProgress, setQuizProgress] = useState<QuizProgressSnapshot>(() => readQuizProgressSnapshot());
+  const [dashboardDensity, setDashboardDensity] = useState<"full" | "focus">(
+    () => (localStorage.getItem(DASHBOARD_DENSITY_KEY) as "full" | "focus") || "full",
+  );
+  const [dashboardView, setDashboardView] = useState<"overview" | "insights" | "customize">(
+    () => (localStorage.getItem(DASHBOARD_VIEW_KEY) as "overview" | "insights" | "customize") || "overview",
+  );
+  const [goalPreset, setGoalPreset] = useState<"steady" | "focused" | "sprint">(
+    () => (localStorage.getItem(DASHBOARD_GOAL_PRESET_KEY) as "steady" | "focused" | "sprint") || "steady",
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
@@ -232,6 +244,18 @@ export default function DashboardPage() {
   useEffect(() => {
     localStorage.setItem("pymaster_dashboard_theme", dashboardTheme);
   }, [dashboardTheme]);
+
+  useEffect(() => {
+    localStorage.setItem(DASHBOARD_DENSITY_KEY, dashboardDensity);
+  }, [dashboardDensity]);
+
+  useEffect(() => {
+    localStorage.setItem(DASHBOARD_VIEW_KEY, dashboardView);
+  }, [dashboardView]);
+
+  useEffect(() => {
+    localStorage.setItem(DASHBOARD_GOAL_PRESET_KEY, goalPreset);
+  }, [goalPreset]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -374,11 +398,40 @@ export default function DashboardPage() {
   const weeklyXpValue = orderedActivityEntries
     .filter(([day]) => day >= isoForOffset(6))
     .reduce((sum, [, count]) => sum + count * 10, 0);
+  const previousWeekXpValue = orderedActivityEntries
+    .filter(([day]) => day >= isoForOffset(13) && day < isoForOffset(6))
+    .reduce((sum, [, count]) => sum + count * 10, 0);
   const weeklyStreakGoal = Math.min(progress.streak, 7);
+  const goalTargetByPreset = {
+    steady: { problems: 5, xp: 100, streak: 7 },
+    focused: { problems: 8, xp: 180, streak: 7 },
+    sprint: { problems: 12, xp: 260, streak: 7 },
+  } as const;
+  const goalTargets = goalTargetByPreset[goalPreset];
   const weeklyGoals = [
-    { label: "Solve 5 problems", current: weeklyProblemGoal, target: 5, helper: `${progress.solvedProblems.length} solved overall` },
-    { label: "Earn 100 XP", current: Math.min(weeklyXpValue, 100), target: 100, helper: `${weeklyXpValue} XP from recent activity` },
-    { label: "Keep a 7-day streak", current: weeklyStreakGoal, target: 7, helper: `${progress.streak} day streak right now` },
+    { label: `Solve ${goalTargets.problems} problems`, current: Math.min(progress.solvedProblems.length, goalTargets.problems), target: goalTargets.problems, helper: `${progress.solvedProblems.length} solved overall` },
+    { label: `Earn ${goalTargets.xp} XP`, current: Math.min(weeklyXpValue, goalTargets.xp), target: goalTargets.xp, helper: `${weeklyXpValue} XP from recent activity` },
+    { label: "Keep a 7-day streak", current: weeklyStreakGoal, target: goalTargets.streak, helper: `${progress.streak} day streak right now` },
+  ];
+  const weeklyTrendCards = [
+    {
+      label: "XP Trend",
+      current: weeklyXpValue,
+      previous: previousWeekXpValue,
+      helper: "Last 7 days vs previous 7 days",
+    },
+    {
+      label: "Problems Trend",
+      current: Math.min(progress.solvedProblems.length, 20),
+      previous: Math.max(0, Math.min(progress.solvedProblems.length - weeklyProblemGoal, 20)),
+      helper: "Recent completions momentum",
+    },
+    {
+      label: "Streak Stability",
+      current: Math.min(progress.streak, 14),
+      previous: Math.max(0, Math.min(progress.previousStreak || 0, 14)),
+      helper: "Current streak vs last broken streak",
+    },
   ];
   const compareRankings = useMemo(() => {
     const source = compareUsers.length ? compareUsers : [];
@@ -442,6 +495,31 @@ export default function DashboardPage() {
   ].filter(Boolean).slice(0, 3) as { emoji: string; title: string; helper: string }[];
   const allQuizAnsweredPct = quizProgress.allTotal ? Math.round((quizProgress.allAnswered / quizProgress.allTotal) * 100) : 0;
   const trickyQuizAnsweredPct = quizProgress.trickyTotal ? Math.round((quizProgress.trickyAnswered / quizProgress.trickyTotal) * 100) : 0;
+  const quizAccuracy = quizProgress.allAnswered ? Math.round((quizProgress.allScore / quizProgress.allAnswered) * 100) : 0;
+  const trickyAccuracy = quizProgress.trickyAnswered ? Math.round((quizProgress.trickyScore / quizProgress.trickyAnswered) * 100) : 0;
+  const nextFocusAction = progress.solvedProblems.length < 5
+    ? { title: "Solve your next coding challenge", helper: "Build momentum with one easy problem", to: "/problems", cta: "Solve Problem" }
+    : progress.completedLessons.length < 10
+      ? { title: "Resume your learning path", helper: "Complete one lesson to increase your baseline", to: "/learn", cta: "Continue Lessons" }
+      : quizProgress.allAnswered < 25
+        ? { title: "Improve quiz accuracy", helper: "Answer 10 quiz questions in one go", to: "/python-quiz-100", cta: "Take Quiz" }
+        : { title: "Ship one compiler run", helper: "Stay consistent with a quick practice run", to: "/compiler", cta: "Open Compiler" };
+  const streakResetSeconds = (() => {
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setHours(24, 0, 0, 0);
+    return Math.max(0, Math.floor((nextMidnight.getTime() - now.getTime()) / 1000));
+  })();
+  const streakResetLabel = formatCountdown(streakResetSeconds);
+  const timelineItems = [
+    { title: `XP reached ${progress.xp.toLocaleString()}`, helper: "Latest progress snapshot", tone: "text-primary" },
+    { title: `${progress.solvedProblems.length} problems solved`, helper: "Strong coding consistency", tone: "text-streak-green" },
+    { title: `${progress.completedLessons.length} lessons completed`, helper: "Learning depth improved", tone: "text-blue-400" },
+    { title: `${progress.streak}-day streak active`, helper: "Keep it alive before reset", tone: "text-python-yellow" },
+  ];
+  const showOverview = dashboardView === "overview";
+  const showInsights = dashboardView === "insights";
+  const showCustomize = dashboardView === "customize";
 
   const shareText =
     `${profileName} is learning on PyMaster.\n` +
@@ -596,28 +674,37 @@ export default function DashboardPage() {
 
   return (
     <div className={`max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8 rounded-none md:rounded-[2rem] ${selectedTheme.shell}`}>
-      {/* Stats grid (kept at the top for quick visibility / screenshots) */}
-      <SectionErrorBoundary section="Stats">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6 md:mb-8">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors">
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-lg">{s.emoji}</span>
-              </div>
-              <div className="text-xl font-bold text-foreground">{s.value}</div>
-              <div className="text-xs text-muted-foreground">{s.label}</div>
-              {s.total && typeof s.value === "number" ? (
-                <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${Math.min((s.value / s.total) * 100, 100)}%` }}
-                  />
-                </div>
-              ) : null}
+      <div className="mb-6 rounded-2xl border border-border bg-card/80 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Dashboard View</span>
+            {(["overview", "insights", "customize"] as const).map((view) => (
+              <button
+                key={view}
+                type="button"
+                onClick={() => setDashboardView(view)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
+                  dashboardView === view ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface-1 text-muted-foreground"
+                }`}
+              >
+                {view}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDashboardDensity((current) => (current === "full" ? "focus" : "full"))}
+              className="rounded-full border border-border bg-surface-1 px-3 py-1 text-xs font-medium text-foreground"
+            >
+              {dashboardDensity === "focus" ? "Performance Mode On" : "Performance Mode Off"}
+            </button>
+            <div className="rounded-full border border-border bg-surface-1 px-3 py-1 text-xs font-medium text-muted-foreground">
+              Streak resets in {streakResetLabel}
             </div>
-          ))}
+          </div>
         </div>
-      </SectionErrorBoundary>
+      </div>
 
       {/* Profile header */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 mb-6 md:mb-8">
@@ -805,7 +892,31 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Stats grid */}
+      <SectionErrorBoundary section="Stats">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6 md:mb-8">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-lg">{s.emoji}</span>
+              </div>
+              <div className="text-xl font-bold text-foreground">{s.value}</div>
+              <div className="text-xs text-muted-foreground">{s.label}</div>
+              {s.total && typeof s.value === "number" ? (
+                <div className="mt-2 h-1.5 bg-surface-2 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${Math.min((s.value / s.total) * 100, 100)}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </SectionErrorBoundary>
+
       {/* Activity (moved below Public Profile) */}
+      {(showOverview || showInsights) && dashboardDensity === "full" && (
       <SectionErrorBoundary section="Coding Activity">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -824,6 +935,7 @@ export default function DashboardPage() {
           <ActivityGraph activityMap={progress.activityMap} />
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/*
         <>
@@ -888,7 +1000,82 @@ export default function DashboardPage() {
         </>
       */}
 
+      <div className="mb-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Today Focus</div>
+          <h2 className="mt-2 text-xl font-bold text-foreground">{nextFocusAction.title}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{nextFocusAction.helper}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Button size="sm" className="gap-2" onClick={() => navigate(nextFocusAction.to)}>
+              <Sparkles className="w-4 h-4" />
+              {nextFocusAction.cta}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/jobs")}>Browse Jobs</Button>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Quiz Insight</div>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">All accuracy</span>
+              <span className="font-semibold text-foreground">{quizAccuracy}%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Tricky accuracy</span>
+              <span className="font-semibold text-foreground">{trickyAccuracy}%</span>
+            </div>
+            <div className="rounded-xl border border-border bg-surface-1 p-3 text-xs text-muted-foreground">
+              {trickyAccuracy < quizAccuracy ? "Focus on tricky mode this week to raise interview readiness." : "Great consistency. Push overall volume for stronger confidence."}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {(showInsights || showOverview) && (
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground">Weekly Trend Snapshot</h3>
+          <div className="mt-4 space-y-3">
+            {weeklyTrendCards.map((trend) => {
+              const trendPct = trend.previous > 0 ? Math.round(((trend.current - trend.previous) / trend.previous) * 100) : 100;
+              const barWidth = Math.min(100, Math.max(8, Math.round((trend.current / Math.max(trend.current, trend.previous || 1)) * 100)));
+              return (
+                <div key={trend.label} className="rounded-xl border border-border bg-surface-1 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{trend.label}</span>
+                    <span className={`text-xs font-semibold ${trendPct >= 0 ? "text-streak-green" : "text-destructive"}`}>
+                      {trendPct >= 0 ? "+" : ""}{trendPct}%
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-background overflow-hidden">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${barWidth}%` }} />
+                  </div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">{trend.helper}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground">Achievement Timeline</h3>
+          <div className="mt-4 space-y-3">
+            {timelineItems.map((item, index) => (
+              <div key={item.title} className="flex items-start gap-3 rounded-xl border border-border bg-surface-1 p-3">
+                <div className={`mt-0.5 text-xs font-bold ${item.tone}`}>#{index + 1}</div>
+                <div>
+                  <div className="text-sm font-medium text-foreground">{item.title}</div>
+                  <div className="text-[11px] text-muted-foreground">{item.helper}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      )}
+
       {/* Quick actions */}
+      {showOverview && (
       <SectionErrorBoundary section="Quick Actions">
         <div className="bg-card border border-border rounded-2xl p-6 mb-8">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -934,8 +1121,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </SectionErrorBoundary>
+      )}
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-8">
+      <div className={`grid gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-8 ${showCustomize ? "" : "hidden"}`}>
         <SectionErrorBoundary section="Profile Editor">
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-start justify-between gap-4">
@@ -1058,7 +1246,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Streak Recovery Banner */}
-      {canRecover &&
+      {(showInsights || showOverview) && canRecover &&
       <div className="mb-6 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-yellow-500/10 border border-orange-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🛡️</span>
@@ -1079,7 +1267,7 @@ export default function DashboardPage() {
         </div>
       }
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-8">
+      <div className={`grid gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-8 ${(showInsights || showOverview) ? "" : "hidden"}`}>
         <SectionErrorBoundary section="Rank Card">
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-start justify-between gap-4">
@@ -1168,7 +1356,7 @@ export default function DashboardPage() {
         </SectionErrorBoundary>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+      <div className={`grid gap-6 lg:grid-cols-2 mb-8 ${(showInsights || showOverview) ? "" : "hidden"}`}>
         <SectionErrorBoundary section="Quiz Progress">
           <div className="bg-card border border-border rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -1223,10 +1411,26 @@ export default function DashboardPage() {
 
         <SectionErrorBoundary section="Weekly Goals">
           <div className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Weekly Goals
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Weekly Goals
+              </h2>
+              <div className="flex items-center gap-2">
+                {(["steady", "focused", "sprint"] as const).map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setGoalPreset(preset)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium capitalize ${
+                      goalPreset === preset ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface-1 text-muted-foreground"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="mt-5 space-y-4">
               {weeklyGoals.map((goal) => {
                 const pct = Math.min(goal.current / goal.target * 100, 100);
@@ -1272,7 +1476,7 @@ export default function DashboardPage() {
         </SectionErrorBoundary>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_1fr_1fr] mb-8">
+      <div className={`grid gap-6 xl:grid-cols-[1fr_1fr_1fr] mb-8 ${showInsights ? "" : "hidden"}`}>
         <SectionErrorBoundary section="Recent Activity">
           <div className="bg-card border border-border rounded-2xl p-6 h-full">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -1356,6 +1560,7 @@ export default function DashboardPage() {
       </div>
 
       {/* How to Climb */}
+      {showOverview && (
       <SectionErrorBoundary section="How to Climb">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1376,8 +1581,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/* Emoji Shop */}
+      {showCustomize && (
       <SectionErrorBoundary section="Emoji Shop">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
@@ -1452,8 +1659,10 @@ export default function DashboardPage() {
           })}
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/* Star Trophy Progress */}
+      {showInsights && dashboardDensity === "full" && (
       <SectionErrorBoundary section="Star Trophies">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <div className="flex flex-col mb-6">
@@ -1469,8 +1678,10 @@ export default function DashboardPage() {
           <TrophyHall starsCaught={progress.starsCaught} />
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/* Streak Milestones */}
+      {(showInsights || showOverview) && (
       <SectionErrorBoundary section="Streak Milestones">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1491,15 +1702,19 @@ export default function DashboardPage() {
           </div>
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/* Completion Badges */}
+      {showInsights && (
       <SectionErrorBoundary section="Badges">
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <BadgeDisplay />
         </div>
       </SectionErrorBoundary>
+      )}
 
       {/* Solved Problems */}
+      {showOverview && dashboardDensity === "full" && (
       <SectionErrorBoundary section="Solved Problems">
         <div className="bg-card border border-border rounded-lg p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1524,6 +1739,7 @@ export default function DashboardPage() {
           }
         </div>
       </SectionErrorBoundary>
+      )}
     </div>);
 
 }

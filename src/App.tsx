@@ -21,6 +21,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProgressProvider } from "@/contexts/ProgressContext";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { GlobalConfetti } from "@/components/GlobalConfetti";
+import LinuxLearningPage from "./pages/LinuxLearningPage";
 
 // --- Lazy-loaded Pages ---
 // Each page is loaded on-demand when the user visits its route
@@ -53,7 +54,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
-const LinuxLearningPage = lazy(() => import("./pages/LinuxLearningPage"));
 const CareerRoadmapPage = lazy(() => import("./pages/CareerRoadmapPage"));
 
 const queryClient = new QueryClient({

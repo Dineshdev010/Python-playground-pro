@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { 
   BookOpen, Brain, Briefcase, Clock3, Code2, Sparkles, Target, Terminal, 
-  Database, GitBranch, Layers, Cpu, Copy, LayoutDashboard
+  Database, GitBranch, Layers, Cpu, Copy, LayoutDashboard, Search, Star, StarOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,34 @@ interface CheatsheetCard { title: string; snippet: string; }
 interface CheatsheetSection { title: string; cards: CheatsheetCard[]; }
 interface TechEntry { icon: React.ElementType; color: string; sections: CheatsheetSection[]; }
 type TechType = 'python' | 'sql' | 'pandas' | 'linux' | 'git';
+
+const TECH_COLOR_CLASSES: Record<TechType, { tabActive: string; iconActive: string; badge: string }> = {
+  python: {
+    tabActive: "bg-blue-500/20 text-blue-300 ring-2 ring-blue-500/40 shadow-xl",
+    iconActive: "text-blue-300",
+    badge: "border-blue-500/30 bg-blue-500/15 text-blue-200",
+  },
+  sql: {
+    tabActive: "bg-amber-500/20 text-amber-300 ring-2 ring-amber-500/40 shadow-xl",
+    iconActive: "text-amber-300",
+    badge: "border-amber-500/30 bg-amber-500/15 text-amber-200",
+  },
+  pandas: {
+    tabActive: "bg-emerald-500/20 text-emerald-300 ring-2 ring-emerald-500/40 shadow-xl",
+    iconActive: "text-emerald-300",
+    badge: "border-emerald-500/30 bg-emerald-500/15 text-emerald-200",
+  },
+  linux: {
+    tabActive: "bg-rose-500/20 text-rose-300 ring-2 ring-rose-500/40 shadow-xl",
+    iconActive: "text-rose-300",
+    badge: "border-rose-500/30 bg-rose-500/15 text-rose-200",
+  },
+  git: {
+    tabActive: "bg-indigo-500/20 text-indigo-300 ring-2 ring-indigo-500/40 shadow-xl",
+    iconActive: "text-indigo-300",
+    badge: "border-indigo-500/30 bg-indigo-500/15 text-indigo-200",
+  },
+};
 
 const TECH_DATA: Record<TechType, TechEntry> = {
   python: {
@@ -359,10 +387,39 @@ const TECH_DATA: Record<TechType, TechEntry> = {
 
 export default function QuickPrepPage() {
   const [activeTab, setActiveTab] = useState<TechType>('python');
+  const [query, setQuery] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const activeTech = TECH_DATA[activeTab];
+  const activeKey = activeTab === "pandas" ? "Pandas" : activeTab;
+  const sectionFilterText = query.trim().toLowerCase();
+  const filteredSections = useMemo(
+    () =>
+      activeTech.sections
+        .map((section) => ({
+          ...section,
+          cards: section.cards.filter((card) => {
+            const matchesQuery = !sectionFilterText || `${card.title} ${card.snippet}`.toLowerCase().includes(sectionFilterText);
+            const matchesFavorites = !showFavoritesOnly || favorites[`${activeTab}:${section.title}:${card.title}`];
+            return matchesQuery && matchesFavorites;
+          }),
+        }))
+        .filter((section) => section.cards.length > 0),
+    [activeTech.sections, activeTab, favorites, sectionFilterText, showFavoritesOnly],
+  );
+  const activeTechSummary = {
+    sections: filteredSections.length,
+    snippets: filteredSections.reduce((total, section) => total + section.cards.length, 0),
+  };
+  const totalFavorites = useMemo(() => Object.values(favorites).filter(Boolean).length, [favorites]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Snippet copied!", { icon: "📋" });
+  };
+
+  const toggleFavorite = (key: string) => {
+    setFavorites((current) => ({ ...current, [key]: !current[key] }));
   };
 
   return (
@@ -467,22 +524,62 @@ export default function QuickPrepPage() {
             {Object.entries(TECH_DATA).map(([key, data]: [string, TechEntry]) => {
               const Icon = data.icon;
               const isActive = activeTab === key;
+              const palette = TECH_COLOR_CLASSES[key as TechType];
               return (
                 <button
                   key={key}
                   onClick={() => setActiveTab(key as TechType)}
                   className={`flex items-center gap-3 px-6 py-3 rounded-xl text-base font-bold transition-all duration-300 ${
                     isActive 
-                      ? `bg-${data.color}-500/20 text-${data.color}-400 ring-2 ring-${data.color}-500/40 shadow-xl` 
+                      ? palette.tabActive
                       : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${isActive ? `text-${data.color}-400` : ""}`} />
+                  <Icon className={`h-5 w-5 ${isActive ? palette.iconActive : ""}`} />
                   <span className="capitalize">{key === 'pandas' ? 'Pandas' : key}</span>
                 </button>
               );
             })}
           </div>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${TECH_COLOR_CLASSES[activeTab].badge}`}>
+            {activeKey} focus
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
+            {activeTechSummary.sections} sections
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
+            {activeTechSummary.snippets} snippets
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
+            {totalFavorites} favorites
+          </span>
+        </div>
+
+        <div className="mb-8 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-300">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`Search ${activeKey} snippets...`}
+              className="w-full bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
+            />
+          </label>
+          <Button
+            type="button"
+            variant="outline"
+            className={`border-white/10 ${showFavoritesOnly ? "bg-white/10 text-white" : "bg-transparent text-slate-300"}`}
+            onClick={() => setShowFavoritesOnly((value) => !value)}
+          >
+            {showFavoritesOnly ? <StarOff className="mr-2 h-4 w-4" /> : <Star className="mr-2 h-4 w-4" />}
+            {showFavoritesOnly ? "Show All" : "Favorites"}
+          </Button>
+          <Button type="button" variant="outline" className="border-white/10 text-slate-300" onClick={() => setQuery("")}>
+            Reset
+          </Button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -494,7 +591,7 @@ export default function QuickPrepPage() {
             transition={{ duration: 0.3 }}
             className="space-y-12"
           >
-            {TECH_DATA[activeTab].sections.map((section: CheatsheetSection) => (
+            {filteredSections.map((section: CheatsheetSection) => (
               <div key={section.title} className="space-y-6">
                 <div className="flex items-center gap-4">
                   <h3 className="text-sm font-black tracking-widest text-slate-500 uppercase">{section.title}</h3>
@@ -503,18 +600,30 @@ export default function QuickPrepPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {section.cards.map((card: CheatsheetCard) => (
+                    (() => {
+                      const favoriteKey = `${activeTab}:${section.title}:${card.title}`;
+                      const isFavorite = Boolean(favorites[favoriteKey]);
+                      return (
                     <div
                       key={card.title}
-                      className="group relative rounded-[1.5rem] border border-white/5 bg-slate-900/40 p-5 transition-all hover:border-primary/20 hover:bg-slate-900/60"
+                      className="group relative rounded-[1.5rem] border border-white/5 bg-slate-900/40 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-primary/10"
                     >
                       <div className="mb-4 flex items-center justify-between">
                          <h4 className="text-sm font-bold text-slate-100">{card.title}</h4>
-                         <button 
-                          onClick={() => copyToClipboard(card.snippet)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-primary transition-all"
-                         >
-                           <Copy className="h-4 w-4" />
-                         </button>
+                         <div className="flex items-center gap-1.5">
+                           <button
+                            onClick={() => toggleFavorite(favoriteKey)}
+                            className={`p-1.5 rounded-lg border transition-all ${isFavorite ? "border-primary/40 bg-primary/20 text-primary" : "border-white/10 bg-white/5 text-slate-400 hover:text-primary"}`}
+                           >
+                             <Star className="h-4 w-4" />
+                           </button>
+                           <button 
+                            onClick={() => copyToClipboard(card.snippet)}
+                            className="p-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-primary transition-all md:opacity-0 md:group-hover:opacity-100"
+                           >
+                             <Copy className="h-4 w-4" />
+                           </button>
+                         </div>
                       </div>
                       
                       {/* --- TERMINAL WRAPPER FOR LINUX --- */}
@@ -543,10 +652,18 @@ export default function QuickPrepPage() {
                         <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">High Yield Pattern</span>
                       </div>
                     </div>
+                      );
+                    })()
                   ))}
                 </div>
               </div>
             ))}
+            {filteredSections.length === 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
+                <p className="text-slate-300">No snippets match your current filters.</p>
+                <p className="mt-1 text-sm text-slate-500">Try a broader search or turn off favorites-only mode.</p>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 

@@ -327,6 +327,7 @@ export default function CompilerPage() {
     setShowModeMenu(false);
     setCode(loadSavedCode(newMode));   // restore last saved code for this mode
     setHistory(getHistory(newMode));
+    setActiveTab("output");
     setOutput("");
     setExecutionTime(null);
     setExecutionHistory([]);
@@ -337,6 +338,7 @@ export default function CompilerPage() {
     if (mode === "linux") return; // Linux uses its own flow
 
     setIsRunning(true);
+    setActiveTab("output");
 
     // Pandas needs to download the package from CDN on first run — show a helpful message
     if (mode === "pandas") {
@@ -380,10 +382,6 @@ export default function CompilerPage() {
     if (!result.error && code.trim()) {
       addToHistory(mode, code);
       setHistory(getHistory(mode));
-    }
-
-    if (isMobile) {
-      setTimeout(() => outputPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
   };
 
@@ -465,7 +463,7 @@ export default function CompilerPage() {
   const isLinux = mode === "linux";
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem-4rem)] lg:h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
+    <div className="flex min-h-[calc(100dvh-3.5rem-4rem)] md:h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
       <Helmet>
         <title>{lang.label} Compiler | PyMaster</title>
         <meta name="description" content={`Run ${lang.label} code in your browser with our professional-grade interactive compiler. No installation required.`} />
@@ -627,6 +625,35 @@ export default function CompilerPage() {
             )
           )}
 
+          {!isLinux && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1 flex-1 sm:flex-none"
+              aria-label="Show editor panel"
+              onClick={() => {
+                editorPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              📝 Editor
+            </Button>
+          )}
+
+          {!isLinux && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1 flex-1 sm:flex-none"
+              aria-label="Show output panel"
+              onClick={() => {
+                setActiveTab("output");
+                outputPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              📺 Output
+            </Button>
+          )}
+
         </div>
       </div>
 
@@ -638,7 +665,9 @@ export default function CompilerPage() {
       {/* ---------- Main Area ---------- */}
       <div
         ref={containerRef}
-        className={`flex-1 flex flex-col ${!isLinux && mode !== "sql" ? "md:flex-row" : "flex-col"} overflow-hidden min-h-0`}
+        className={`flex-1 flex flex-col ${!isLinux && mode !== "sql" ? "md:flex-row" : "flex-col"} ${
+          mode === "sql" ? "overflow-hidden" : "overflow-y-auto md:overflow-hidden"
+        } min-h-0`}
       >
 
         {/* ===== LINUX TERMINAL MODE ===== */}
@@ -800,7 +829,7 @@ export default function CompilerPage() {
             {/* Output Panel */}
             <div
               ref={outputPanelRef}
-              className={`flex flex-col bg-surface-0 min-h-0 ${mode === "sql" ? "flex-1 w-full" : "min-h-[55vh] md:min-h-0 md:h-full md:w-[28rem] md:flex-none shrink-0"}`}
+              className={`flex flex-col bg-surface-0 min-h-0 ${mode === "sql" ? "flex-1 w-full" : "min-h-[42vh] md:min-h-0 md:h-full md:w-[32rem] md:flex-none shrink-0"}`}
             >
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "output" | "performance")} className="flex flex-col flex-1 min-h-0 bg-surface-0">
                 <div className="px-4 py-2 border-b border-border bg-surface-1 flex items-center justify-between shadow-sm shrink-0">

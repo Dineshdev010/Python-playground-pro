@@ -190,7 +190,7 @@ export default function ProblemPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:h-[calc(100dvh-3.5rem)]">
       <Helmet>
         <title>{problem.title} | PyMaster Problems</title>
         <meta name="description" content={`Solve ${problem.title} in Python. ${problem.description.substring(0, 100)}... Challenge yourself with our built-in compiler.`} />

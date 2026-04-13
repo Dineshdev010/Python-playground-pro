@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { careerTracks } from "@/data/careerLessons";
 import { useProgress } from "@/contexts/ProgressContext";
 import { LinuxTerminalEditor } from "@/components/LinuxTerminalEditor";
 import { LinuxSymbolsBackground } from "@/components/LinuxSymbolsBackground";
 import { 
-  Terminal as TerminalIcon, 
   CheckCircle2, 
   ChevronRight, 
   Lock, 
-  Zap, 
   Award, 
   Layout
 } from "lucide-react";
@@ -64,21 +62,17 @@ export default function LinuxLearningPage() {
     return levels.filter(l => progress.completedExercises.includes(`${lessonId}:${l}`)).length;
   };
 
-  const totalLessons = track.lessons.length;
-  const completedLessons = track.lessons.filter(l => getLessonProgress(l.id) === 3).length;
-  const progressPct = Math.round((completedLessons / totalLessons) * 100);
-
   return (
-    <div className="flex flex-col text-white selection:bg-emerald-500/30 overflow-hidden">
+    <div className="relative flex flex-col text-white selection:bg-emerald-500/30 overflow-x-hidden bg-black">
       <Helmet>
         <title>Linux Mastery | PyMaster</title>
         <meta name="description" content="Master Linux terminal and server administration with real-time exercises." />
       </Helmet>
       <LinuxSymbolsBackground />
       
-      <main className="grid lg:grid-cols-[380px_1fr] h-[calc(100vh-theme(spacing.16))] overflow-hidden relative">
+      <main className="relative z-10 grid min-h-[calc(100svh-4rem)] sm:min-h-[calc(100svh-3.5rem)] lg:h-[calc(100svh-3.5rem)] lg:grid-cols-[380px_1fr] overflow-y-auto lg:overflow-hidden">
         {/* Left: Content & Roadmap */}
-        <aside className="border-r border-white/5 bg-white/[0.01] flex flex-col h-full overflow-hidden">
+        <aside className="border-r border-white/5 bg-white/[0.01] flex flex-col lg:h-full overflow-hidden">
           {/* Tabs for Sidebar */}
           <div className="p-4 flex gap-2 border-b border-white/5 bg-black/40">
             <div className="flex-1 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
@@ -157,7 +151,7 @@ export default function LinuxLearningPage() {
         </aside>
 
         {/* Right: Active Lesson & Terminal */}
-        <div className="h-full overflow-y-auto bg-black/20 flex flex-col">
+        <div className="bg-black/20 flex flex-col lg:h-full overflow-y-auto">
           <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
             <AnimatePresence mode="wait">
               <motion.div
@@ -292,7 +286,7 @@ export default function LinuxLearningPage() {
                               setSelectedId(next.id);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }} 
-                            className={`h-12 px-8 rounded-xl font-mono uppercase tracking-widest gap-2 min-w-[180px] ${
+                            className={`h-12 px-6 sm:px-8 rounded-xl font-mono uppercase tracking-widest gap-2 min-w-0 sm:min-w-[180px] ${
                               canProceed ? "bg-emerald-600 hover:bg-emerald-500" : ""
                             }`}
                           >

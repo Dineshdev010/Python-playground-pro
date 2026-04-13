@@ -102,9 +102,12 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   const menuGroups: Array<{ label: string; routes: string[] }> = [
     { label: "Content", routes: ["/blog", "/projects"] },
     { label: "Practice", routes: ["/compiler", "/quick-prep", "/python-game", "/python-quiz-100", "/aptitude"] },
-    { label: "Career", routes: ["/jobs", "/leaderboard", "/certificate"] },
+    { label: "Career", routes: ["/jobs", "/career-roadmap", "/linux-learn", "/leaderboard", "/certificate"] },
     { label: "Support", routes: ["/donate", "/about", "/contact"] },
   ];
+  const isRouteActive = (route: string) =>
+    location.pathname === route || location.pathname.startsWith(`${route}/`);
+
 
   const groupedMenuItems = menuGroups
     .map((group) => ({
@@ -216,7 +219,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
               key={item.to}
               to={item.to}
               className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-[11px] transition-all duration-200 xl:gap-1.5 xl:px-2.5 xl:text-xs ${
-                location.pathname === item.to
+                isRouteActive(item.to)
                   ? "bg-secondary text-foreground font-medium scale-105"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 hover:scale-105 active:scale-95"
               }`}
@@ -235,7 +238,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   className={`relative flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] transition-all duration-200 xl:gap-1.5 xl:px-3 xl:text-xs border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                    secondaryNavItems.some((item) => location.pathname === item.to)
+                    secondaryNavItems.some((item) => isRouteActive(item.to))
                       ? "bg-secondary text-foreground font-semibold border-primary/30 shadow-sm"
                       : "bg-secondary/40 border-border/60 text-foreground/90 hover:bg-secondary hover:border-primary/30 hover:shadow-sm"
                   }`}
@@ -265,7 +268,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
                         </Link>
                       </DropdownMenuItem>
                     ))}
-                    <DropdownMenuSeparator />
+                    {groupIndex < groupedMenuItems.length - 1 || ungroupedMenuItems.length > 0 ? <DropdownMenuSeparator /> : null}
                   </div>
                 ))}
                 {ungroupedMenuItems.map((item) => (

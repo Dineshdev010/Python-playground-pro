@@ -320,9 +320,155 @@ const chainFadeIn = {
   }),
 };
 
+function getRoadmapWallpaper(pathId?: string) {
+  if (pathId === "web-development") return "linear-gradient(130deg, rgba(14, 23, 42, 0.92), rgba(30, 58, 138, 0.36))";
+  if (pathId === "ai-ml") return "linear-gradient(130deg, rgba(17, 24, 39, 0.92), rgba(126, 34, 206, 0.32))";
+  if (pathId === "linux") return "linear-gradient(130deg, rgba(10, 20, 16, 0.94), rgba(22, 101, 52, 0.3))";
+  if (pathId === "data-engineering") return "linear-gradient(130deg, rgba(32, 26, 12, 0.92), rgba(180, 120, 22, 0.32))";
+  if (pathId === "cybersecurity") return "linear-gradient(130deg, rgba(36, 10, 14, 0.92), rgba(185, 28, 28, 0.32))";
+  if (pathId === "cloud-mlops") return "linear-gradient(130deg, rgba(15, 23, 42, 0.92), rgba(37, 99, 235, 0.3))";
+  if (pathId === "automation") return "linear-gradient(130deg, rgba(38, 31, 12, 0.92), rgba(202, 138, 4, 0.3))";
+  if (pathId === "game-dev") return "linear-gradient(130deg, rgba(33, 16, 28, 0.92), rgba(225, 29, 72, 0.3))";
+  if (pathId === "iot-robotics") return "linear-gradient(130deg, rgba(39, 26, 13, 0.92), rgba(217, 119, 6, 0.3))";
+  if (pathId === "sql") return "linear-gradient(130deg, rgba(11, 24, 29, 0.92), rgba(8, 145, 178, 0.3))";
+  if (pathId === "data-analysis") return "linear-gradient(130deg, rgba(16, 21, 35, 0.92), rgba(59, 130, 246, 0.3))";
+  if (pathId === "git") return "linear-gradient(130deg, rgba(26, 19, 38, 0.92), rgba(124, 58, 237, 0.3))";
+  return "linear-gradient(130deg, rgba(10, 18, 35, 0.92), rgba(59, 130, 246, 0.22))";
+}
+
+const roadmapThemeByPathId: Record<string, {
+  badgeClass: string;
+  pulseClass: string;
+  sectionGlowA: string;
+  sectionGlowB: string;
+  sectionGlowC: string;
+  cardIdleClass: string;
+  detailPanelClass: string;
+}> = {
+  sql: {
+    badgeClass: "bg-cyan-500/10 border-cyan-500/30 text-cyan-400",
+    pulseClass: "bg-cyan-500",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(190_85%_45%_/_0.16),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(212_92%_45%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(180_62%_40%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-cyan-500/40 hover:shadow-cyan-500/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-cyan-500/5",
+  },
+  "data-analysis": {
+    badgeClass: "bg-primary/10 border-primary/30 text-primary",
+    pulseClass: "bg-primary",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(220_85%_55%_/_0.14),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(260_62%_52%_/_0.08),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(210_72%_45%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-primary/40 hover:shadow-primary/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-primary/5",
+  },
+  linux: {
+    badgeClass: "bg-streak-green/10 border-streak-green/30 text-streak-green",
+    pulseClass: "bg-streak-green",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(142_72%_29%_/_0.18),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(210_70%_45%_/_0.1),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(140_55%_32%_/_0.1),transparent_50%)]",
+    cardIdleClass: "hover:border-streak-green/40 hover:shadow-streak-green/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-streak-green/5",
+  },
+  "ai-ml": {
+    badgeClass: "bg-expert-purple/10 border-expert-purple/30 text-expert-purple",
+    pulseClass: "bg-expert-purple",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(270_60%_55%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(220_85%_55%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(280_70%_45%_/_0.09),transparent_50%)]",
+    cardIdleClass: "hover:border-expert-purple/40 hover:shadow-expert-purple/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-expert-purple/5",
+  },
+  "web-development": {
+    badgeClass: "bg-blue-500/10 border-blue-500/30 text-blue-500",
+    pulseClass: "bg-blue-500",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(212_92%_45%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(160_60%_42%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(206_72%_40%_/_0.09),transparent_50%)]",
+    cardIdleClass: "hover:border-blue-500/40 hover:shadow-blue-500/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-blue-500/5",
+  },
+  automation: {
+    badgeClass: "bg-python-yellow/10 border-python-yellow/30 text-python-yellow",
+    pulseClass: "bg-python-yellow",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(45_95%_52%_/_0.13),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(32_88%_48%_/_0.08),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(50_85%_48%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-python-yellow/40 hover:shadow-python-yellow/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-python-yellow/5",
+  },
+  "cloud-mlops": {
+    badgeClass: "bg-blue-500/10 border-blue-500/30 text-blue-500",
+    pulseClass: "bg-blue-500",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(214_92%_52%_/_0.16),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(200_80%_50%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(222_88%_46%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-blue-500/40 hover:shadow-blue-500/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-blue-500/5",
+  },
+  "game-dev": {
+    badgeClass: "bg-rose-500/10 border-rose-500/30 text-rose-400",
+    pulseClass: "bg-rose-500",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(340_82%_58%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(320_72%_52%_/_0.1),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(350_82%_50%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-rose-500/40 hover:shadow-rose-500/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-rose-500/5",
+  },
+  "iot-robotics": {
+    badgeClass: "bg-amber-600/10 border-amber-600/30 text-amber-500",
+    pulseClass: "bg-amber-600",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(35_92%_50%_/_0.14),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(25_90%_45%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(42_88%_44%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-amber-600/40 hover:shadow-amber-600/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-amber-600/5",
+  },
+  "data-engineering": {
+    badgeClass: "bg-reward-gold/10 border-reward-gold/30 text-reward-gold",
+    pulseClass: "bg-reward-gold",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(42_88%_52%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(28_80%_48%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(46_85%_46%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-reward-gold/40 hover:shadow-reward-gold/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-reward-gold/5",
+  },
+  cybersecurity: {
+    badgeClass: "bg-destructive/10 border-destructive/30 text-destructive",
+    pulseClass: "bg-destructive",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(0_82%_52%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(350_78%_48%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(10_76%_42%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-destructive/40 hover:shadow-destructive/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-destructive/5",
+  },
+  git: {
+    badgeClass: "bg-expert-purple/10 border-expert-purple/30 text-expert-purple",
+    pulseClass: "bg-expert-purple",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(268_62%_54%_/_0.15),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(230_82%_56%_/_0.09),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(280_65%_46%_/_0.08),transparent_50%)]",
+    cardIdleClass: "hover:border-expert-purple/40 hover:shadow-expert-purple/10",
+    detailPanelClass: "bg-gradient-to-br from-card via-card to-expert-purple/5",
+  },
+  default: {
+    badgeClass: "bg-expert-purple/10 border-expert-purple/20 text-expert-purple",
+    pulseClass: "bg-primary",
+    sectionGlowA: "bg-[radial-gradient(ellipse_at_20%_50%,hsl(212_92%_45%_/_0.06),transparent_60%)]",
+    sectionGlowB: "bg-[radial-gradient(ellipse_at_80%_20%,hsl(270_60%_55%_/_0.05),transparent_50%)]",
+    sectionGlowC: "bg-[radial-gradient(ellipse_at_50%_80%,hsl(130_55%_42%_/_0.04),transparent_50%)]",
+    cardIdleClass: "hover:border-primary/50 hover:shadow-primary/10",
+    detailPanelClass: "bg-card",
+  },
+};
+
 export function CareerRoadmap() {
   const [selected, setSelected] = useState<string | null>(null);
   const selectedPath = careerPaths.find((p) => p.id === selected);
+  const activeTheme = (selectedPath ? roadmapThemeByPathId[selectedPath.id] : null) || roadmapThemeByPathId.default;
+  const activeWallpaper = getRoadmapWallpaper(selectedPath?.id);
   const detailRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (id: string) => {
@@ -338,10 +484,19 @@ export function CareerRoadmap() {
 
   return (
     <section className="relative py-24 overflow-hidden">
+      <div
+        className="absolute inset-0 transition-all duration-500"
+        style={{
+          backgroundImage: activeWallpaper,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.6,
+        }}
+      />
       {/* Animated mesh gradient bg */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,hsl(212_92%_45%_/_0.06),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,hsl(270_60%_55%_/_0.05),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_80%,hsl(130_55%_42%_/_0.04),transparent_50%)]" />
+      <div className={`absolute inset-0 transition-all duration-500 ${activeTheme.sectionGlowA}`} />
+      <div className={`absolute inset-0 transition-all duration-500 ${activeTheme.sectionGlowB}`} />
+      <div className={`absolute inset-0 transition-all duration-500 ${activeTheme.sectionGlowC}`} />
 
       <div className="relative max-w-6xl mx-auto px-6">
         <motion.div
@@ -352,7 +507,7 @@ export function CareerRoadmap() {
           custom={0}
           className="text-center mb-16"
         >
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-expert-purple/10 border border-expert-purple/20 text-expert-purple text-sm mb-4">
+          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm mb-4 transition-colors duration-300 ${activeTheme.badgeClass}`}>
             <Briefcase className="w-3.5 h-3.5" /> Career Paths
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
@@ -362,7 +517,7 @@ export function CareerRoadmap() {
             Tap any career path card to explore the skills, tools, and lessons you need
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2 flex items-center justify-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span className={`inline-block w-2 h-2 rounded-full animate-pulse ${activeTheme.pulseClass}`}></span>
             Click any card below to expand details
           </p>
         </motion.div>
@@ -396,7 +551,7 @@ export function CareerRoadmap() {
                 className={`group relative text-left rounded-2xl p-5 md:p-6 border transition-all duration-300 cursor-pointer ${
                   selected === path.id
                     ? `${path.borderColor} bg-card shadow-lg shadow-primary/5 -translate-y-1`
-                    : "border-border bg-card/60 backdrop-blur-sm hover:border-primary/50 hover:bg-card hover:-translate-y-1 hover:shadow-md hover:shadow-primary/10"
+                    : `border-border bg-card/60 backdrop-blur-sm hover:bg-card hover:-translate-y-1 hover:shadow-md ${activeTheme.cardIdleClass}`
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -404,8 +559,8 @@ export function CareerRoadmap() {
                 {/* Pulsing ring indicator for un-selected cards */}
                 {selected !== path.id && (
                   <span className="absolute top-3 left-3 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-40"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary/60"></span>
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${activeTheme.pulseClass} opacity-40`}></span>
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${activeTheme.pulseClass} opacity-70`}></span>
                   </span>
                 )}
 
@@ -476,7 +631,7 @@ export function CareerRoadmap() {
                   <ChevronRight className="w-5 h-5 text-primary rotate-90" />
                 </motion.div>
               </div>
-              <div className={`rounded-2xl border ${selectedPath.borderColor} bg-card p-6 md:p-8 relative`}>
+              <div className={`rounded-2xl border ${selectedPath.borderColor} ${activeTheme.detailPanelClass} p-6 md:p-8 relative transition-all duration-500`}>
                 {/* Close button */}
                 <button
                   onClick={() => setSelected(null)}

@@ -50,7 +50,7 @@ export function SupportTipPopup() {
           initial={{ opacity: 0, y: 50, scale: 0.9, x: 20 }}
           animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
           exit={{ opacity: 0, y: 20, scale: 0.9, x: 20 }}
-          className="fixed bottom-6 right-6 z-[1000] w-[280px] sm:w-[320px] overflow-hidden rounded-2xl border border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10"
+          className="fixed bottom-4 left-3 right-3 z-[1000] w-auto sm:bottom-6 sm:left-auto sm:right-6 sm:w-[320px] overflow-hidden rounded-2xl border border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10"
         >
           {/* Header */}
           <div className="relative h-24 overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-python-yellow/10 p-4">

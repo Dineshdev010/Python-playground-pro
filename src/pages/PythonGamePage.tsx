@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type DragEvent } from "react";
 import { Helmet } from "react-helmet-async";
 
 import { Code2, GripVertical, Play, Trash2, CheckCircle2, XCircle, Info, Sparkles, Trophy } from "lucide-react";
@@ -424,7 +424,7 @@ export default function PythonGamePage() {
                     draggable
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onDragStart={(event: any) => {
+                    onDragStart={(event: DragEvent<HTMLDivElement>) => {
                       event.dataTransfer.setData("text/plain", block.id);
                       playSound("click");
                     }}

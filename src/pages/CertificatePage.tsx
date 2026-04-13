@@ -742,7 +742,7 @@ export default function CertificatePage() {
   // UNLOCKED STATE
   // --------------------------------------------------------------------------
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-8">
+    <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-4 py-6 sm:py-8">
       <Helmet>
         <title>Python Mastery Certificate | PyMaster</title>
       </Helmet>
@@ -777,7 +777,7 @@ export default function CertificatePage() {
         ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start justify-center">
         {/* CERTIFICATE PREVIEW - FULL REDESIGN BASED ON PROMPT */}
         <motion.div 
           className="flex-1 max-w-[1000px] w-full bg-surface-1 p-2 sm:p-4 rounded-xl border border-border shadow-2xl relative"
@@ -798,7 +798,7 @@ export default function CertificatePage() {
         </motion.div>
 
         {/* PAYMENT & ACTION PANEL */}
-        <div className="w-full lg:w-[340px] shrink-0 bg-card border border-border rounded-xl p-6 shadow-xl relative z-10">
+        <div className="w-full lg:w-[340px] shrink-0 bg-card border border-border rounded-xl p-4 sm:p-6 shadow-xl relative z-10">
           <h3 className="text-xl font-bold text-foreground mb-2">Verified Certificate</h3>
           <div className="mb-5 rounded-2xl border border-border bg-surface-1 p-4">
             <div className="flex items-center justify-between gap-3">

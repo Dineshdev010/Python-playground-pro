@@ -27,13 +27,17 @@ export function LinuxSymbolsBackground() {
   }));
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-black">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-black">
       {/* Wallpaper Layer */}
       <div className="absolute inset-0 opacity-80 scale-100">
-        <img 
-          src="/linux_wallpaper.png" 
+        <img
+          src="/linux_wallpaper.png"
           alt="Linux Background"
           className="w-full h-full object-cover"
+          onError={(event) => {
+            // Keep a readable fallback if wallpaper asset fails to load.
+            event.currentTarget.style.display = "none";
+          }}
         />
       </div>
 

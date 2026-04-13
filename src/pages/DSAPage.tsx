@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, Search, Zap, ArrowRight, ArrowLeft, CheckCircle2, Code, Target, Lightbulb, TrendingUp, ExternalLink, PlayCircle } from "lucide-react";
+import { BookOpen, Brain, Search, Zap, ArrowRight, ArrowLeft, CheckCircle2, Code, Target, Lightbulb, TrendingUp, ExternalLink, PlayCircle, AlertTriangle, CheckCheck } from "lucide-react";
 import type { Easing } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
@@ -715,6 +715,80 @@ function buildTreeLevels(values: number[]) {
   return levels;
 }
 
+const masteredTopicsStorageKey = "pymaster_dsa_mastered_topics";
+
+const topicPlaybook: Record<string, {
+  complexityNotes: string[];
+  pitfalls: string[];
+  edgeCases: string[];
+  dryRunSteps: string[];
+  interviewVariants: string[];
+  practicePath: string[];
+}> = {
+  arrays: {
+    complexityNotes: ["If input is unsorted but pattern needs order, sort once and accept O(n log n).", "Favor in-place updates for O(1) extra memory when mutation is allowed."],
+    pitfalls: ["Forgetting off-by-one bounds in loops and slices.", "Using nested loops before checking if two-pointers can reduce complexity."],
+    edgeCases: ["Empty list", "Single element", "All equal values", "Negative values mixed with positive values"],
+    dryRunSteps: ["Write indexes under each element.", "Track left/right or read/write pointer movement.", "Verify final index/length returned matches expected output."],
+    interviewVariants: ["Rotate array in-place", "Product of array except self", "Best time to buy/sell stock", "Maximum subarray"],
+    practicePath: ["Solve one easy array traversal problem.", "Solve one two-pointer array problem.", "Solve one optimization (Kadane/prefix) problem."],
+  },
+  "sliding-window": {
+    complexityNotes: ["Dynamic windows are O(n) because each index enters/exits at most once.", "Prefer hash map counts over repeated substring scans."],
+    pitfalls: ["Shrinking window too late and violating constraints.", "Not updating best answer after each valid window expansion."],
+    edgeCases: ["k larger than input length", "Repeated identical characters", "No valid window exists", "Unicode or mixed-case text"],
+    dryRunSteps: ["Mark left and right pointers.", "Update frequency map as right expands.", "Shrink while invalid, then record candidate answer."],
+    interviewVariants: ["Minimum window substring", "Longest repeating replacement", "Permutation in string", "Maximum sum subarray of size k"],
+    practicePath: ["Start with fixed-size window.", "Move to longest/shortest dynamic window.", "End with min-window hard variant."],
+  },
+  "dynamic-programming": {
+    complexityNotes: ["Define state clearly first: dp[i] or dp[i][j].", "Space optimize only after transitions are correct."],
+    pitfalls: ["Wrong base cases cause all downstream states to fail.", "Mixing index meaning (0-based vs 1-based) in recurrence."],
+    edgeCases: ["n = 0 or empty string", "Unreachable states", "Large constraints requiring modulo arithmetic", "Duplicate values affecting transitions"],
+    dryRunSteps: ["Write the smallest subproblem answer manually.", "Build next 2-3 states using transition formula.", "Confirm table fill order respects dependencies."],
+    interviewVariants: ["House robber with circular street", "Longest increasing subsequence", "Coin change (min coins / count ways)", "0/1 knapsack"],
+    practicePath: ["Recursion + memo first.", "Convert to bottom-up table.", "Optimize memory and explain tradeoff."],
+  },
+};
+
+function getTopicPlaybook(topic: DSATopic) {
+  const baseByCategory: Record<DSATopic["category"], {
+    complexityNotes: string[];
+    pitfalls: string[];
+    edgeCases: string[];
+    dryRunSteps: string[];
+    interviewVariants: string[];
+    practicePath: string[];
+  }> = {
+    fundamentals: {
+      complexityNotes: ["State brute-force complexity first, then target improvement.", "Prefer readable O(n) approaches over clever but brittle shortcuts."],
+      pitfalls: ["Skipping input validation assumptions.", "Not testing with smallest valid input."],
+      edgeCases: ["Empty input", "Single element/value", "Duplicate values"],
+      dryRunSteps: ["Read constraints and expected output type.", "Walk through one normal case.", "Walk through one boundary case."],
+      interviewVariants: ["Return indices vs values", "In-place vs extra-space version", "Streaming input version"],
+      practicePath: ["Easy implementation", "Medium pattern variant", "Timed recap problem"],
+    },
+    patterns: {
+      complexityNotes: ["Pattern choice should reduce one dimension of search.", "Explain why this pattern dominates brute force for constraints."],
+      pitfalls: ["Applying a pattern without verifying prerequisites (sorted/monotonic/etc).", "Overfitting one pattern to all subarray problems."],
+      edgeCases: ["Already sorted input", "All same values", "No valid answer"],
+      dryRunSteps: ["List pattern prerequisites.", "Track pointer/window/heap states each step.", "Validate termination condition."],
+      interviewVariants: ["Optimize memory", "Return all valid answers", "Support online/streaming updates"],
+      practicePath: ["1 canonical pattern problem", "1 noisy wording problem", "1 mixed-pattern problem"],
+    },
+    advanced: {
+      complexityNotes: ["Define state/graph model before coding.", "State both time and memory big-O and acceptable limits."],
+      pitfalls: ["Starting code before invariant or recurrence is clear.", "Missing pruning/visited checks causes TLE or loops."],
+      edgeCases: ["Disconnected components", "Cycles or impossible states", "Large input limits"],
+      dryRunSteps: ["Model graph/state on paper.", "Simulate first transitions.", "Verify stop condition and correctness argument."],
+      interviewVariants: ["Output one solution and count all solutions", "Iterative rewrite of recursive approach", "Constraint-tight optimization follow-up"],
+      practicePath: ["Medium prep variant", "Hard core problem", "Explain aloud with complexity defense"],
+    },
+  };
+
+  return topicPlaybook[topic.id] ?? baseByCategory[topic.category];
+}
+
 export default function DSAPage() {
   const canonical = "https://pymaster.pro/dsa";
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -727,6 +801,7 @@ export default function DSAPage() {
     "head = ListNode(1)\nhead.next = ListNode(2)\nhead.next.next = ListNode(3)\nhead.next.next.next = ListNode(4)",
   );
   const [linkedListNodes, setLinkedListNodes] = useState<number[]>([1, 2, 3, 4]);
+  const [masteredTopics, setMasteredTopics] = useState<string[]>([]);
 
   const topic = dsaTopics.find(t => t.id === selectedTopic);
   const relatedProblems = useMemo(() => (topic ? getRelatedProblems(topic.id) : []), [topic]);
@@ -734,6 +809,9 @@ export default function DSAPage() {
   const stringValues = useMemo(() => visualInput.replace(/\s+/g, ""), [visualInput]);
   const graphEdges = useMemo(() => parseTokenList(visualInput), [visualInput]);
   const treeLevels = useMemo(() => buildTreeLevels(arrayValues), [arrayValues]);
+  const masteredCount = masteredTopics.length;
+  const masteredPct = Math.round((masteredCount / dsaTopics.length) * 100);
+  const playbook = topic ? getTopicPlaybook(topic) : null;
 
   const difficultyColor = {
     Easy: "text-streak-green bg-streak-green/10 border-streak-green/30",
@@ -750,8 +828,29 @@ export default function DSAPage() {
     setWindowSize(3);
   }, [topic]);
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(masteredTopicsStorageKey);
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        setMasteredTopics(parsed.filter((value): value is string => typeof value === "string"));
+      }
+    } catch {
+      setMasteredTopics([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(masteredTopicsStorageKey, JSON.stringify(masteredTopics));
+    } catch {
+      // Ignore storage failures gracefully.
+    }
+  }, [masteredTopics]);
+
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-3.5rem)] flex-col md:flex-row md:overflow-hidden">
       <Helmet>
         <title>Data Structures & Algorithms in Python | PyMaster</title>
         <meta name="description" content="Master Python Data Structures and Algorithms with visual explanations, complexity analysis, and real-world patterns. Free DSA course." />
@@ -768,7 +867,7 @@ export default function DSAPage() {
       </Helmet>
       
       {/* Sidebar */}
-      <aside className="w-72 border-r border-border bg-surface-1 overflow-y-auto shrink-0 hidden md:block">
+      <aside className="w-72 border-r border-border bg-surface-1 overflow-y-auto scrollbar-none shrink-0 hidden md:block">
         <div className="p-4 border-b border-border">
           <h2 className="font-semibold text-foreground flex items-center gap-2">
             <Brain className="w-4 h-4 text-primary" /> 🧠 DSA Mastery
@@ -782,6 +881,15 @@ export default function DSAPage() {
               <div><span className="font-semibold text-foreground">Beginner:</span> learn the “what” and “why” with easy examples.</div>
               <div><span className="font-semibold text-foreground">Intermediate:</span> spot repeatable patterns across problems.</div>
               <div><span className="font-semibold text-foreground">Advanced:</span> handle DP/graphs and explain tradeoffs clearly.</div>
+            </div>
+            <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-2.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-foreground">Pattern Progress</span>
+                <span className="text-primary">{masteredCount}/{dsaTopics.length}</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-1">
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${masteredPct}%` }} />
+              </div>
             </div>
           </div>
         </div>
@@ -819,7 +927,7 @@ export default function DSAPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {topic ? (
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+          <div className="w-full max-w-5xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
             {/* Mobile back button */}
             <button 
               onClick={() => setSelectedTopic(null)} 
@@ -839,6 +947,19 @@ export default function DSAPage() {
                   <span className="text-xs text-muted-foreground">{getLevelLabel(topic.category)}</span>
                 </div>
               </div>
+              <Button
+                type="button"
+                variant={masteredTopics.includes(topic.id) ? "default" : "outline"}
+                size="sm"
+                className="ml-auto"
+                onClick={() =>
+                  setMasteredTopics((current) =>
+                    current.includes(topic.id) ? current.filter((id) => id !== topic.id) : [...current, topic.id],
+                  )
+                }
+              >
+                {masteredTopics.includes(topic.id) ? "Mastered" : "Mark Mastered"}
+              </Button>
             </div>
 
             {/* Visual Explanation */}
@@ -915,6 +1036,81 @@ export default function DSAPage() {
                 <div className="text-sm font-mono text-foreground">{topic.spaceComplexity}</div>
               </div>
             </motion.div>
+
+            {playbook && (
+              <>
+                <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5} className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-5">
+                  <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <CheckCheck className="w-4 h-4 text-primary" /> Pattern-First Solve Plan
+                  </h3>
+                  <ul className="space-y-2">
+                    {playbook.practicePath.map((step, index) => (
+                      <li key={step} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-[11px] font-semibold text-primary">
+                          {index + 1}
+                        </span>
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+
+                <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5} className="mb-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-surface-1 p-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Complexity + Tradeoffs</h4>
+                    <ul className="space-y-1.5 text-sm text-muted-foreground">
+                      {playbook.complexityNotes.map((note) => (
+                        <li key={note} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-streak-green mt-0.5 shrink-0" />
+                          {note}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-xl border border-border bg-surface-1 p-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Interview Follow-Ups</h4>
+                    <ul className="space-y-1.5 text-sm text-muted-foreground">
+                      {playbook.interviewVariants.map((variant) => (
+                        <li key={variant} className="flex items-start gap-2">
+                          <ArrowRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          {variant}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+
+                <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5} className="mb-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-python-yellow" /> Common Pitfalls
+                    </h4>
+                    <ul className="space-y-1.5 text-sm text-muted-foreground">
+                      {playbook.pitfalls.map((pitfall) => (
+                        <li key={pitfall}>• {pitfall}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Edge Cases Checklist</h4>
+                    <ul className="space-y-1.5 text-sm text-muted-foreground">
+                      {playbook.edgeCases.map((edgeCase) => (
+                        <li key={edgeCase}>• {edgeCase}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+
+                <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5} className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-2">Guided Dry Run Workflow</h4>
+                  <ol className="space-y-1.5 text-sm text-muted-foreground">
+                    {playbook.dryRunSteps.map((step, index) => (
+                      <li key={step}>{index + 1}. {step}</li>
+                    ))}
+                  </ol>
+                </motion.div>
+              </>
+            )}
 
             {/* Code Example */}
             <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={6} className="mb-6">
