@@ -4,7 +4,7 @@
 // test case runner, solution reveal, and reward system.
 // Resets editor state when navigating between problems.
 // ============================================================
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 const Editor = React.lazy(() => import("@monaco-editor/react"));
 import confetti from "canvas-confetti";
@@ -15,7 +15,7 @@ import { cancelActivePythonExecution, executePython, getPythonExecutionTimeoutMs
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck } from "lucide-react";
+import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck, Clock3 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CompanyBadge } from "@/components/CompanyBadge";
 
@@ -49,6 +49,55 @@ else:
 `;
 }
 
+function getProblemTimerSeconds(problem?: Problem) {
+  if (!problem) return 10 * 60;
+
+  const title = problem.title.toLowerCase();
+  const description = problem.description.toLowerCase();
+  const starterLines = problem.starterCode.split("\n").map((line) => line.trim()).filter(Boolean).length;
+  const testCount = problem.testCases.length;
+
+  // Ultra-basic warmups should feel quick.
+  if (
+    title.includes("hello world") ||
+    ((title.includes("print") || description.includes("print")) &&
+      problem.difficulty === "basic" &&
+      testCount <= 1 &&
+      starterLines <= 4)
+  ) {
+    return 60;
+  }
+
+  const baseByDifficulty: Record<Problem["difficulty"], number> = {
+    basic: 6 * 60,
+    junior: 12 * 60,
+    intermediate: 20 * 60,
+    advanced: 30 * 60,
+    expert: 40 * 60,
+  };
+
+  let seconds = baseByDifficulty[problem.difficulty];
+
+  // Lightweight heuristic so each problem gets a more realistic timer.
+  if (testCount >= 3) seconds += 2 * 60;
+  if (testCount >= 5) seconds += 2 * 60;
+  if (starterLines >= 12) seconds += 2 * 60;
+  if (starterLines >= 20) seconds += 2 * 60;
+  if (description.length < 140 && testCount <= 1 && starterLines <= 6) seconds -= 2 * 60;
+  if (/(dp|dynamic programming|graph|tree|backtracking|heap|trie|segment|union find)/i.test(problem.title + " " + problem.description)) {
+    seconds += 3 * 60;
+  }
+
+  // Keep timer within a practical range.
+  return Math.max(60, Math.min(seconds, 45 * 60));
+}
+
+function formatCountdown(seconds: number) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 export default function ProblemPage() {
   const { id } = useParams<{ id: string }>();
   const problem = problems.find(p => p.id === id);
@@ -62,6 +111,8 @@ export default function ProblemPage() {
   const [submitted, setSubmitted] = useState(false);
   const [showDescription, setShowDescription] = useState(!isMobile);
   const [isRunning, setIsRunning] = useState(false);
+  const [problemTimeLeft, setProblemTimeLeft] = useState(() => getProblemTimerSeconds(problem));
+  const timeoutHandledRef = useRef(false);
 
   // ---------- Reset all state when problem changes ----------
   useEffect(() => {
@@ -73,12 +124,45 @@ export default function ProblemPage() {
       setTestResults(null);
       setSubmitted(false);
       setIsRunning(false);
+      setProblemTimeLeft(getProblemTimerSeconds(problem));
+      timeoutHandledRef.current = false;
     }
   }, [id, problem]);
 
   useEffect(() => {
     setShowDescription(!isMobile);
   }, [id, isMobile]);
+
+  useEffect(() => {
+    if (problemTimeLeft <= 0) return;
+    const timer = window.setInterval(() => {
+      setProblemTimeLeft((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [problemTimeLeft]);
+
+  useEffect(() => {
+    if (!problem) return;
+    if (problemTimeLeft > 0) return;
+    if (timeoutHandledRef.current) return;
+    timeoutHandledRef.current = true;
+
+    cancelActivePythonExecution();
+    setCode(problem.starterCode || "");
+    setOutput("");
+    setShowSolution(false);
+    setSolutionUnlocked(false);
+    setTestResults(null);
+    setSubmitted(false);
+    setIsRunning(false);
+    setProblemTimeLeft(getProblemTimerSeconds(problem));
+
+    toast({
+      title: "Time is up",
+      description: "Your current attempt was cleared. Fresh attempt started.",
+      variant: "destructive",
+    });
+  }, [problem, problemTimeLeft]);
 
   if (!problem) {
     return <div className="p-8 text-center text-red-500">Problem not found.</div>;
@@ -215,6 +299,12 @@ export default function ProblemPage() {
           <span className="text-sm font-medium text-foreground truncate">{problem.title}</span>
           <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full border capitalize shrink-0 ${getDifficultyBg(problem.difficulty)} ${getDifficultyColor(problem.difficulty)}`}>
             {problem.difficulty}
+          </span>
+          <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs shrink-0 ${
+            problemTimeLeft <= 60 ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-border bg-surface-2 text-muted-foreground"
+          }`}>
+            <Clock3 className="w-3 h-3" />
+            {formatCountdown(problemTimeLeft)}
           </span>
           {solved && <CheckCircle2 className="w-4 h-4 text-streak-green shrink-0" />}
         </div>

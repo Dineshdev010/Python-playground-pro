@@ -21,11 +21,13 @@ export function Footer() {
   );
 
   return (
-    <footer className="relative mt-auto border-t border-border bg-card/70 backdrop-blur-md">
+    <footer className="relative mt-auto overflow-hidden border-t border-border bg-card/70 backdrop-blur-md">
+      <div className="pointer-events-none absolute -top-24 left-1/4 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 right-1/4 h-56 w-56 rounded-full bg-python-yellow/10 blur-3xl" />
       {/* Top accent line */}
       <div className="h-px w-full bg-gradient-to-r from-primary/30 via-python-yellow/25 to-streak-green/30" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-12">
         {/* CTA strip */}
         <div className="mb-10 grid gap-3 rounded-2xl border border-border bg-surface-1/70 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div className="min-w-0">
@@ -50,6 +52,17 @@ export function Footer() {
           </div>
         </div>
 
+        <div className="mb-8 rounded-2xl border border-border bg-surface-1/60 p-4">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Popular This Week</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link to="/compiler" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-surface-2">Compiler</Link>
+            <Link to="/dsa" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-surface-2">DSA Mastery</Link>
+            <Link to="/career-roadmap" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-surface-2">Career Roadmap</Link>
+            <Link to="/quick-prep" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-surface-2">Quick Prep</Link>
+            <Link to="/python-quiz-100" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-surface-2">Python Quiz</Link>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 md:col-span-2">
@@ -64,7 +77,7 @@ export function Footer() {
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] text-muted-foreground">Beginner Friendly</span>
               <span className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] text-muted-foreground">Daily Practice</span>
-              <span className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] text-muted-foreground">Job Roadmap</span>
+              <span className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] text-muted-foreground">Career Roadmap</span>
             </div>
 
             <div className="mt-6 flex items-center gap-2">
@@ -122,7 +135,7 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               <li><Link to="/jobs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Python Jobs</Link></li>
               <li><Link to="/dsa" className="text-sm text-muted-foreground hover:text-foreground transition-colors">DSA Mastery</Link></li>
-              <li><Link to="/career-roadmap" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Job Roadmap</Link></li>
+              <li><Link to="/career-roadmap" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Career Roadmap</Link></li>
               <li><Link to="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Leaderboard</Link></li>
             </ul>
           </div>

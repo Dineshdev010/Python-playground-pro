@@ -167,6 +167,7 @@ export default function AptitudePage() {
   const [mockQuestionKeys, setMockQuestionKeys] = useState<string[]>([]);
   const [mockSize, setMockSize] = useState(10);
   const [timeLeft, setTimeLeft] = useState(10 * 60);
+  const [retryMistakesOnly, setRetryMistakesOnly] = useState(false);
   const selectedType = aptitudeTypes.find((type) => type.title === activeType) ?? aptitudeTypes[0];
   const allQuestions = aptitudeTypes.flatMap((type) =>
     type.mcqs.map((mcq, index) => ({
@@ -218,6 +219,20 @@ export default function AptitudePage() {
   const mockAttempted = mockQuestions.filter((question) => mockAnswers[question.key]).length;
   const mockCorrect = mockQuestions.filter((question) => mockAnswers[question.key] === question.answer).length;
   const mockAccuracy = mockQuestions.length === 0 ? 0 : Math.round((mockCorrect / mockQuestions.length) * 100);
+  const wrongQuestions = allQuestions.filter(
+    (question) =>
+      submittedTests[question.key] &&
+      selectedAnswers[question.key] &&
+      selectedAnswers[question.key] !== question.answer,
+  );
+  const totalSubmitted = Object.values(submittedTests).filter(Boolean).length;
+  const completionPct = allQuestions.length === 0 ? 0 : Math.round((totalSubmitted / allQuestions.length) * 100);
+  const nextAction =
+    practiceAccuracy >= 80
+      ? "You are mock-ready. Increase difficulty or switch company set."
+      : weakTopic
+        ? `Revise ${weakTopic.title} and attempt 5 focused questions.`
+        : "Start with beginner track and submit your first 3 questions.";
 
   useEffect(() => {
     if (!mockStarted || mockSubmitted) return;
@@ -521,6 +536,36 @@ export default function AptitudePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-6 grid gap-4 md:grid-cols-4">
+          <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Progress</div>
+            <div className="mt-2 text-2xl font-bold text-foreground">{completionPct}%</div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-background">
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${completionPct}%` }} />
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Current Streak</div>
+            <div className="mt-2 text-2xl font-bold text-foreground">{currentStreak}</div>
+            <div className="mt-1 text-xs text-muted-foreground">3 correct answers triggers streak bonus.</div>
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Applied Filters</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] text-muted-foreground">
+                {activeDifficulty === "all" ? "All levels" : activeDifficulty}
+              </span>
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-700 dark:text-emerald-300">
+                {activeCompany}
+              </span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-amber-500/15 bg-amber-500/5 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Next Best Step</div>
+            <div className="mt-2 text-sm font-medium leading-6 text-foreground">{nextAction}</div>
+          </div>
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[1.75rem] border border-border/70 bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
@@ -709,6 +754,31 @@ export default function AptitudePage() {
                       : "Timed Mock Builder"}
                 </h3>
               </div>
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-muted-foreground">
+                  Mode: {pageMode}
+                </span>
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-muted-foreground">
+                  Topic pool: {retryMistakesOnly ? selectedTypeQuestions.filter((mcq, index) => {
+                    const questionKey = `${selectedType.title}-${index}`;
+                    return submittedTests[questionKey] && selectedAnswers[questionKey] && selectedAnswers[questionKey] !== mcq.answer;
+                  }).length : selectedTypeQuestions.length}
+                </span>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-primary">
+                  Submitted: {totalSubmitted}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setRetryMistakesOnly((value) => !value)}
+                  className={`rounded-full border px-3 py-1 font-semibold transition-colors ${
+                    retryMistakesOnly
+                      ? "border-destructive/30 bg-destructive/10 text-destructive"
+                      : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {retryMistakesOnly ? "Retry Mode: Mistakes Only" : "Retry Mistakes Only"}
+                </button>
+              </div>
               {pageMode === "learning" ? (
                 <p className="mb-4 text-sm leading-6 text-muted-foreground">
                   Try the question first. The answer stays hidden until the user taps <span className="font-medium text-foreground">Show Answer</span>.
@@ -833,8 +903,20 @@ export default function AptitudePage() {
                       Pick a mock size, keep your current filters if you want, and start the test to generate a timed aptitude set.
                     </div>
                   )
-                ) : selectedTypeQuestions.length > 0 ? (
-                  selectedTypeQuestions.map((mcq) => {
+                ) : (retryMistakesOnly
+                  ? selectedTypeQuestions.filter((mcq, index) => {
+                      const questionKey = `${selectedType.title}-${index}`;
+                      return submittedTests[questionKey] && selectedAnswers[questionKey] && selectedAnswers[questionKey] !== mcq.answer;
+                    })
+                  : selectedTypeQuestions
+                ).length > 0 ? (
+                  (retryMistakesOnly
+                    ? selectedTypeQuestions.filter((mcq, index) => {
+                        const questionKey = `${selectedType.title}-${index}`;
+                        return submittedTests[questionKey] && selectedAnswers[questionKey] && selectedAnswers[questionKey] !== mcq.answer;
+                      })
+                    : selectedTypeQuestions
+                  ).map((mcq) => {
                     const index = selectedType.mcqs.findIndex((item) => item.question === mcq.question);
 
                     if (pageMode === "practice") {
@@ -891,7 +973,9 @@ export default function AptitudePage() {
                   })
                 ) : (
                   <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm leading-6 text-muted-foreground">
-                    No questions match this topic with the current filters yet. Switch the difficulty or company set to see more.
+                    {retryMistakesOnly
+                      ? "No wrong questions in this topic yet. Disable retry mode or attempt more questions."
+                      : "No questions match this topic with the current filters yet. Switch the difficulty or company set to see more."}
                   </div>
                 )}
               </div>
@@ -926,6 +1010,48 @@ export default function AptitudePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mb-6 rounded-[1.75rem] border border-destructive/20 bg-destructive/5 p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-destructive">Mistake Notebook</div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Wrong submitted questions are collected here automatically. Review and retry to improve fast.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPageMode("practice");
+                setRetryMistakesOnly(true);
+                document.getElementById("aptitude-hub")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-4 py-2 text-xs font-semibold text-destructive"
+            >
+              Retry All Mistakes
+            </button>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {wrongQuestions.length > 0 ? (
+              wrongQuestions.slice(0, 8).map((question) => (
+                <div key={question.key} className="rounded-2xl border border-border/60 bg-background/80 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    {question.topic} • {question.difficulty}
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-foreground line-clamp-2">{question.question}</p>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Your answer: <span className="text-destructive">{selectedAnswers[question.key]}</span> • Correct:{" "}
+                    <span className="text-emerald-600 dark:text-emerald-300">{question.answer}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-background/70 p-4 text-sm text-muted-foreground md:col-span-2">
+                No mistakes recorded yet. Submit a few practice questions and your notebook will appear here.
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-3">
           {aptitudeTypes.map((type) => (
             <div key={type.title} className="rounded-[1.75rem] border border-border/70 bg-card p-5 shadow-sm transition-transform hover:-translate-y-1">
