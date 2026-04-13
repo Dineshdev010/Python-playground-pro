@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
+import { compression } from "vite-plugin-compression2";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -55,6 +56,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit for Monaco workers
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
@@ -80,6 +82,7 @@ export default defineConfig(({ mode }) => {
           enabled: !isDev,
         },
       }),
+      compression({ algorithms: ["gzip", "brotliCompress"], exclude: /\.(png|jpg|webp|woff2|gz|br)$/i }),
     ],
     resolve: {
       alias: {
@@ -87,7 +90,24 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      rollupOptions: {},
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Core React
+            "vendor-react":    ["react", "react-dom", "react-router-dom"],
+            // Monaco Editor (~3MB) — lazy loaded but pre-split for better caching
+            "vendor-monaco":   ["@monaco-editor/react", "monaco-editor"],
+            // Charts
+            "vendor-recharts": ["recharts"],
+            // Supabase
+            "vendor-supabase": ["@supabase/supabase-js"],
+            // UI components
+            "vendor-ui":       ["@radix-ui/react-tabs", "@radix-ui/react-dialog", "@radix-ui/react-toast", "framer-motion"],
+          },
+        },
+      },
+      // Warn at 750kb instead of 500kb to reduce noise; Monaco chunks are expected to be large
+      chunkSizeWarningLimit: 750,
     },
   };
 });

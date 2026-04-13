@@ -55,9 +55,9 @@ async function loadRuntime() {
           throw new Error("Pyodide loader did not initialize.");
         }
 
-        return await (globalScope.loadPyodide as any)({
+        return await globalScope.loadPyodide({
           indexURL: baseUrl,
-        }) as PyodideRuntime;
+        }) as unknown as PyodideRuntime;
       } catch (error) {
         lastError = error;
       }
@@ -104,7 +104,7 @@ __warnings.filterwarnings("ignore", category=FutureWarning)
 __warnings.filterwarnings("ignore", category=UserWarning)
 del __warnings
       `);
-    } catch (e) {
+    } catch {
       // ignore setup errors
     }
 

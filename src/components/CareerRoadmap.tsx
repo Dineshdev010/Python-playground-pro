@@ -536,7 +536,7 @@ export function CareerRoadmap() {
                       <BookOpen className="w-4 h-4 text-primary" /> Learning Journey
                     </h4>
                     <div className="space-y-2 mb-6 max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-border pr-2">
-                      {selectedPath.lessons.map((lesson: any, j: number) => (
+                      {selectedPath.lessons.map((lesson: { label: string; tier: string }, j: number) => (
                         <motion.div
                           key={lesson.label}
                           initial={{ opacity: 0, x: -10 }}
@@ -580,7 +580,7 @@ export function CareerRoadmap() {
                     </div>
 
                     <Button asChild className={`w-full gap-2`}>
-                      <Link to={`/career/${selectedPath.id}`}>
+                      <Link to={selectedPath.id === 'linux' ? '/linux-learn' : `/career/${selectedPath.id}`}>
                         Master This Path <ArrowRight className="w-4 h-4" />
                       </Link>
                     </Button>

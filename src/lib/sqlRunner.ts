@@ -18,6 +18,8 @@ def _split_statements(text: str):
 
 conn = sqlite3.connect(":memory:")
 conn.execute("PRAGMA foreign_keys = ON;")
+conn.execute("PRAGMA busy_timeout = 5000;")
+conn.execute("PRAGMA temp_store = MEMORY;")
 conn.executescript(setup_sql)
 
 stmts = _split_statements(user_sql.strip())

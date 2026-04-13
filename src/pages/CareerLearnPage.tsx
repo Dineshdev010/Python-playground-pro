@@ -29,6 +29,21 @@ export default function CareerLearnPage() {
   const { progress, resetLesson } = useProgress();
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
 
+  // Derive track type flags unconditionally (before any early return)
+  const isSqlTrack = (track?.language ?? "python") === "sql" || track?.id === "sql";
+  const isBashTrack = (track?.language ?? "python") === "bash" || track?.id === "git";
+
+  const sqlCategories = useMemo(() => {
+    if (!isSqlTrack || !track) return [];
+    const set = new Set<string>();
+    for (const lesson of track.lessons) {
+      if (lesson.category) set.add(lesson.category);
+    }
+    return Array.from(set);
+  }, [isSqlTrack, track]);
+
+  const selectedLesson = track?.lessons.find(l => l.id === selectedId);
+
   // Auto-open the first lesson so the page never feels empty on first visit.
   useEffect(() => {
     if (!track) return;
@@ -37,6 +52,14 @@ export default function CareerLearnPage() {
 
     setSelectedId(track.lessons[0].id);
   }, [selectedId, track]);
+
+  useEffect(() => {
+    if (!isSqlTrack) return;
+    if (!selectedLesson) return;
+    setSqlPlayground(selectedLesson.codeExample);
+    setSqlOutput("");
+    setIsSqlRunning(false);
+  }, [isSqlTrack, selectedLesson?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!track) {
     return (
@@ -48,27 +71,6 @@ export default function CareerLearnPage() {
       </div>
     );
   }
-
-  const selectedLesson = track.lessons.find(l => l.id === selectedId);
-  const isSqlTrack = (track.language ?? "python") === "sql" || track.id === "sql";
-  const isBashTrack = (track.language ?? "python") === "bash" || track.id === "git";
-
-  const sqlCategories = useMemo(() => {
-    if (!isSqlTrack) return [];
-    const set = new Set<string>();
-    for (const lesson of track.lessons) {
-      if (lesson.category) set.add(lesson.category);
-    }
-    return Array.from(set);
-  }, [isSqlTrack, track.lessons]);
-
-  useEffect(() => {
-    if (!isSqlTrack) return;
-    if (!selectedLesson) return;
-    setSqlPlayground(selectedLesson.codeExample);
-    setSqlOutput("");
-    setIsSqlRunning(false);
-  }, [isSqlTrack, selectedLesson?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isLessonUnlocked = (index: number): boolean => {
     if (index === 0) return true;

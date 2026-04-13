@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // NAV ITEMS - src/components/layout/navItems.ts
 // Defines all navigation items used in the sidebar,
 // top navbar, and mobile bottom nav.
@@ -41,6 +41,8 @@ export const navItems = [
   { to: "/python-quiz-100", icon: CircleHelp, label: "Python Quiz", emoji: "❓" },
   { to: "/jobs", icon: Briefcase, label: "Job Portal", emoji: "💼" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard", emoji: "🏆" },
+  { to: "/career-roadmap", icon: Briefcase, label: "Job Roadmap", emoji: "🛣️" },
+  { to: "/linux-learn", icon: Terminal, label: "Linux Mastery", emoji: "🐧" },
   { to: "/certificate", icon: Award, label: "Certificate", emoji: "📜" },
   { to: "/donate", icon: Heart, label: "Donate", emoji: "❤️" },
   { to: "/about", icon: Info, label: "About Us", emoji: "ℹ️" },

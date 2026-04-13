@@ -5,6 +5,7 @@ export const SQL_PRACTICE_DB_SETUP_SQL = `
 -- Practice database: ShopDB (SQLite)
 -- This script is executed before every SQL run to provide consistent sample data.
 
+DROP TABLE IF EXISTS product_reviews;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
@@ -29,15 +30,15 @@ CREATE TABLE orders (
   customer_id INTEGER NOT NULL,
   order_date TEXT NOT NULL,
   status TEXT NOT NULL,
-  FOREIGN KEY (customer_id) REFERENCES customers(id)
+  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (
   order_id INTEGER NOT NULL,
   product_id INTEGER NOT NULL,
   quantity INTEGER NOT NULL,
-  FOREIGN KEY (order_id) REFERENCES orders(id),
-  FOREIGN KEY (product_id) REFERENCES products(id)
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 CREATE TABLE product_reviews (
@@ -47,8 +48,8 @@ CREATE TABLE product_reviews (
   rating INTEGER CHECK(rating BETWEEN 1 AND 5),
   review_text TEXT,
   review_date TEXT,
-  FOREIGN KEY (product_id) REFERENCES products(id),
-  FOREIGN KEY (customer_id) REFERENCES customers(id)
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 
 INSERT INTO customers (id, name, city, signup_date) VALUES

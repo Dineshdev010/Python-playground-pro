@@ -1,12 +1,19 @@
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, Briefcase, Clock3, Code2, Sparkles, Target, Terminal } from "lucide-react";
+import { 
+  BookOpen, Brain, Briefcase, Clock3, Code2, Sparkles, Target, Terminal, 
+  Database, GitBranch, Layers, Cpu, Copy, LayoutDashboard
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const prepTracks = [
   {
     title: "15-Minute Warmup",
     duration: "15 min",
-    description: "Wake up your Python brain with one quick lesson, one code run, and one easy problem.",
+    description: "Wake up your Python brain with quick wins.",
     steps: [
       { label: "Read one lesson", to: "/learn", icon: BookOpen },
       { label: "Run one snippet", to: "/compiler", icon: Terminal },
@@ -17,7 +24,7 @@ const prepTracks = [
   {
     title: "Interview Sprint",
     duration: "30 min",
-    description: "Tight, focused practice for arrays, strings, and core DSA patterns before interviews.",
+    description: "Tight, focused practice for DSA patterns.",
     steps: [
       { label: "Review DSA patterns", to: "/dsa", icon: Brain },
       { label: "Solve two problems", to: "/problems", icon: Target },
@@ -28,7 +35,7 @@ const prepTracks = [
   {
     title: "Career Prep Stack",
     duration: "25 min",
-    description: "Mix practical coding with role-focused learning to stay sharp for real job applications.",
+    description: "Mix coding with role-focused learning.",
     steps: [
       { label: "Explore a career track", to: "/career/data-engineering", icon: Sparkles },
       { label: "Practice one problem", to: "/problems", icon: Code2 },
@@ -38,536 +45,544 @@ const prepTracks = [
   },
 ];
 
-const quickTips = [
-  "Start with the shortest track if you're low on energy.",
-  "Use the compiler to test one idea before opening a full problem.",
-  "A small daily streak beats one huge weekend grind.",
+const QUICK_TIPS = [
+  "Daily sprints build lasting muscle memory.",
+  "Check cheatsheets before interview mock rounds.",
+  "Use the Linux terminal to practice file piping.",
 ];
 
-const cheatSheetSections = [
-  {
-    title: "Python Basics",
-    cards: [
-      {
-        title: "Variables and Input",
-        snippet: `name = input("Name: ")
-age = int(input("Age: "))
-pi = 3.14
-print(name, age, pi)`,
-      },
-      {
-        title: "Conditionals",
-        snippet: `score = 82
-if score >= 90:
-    print("A")
-elif score >= 75:
-    print("B")
-else:
-    print("Keep going")`,
-      },
-      {
-        title: "Loops",
-        snippet: `for i in range(5):
-    print(i)
+interface CheatsheetCard { title: string; snippet: string; }
+interface CheatsheetSection { title: string; cards: CheatsheetCard[]; }
+interface TechEntry { icon: React.ElementType; color: string; sections: CheatsheetSection[]; }
+type TechType = 'python' | 'sql' | 'pandas' | 'linux' | 'git';
 
-count = 3
-while count > 0:
-    count -= 1`,
+const TECH_DATA: Record<TechType, TechEntry> = {
+  python: {
+    icon: Code2,
+    color: "blue",
+    sections: [
+      {
+        title: "Python Basics",
+        cards: [
+          { title: "Variables", snippet: "name = input('Name: ')\nage = int(input('Age: '))\npi = 3.14\nprint(name, age, pi)" },
+          { title: "Conditionals", snippet: "score = 82\nif score >= 90: print('A')\nelif score >= 75: print('B')\nelse: print('Keep going')" },
+          { title: "Loops", snippet: "for i in range(5): print(i)\n\ncount = 3\nwhile count > 0:\n    count -= 1" },
+          { title: "Functions", snippet: "def add(a, b=0): return a + b\n\ntotal = add(4, 7)" },
+        ]
       },
       {
-        title: "Functions",
-        snippet: `def add(a, b=0):
-    return a + b
-
-total = add(4, 7)`,
+        title: "Collections",
+        cards: [
+          { title: "Lists", snippet: "nums = [2, 4, 6]\nnums.append(8)\nnums.extend([10, 12])\nnums.insert(1, 3)\nnums.remove(10)\nlast = nums.pop()\n\nnums.sort()\nnums.reverse()" },
+          { title: "Tuples", snippet: "point = (2, 5, 5, 9)\nprint(point[0])\nprint(point.count(5))\nx, y, *_ = point" },
+          { title: "Sets", snippet: "a = {1, 2, 3}\nb = {3, 4, 5}\na.add(7)\nprint(a | b) # union\nprint(a & b) # intersect" },
+          { title: "Dictionaries", snippet: "user = {'name': 'Ana', 'xp': 120}\nuser.update({'city': 'Delhi'})\nprint(user.get('name', 'NA'))\nkeys = list(user.keys())" },
+          { title: "Comprehensions", snippet: "squares = [n*n for n in range(6)]\nevens = [n for n in squares if n%2==0]\nlookup = {n: n*n for n in range(4)}" },
+        ]
       },
-    ],
+      {
+        title: "Strings & Files",
+        cards: [
+          { title: "String Methods", snippet: "text = '  python,api,prep  '\nprint(text.strip().lower())\nparts = text.split(',')\n'-'.join(parts)" },
+          { title: "f-Strings", snippet: "name = 'Mia'; xp = 240\nprint(f'{name} has {xp} XP')" },
+          { title: "File Operations", snippet: "with open('n.txt', 'w') as f:\n    f.write('hi')\nwith open('n.txt') as f:\n    print(f.read())" },
+          { title: "JSON", snippet: "import json\ntext = json.dumps({'a': 1})\ndata = json.loads(text)" },
+        ]
+      },
+      {
+        title: "Errors & OOP",
+        cards: [
+          { title: "Try/Except", snippet: "try: v = int('42')\nexcept ValueError: v = 0\nfinally: print(v)" },
+          { title: "Classes", snippet: "class User:\n    def __init__(self, n):\n        self.name = n\nu = User('Ana')" },
+          { title: "Inheritance", snippet: "class Animal:\n    def speak(self): return '...'\nclass Dog(Animal):\n    def speak(self): return 'woof'" },
+        ]
+      },
+      {
+        title: "Interview Patterns",
+        cards: [
+          { title: "Enumerate", snippet: "for i, v in enumerate(items):\n    print(i, v)" },
+          { title: "Zip", snippet: "for n, s in zip(names, scores):\n    print(n, s)" },
+          { title: "Sorting/Lambda", snippet: "sorted(users, key=lambda x: x['xp'])" },
+          { title: "Counter/Deque", snippet: "from collections import Counter, deque\nc = Counter('banana')\nq = deque([1, 2])" },
+          { title: "Two-Pointer", snippet: "l, r = 0, len(n)-1\nwhile l < r:\n    if total < tar: l+=1\n    else: r-=1" },
+        ]
+      },
+      {
+        title: "Built-in Functions",
+        cards: [
+          { title: "Essential Utils", snippet: "nums = [1, 2, 3]\nprint(len(nums))      # Length\nprint(type(nums))     # Object type\nprint(id(nums))       # Memory address" },
+          { title: "Discovery", snippet: "print(dir(nums))      # All methods\nprint(help(list))     # Documentation\nprint(vars())         # Local symbol table" },
+          { title: "Math/Logic", snippet: "print(sum(nums))\nprint(min(nums), max(nums))\nprint(abs(-42))\nprint(any([0, 1]), all([1, 1]))" },
+          { title: "Iteration", snippet: "for i in range(5): ...\nitems = list(reversed([3, 1, 2]))\nscored = sorted([4, 2, 8])" },
+        ]
+      },
+      {
+        title: "Shortcuts",
+        cards: [
+          { title: "Ternary", snippet: "s = 'pass' if score >= 40 else 'fail'" },
+          { title: "Swap", snippet: "a, b = b, a" },
+          { title: "Any/All", snippet: "has_even = any(n%2==0 for n in nums)" },
+          { title: "Flatten", snippet: "flat = [x for row in matrix for x in row]" },
+        ]
+      }
+    ]
   },
-  {
-    title: "Collections",
-    cards: [
+  sql: {
+    icon: Database,
+    color: "amber",
+    sections: [
       {
-        title: "Lists",
-        snippet: `nums = [2, 4, 6]
-nums.append(8)              # add one
-nums.extend([10, 12])       # add many
-nums.insert(1, 3)           # insert at index
-nums.remove(10)             # remove by value
-last = nums.pop()           # remove last or nums.pop(i)
-
-print(nums.index(6))        # first index of value
-print(nums.count(4))        # frequency
-
-nums.sort()                 # in-place sort
-nums.sort(reverse=True)
-nums.reverse()              # reverse in-place
-
-clone = nums.copy()         # shallow copy
-nums.clear()                # remove all`,
+        title: "Joins & Filtering",
+        cards: [
+          { title: "Inner Join", snippet: "SELECT * FROM orders O\nJOIN customers C ON O.cid = C.id" },
+          { title: "Left Join", snippet: "SELECT * FROM users U\nLEFT JOIN profiles P ON U.id = P.uid" },
+          { title: "Self Join", snippet: "SELECT e.name, m.name as mgr\nFROM emp e JOIN emp m\nON e.mid = m.id" },
+          { title: "In / Between", snippet: "WHERE id IN (1, 2, 3)\nOR price BETWEEN 10 AND 50" },
+        ]
       },
       {
-        title: "Tuples",
-        snippet: `point = (2, 5, 5, 9)
-print(point[0])             # indexing
-print(point[1:3])           # slicing
-print(point.count(5))       # count occurrences
-print(point.index(9))       # index of value
-
-x, y, *_ = point            # unpacking
-single = (42,)              # one-item tuple`,
+        title: "Strings & Dates",
+        cards: [
+          { title: "Coalesce", snippet: "SELECT COALESCE(phone, 'N/A')\nFROM users" },
+          { title: "String Ops", snippet: "UPPER(name), LENGTH(email),\nSUBSTR(code, 1, 3)" },
+          { title: "Date Trunc", snippet: "DATE_TRUNC('month', created_at)\nAS month_start" },
+          { title: "Intervals", snippet: "created_at > NOW() - INTERVAL '30 days'" },
+        ]
       },
       {
-        title: "Sets",
-        snippet: `a = {1, 2, 3}
-b = {3, 4, 5}
-
-a.add(7)
-a.update([8, 9])
-a.discard(2)                # no error if missing
-# a.remove(2)               # error if missing
-
-print(a | b)                # union
-print(a & b)                # intersection
-print(a - b)                # difference
-print(a ^ b)                # symmetric difference
-
-print({1, 2}.issubset(a))
-print(a.issuperset({1}))
-a.clear()`,
+        title: "Advanced Patterns",
+        cards: [
+          { title: "CTE (With)", snippet: "WITH top_users AS (\n  SELECT * FROM users WHERE xp > 500\n)\nSELECT * FROM top_users" },
+          { title: "Window Sum", snippet: "SUM(val) OVER(PARTITION BY cat\nORDER BY date)" },
+          { title: "Rank / RowNum", snippet: "RANK() OVER(ORDER BY score DESC)\nROW_NUMBER() OVER(PARTITION BY grp ORDER BY date)" },
+          { title: "Lead / Lag", snippet: "LAG(price) OVER(ORDER BY date),\nLEAD(price) OVER(ORDER BY date)" },
+        ]
       },
       {
-        title: "Dictionaries",
-        snippet: `user = {"name": "Ana", "xp": 120}
-user["streak"] = 5
-user.update({"city": "Delhi"})
-
-print(user.get("name", "NA"))
-print(list(user.keys()))
-print(list(user.values()))
-print(list(user.items()))
-
-user.setdefault("level", 1) # add only if missing
-removed = user.pop("city", None)
-last = user.popitem()       # removes last inserted pair
-
-template = dict.fromkeys(["a", "b"], 0)
-squares = {n: n * n for n in range(4)}`,
+        title: "Aggregates",
+        cards: [
+          { title: "GroupBy", snippet: "SELECT city, COUNT(*) \nFROM users\nGROUP BY city HAVING COUNT(*) > 5" },
+          { title: "Case Agg", snippet: "SUM(CASE WHEN status='paid' THEN val ELSE 0 END)" },
+          { title: "Distinct Count", snippet: "COUNT(DISTINCT user_id)" },
+        ]
       },
       {
-        title: "Comprehensions",
-        snippet: `squares = [n * n for n in range(6)]
-evens = [n for n in squares if n % 2 == 0]
-lookup = {n: n * n for n in range(4)}
-unique = {n % 3 for n in range(10)}
-total = sum(n for n in range(100))`,
-      },
-    ],
+        title: "Performance & Schema",
+        cards: [
+          { title: "Explain", snippet: "EXPLAIN ANALYZE\nSELECT * FROM users WHERE id = 1" },
+          { title: "Create Table", snippet: "CREATE TABLE u (\n  id SERIAL PRIMARY KEY,\n  email TEXT UNIQUE NOT NULL,\n  bio TEXT DEFAULT 'User'\n)" },
+          { title: "Indices", snippet: "CREATE INDEX idx_email ON users(email)" },
+          { title: "Alter Table", snippet: "ALTER TABLE users ADD COLUMN age INT;\nDROP TABLE temp_results;" },
+        ]
+      }
+    ]
   },
-  {
-    title: "Strings and Files",
-    cards: [
+  pandas: {
+    icon: Layers,
+    color: "emerald",
+    sections: [
       {
-        title: "String Methods (Must Know)",
-        snippet: `text = "  python,api,prep  "
-
-print(text.strip())         # trim spaces
-print(text.lower())
-print(text.upper())
-print(text.title())
-print(text.replace("api", "backend"))
-
-parts = text.strip().split(",")
-print("-".join(parts))
-
-print("py" in text)         # membership
-print(text.startswith("  py"))
-print(text.endswith("prep  "))
-print("42".isdigit())
-print("alpha".isalpha())`,
+        title: "I/O & Inspection",
+        cards: [
+          { title: "Read/Write", snippet: "df = pd.read_csv('data.csv')\ndf.to_excel('out.xlsx', index=False)" },
+          { title: "Inspection", snippet: "print(df.head())\nprint(df.info())\nprint(df.describe())\nprint(df.columns)" },
+          { title: "Memory", snippet: "# Check memory usage\nprint(df.memory_usage().sum())" },
+        ]
       },
       {
-        title: "f-Strings",
-        snippet: `name = "Mia"
-xp = 240
-print(f"{name} has {xp} XP")`,
+        title: "Selection & Filter",
+        cards: [
+          { title: "Loc / ILOC", snippet: "val = df.loc[0, 'col']\nsubset = df.iloc[0:5, 1:3]" },
+          { title: "Conditionals", snippet: "df[(df['age'] > 20) & (df['xp'] > 100)]" },
+          { title: "IsIn / Query", snippet: "df[df['city'].isin(['A', 'B'])]\ndf.query('age > 20 and xp < 50')" },
+        ]
       },
       {
-        title: "File Read and Write",
-        snippet: `with open("notes.txt", "w") as file:
-    file.write("hello")
-
-with open("notes.txt") as file:
-    print(file.read())`,
+        title: "Cleaning",
+        cards: [
+          { title: "Nulls", snippet: "df.fillna(0)\ndf.dropna(subset=['id'])\ndf.isna().sum()" },
+          { title: "Duplicates", snippet: "df.drop_duplicates()\ndf.duplicated().sum()" },
+          { title: "Rename / Cast", snippet: "df.rename(columns={'a': 'A'})\ndf['id'] = df['id'].astype(int)" },
+        ]
       },
       {
-        title: "JSON",
-        snippet: `import json
-
-payload = {"name": "Ana", "xp": 120}
-text = json.dumps(payload)
-data = json.loads(text)`,
+        title: "Grouping & Stats",
+        cards: [
+          { title: "GroupBy", snippet: "df.groupby('cat')['val'].mean()\ndf.groupby('city').agg({'xp': 'sum', 'id': 'count'})" },
+          { title: "Value Counts", snippet: "df['city'].value_counts(normalize=True)" },
+          { title: "Rolling Window", snippet: "df['ma'] = df['p'].rolling(7).mean()" },
+          { title: "Pivot", snippet: "df.pivot_table(index='A', columns='B', values='C')" },
+        ]
       },
-    ],
+      {
+        title: "Reshaping & Merging",
+        cards: [
+          { title: "Merge (Join)", snippet: "pd.merge(df1, df2, on='id', how='left')" },
+          { title: "Concat (Union)", snippet: "pd.concat([df1, df2], axis=0)" },
+          { title: "Apply", snippet: "df['full'] = df['n'].apply(lambda x: x.upper())" },
+          { title: "Melt / Unstack", snippet: "pd.melt(df, id_vars=['A'], value_vars=['B'])\ndf.unstack(level=-1)" },
+        ]
+      }
+    ]
   },
-  {
-    title: "Errors and OOP",
-    cards: [
+  linux: {
+    icon: Cpu,
+    color: "rose",
+    sections: [
       {
-        title: "Try and Except",
-        snippet: `try:
-    value = int("42")
-except ValueError:
-    value = 0
-finally:
-    print(value)`,
+        title: "Navigation & Content",
+        cards: [
+          { title: "Ls Details", snippet: "ls -lah" },
+          { title: "Pwd & Cd", snippet: "pwd; cd /var/log" },
+          { title: "Relative Cd", snippet: "cd ..; cd -; cd ~" },
+          { title: "Cat / Tail", snippet: "cat f.txt; tail -f dev.log" },
+          { title: "Head / Less", snippet: "head -n 20 f.txt; less f.txt" },
+        ]
       },
       {
-        title: "Classes",
-        snippet: `class User:
-    def __init__(self, name):
-        self.name = name
-
-user = User("Ana")`,
+        title: "File Manipulation",
+        cards: [
+          { title: "Copy/Move", snippet: "cp source.txt dest.txt\nmv old.txt new.txt" },
+          { title: "Mkdir/Touch", snippet: "mkdir -p a/b/c\ntouch new_file.py" },
+          { title: "Find Files", snippet: "find . -name \"*.py\"\nfind /etc -type f -mtime -7" },
+          { title: "Tar Archive", snippet: "tar -cvzf out.tar.gz folder/\ntar -xvzf out.tar.gz" },
+        ]
       },
       {
-        title: "Inheritance",
-        snippet: `class Animal:
-    def speak(self):
-        return "..."
-
-class Dog(Animal):
-    def speak(self):
-        return "woof"`,
+        title: "Search & Tools",
+        cards: [
+          { title: "Grep Search", snippet: "grep -r \"pattern\" .\ngrep -i \"error\" log.txt" },
+          { title: "Sed Replace", snippet: "sed -i 's/old/new/g' file.txt" },
+          { title: "Awk Column", snippet: "awk '{print $1, $3}' file.txt" },
+          { title: "Sort / Uniq", snippet: "cat list.txt | sort | uniq -c" },
+        ]
       },
       {
-        title: "Dataclasses",
-        snippet: `from dataclasses import dataclass
-
-@dataclass
-class Task:
-    title: str
-    done: bool = False`,
+        title: "User & Permissions",
+        cards: [
+          { title: "Chmod", snippet: "chmod 755 script.sh\nchmod +x script.sh" },
+          { title: "Chown", snippet: "sudo chown user:group file" },
+          { title: "Sudo / Root", snippet: "sudo command\nsudo -i # interactive root" },
+          { title: "User Info", snippet: "whoami; groups; id" },
+        ]
       },
-    ],
+      {
+        title: "Process & Performance",
+        cards: [
+          { title: "Processes", snippet: "ps aux | grep node\ntop; htop" },
+          { title: "Kill", snippet: "kill -9 <PID>\nkillall node" },
+          { title: "Disk Space", snippet: "df -h\ndu -sh *" },
+          { title: "Free RAM", snippet: "free -m" },
+        ]
+      },
+      {
+        title: "Networking",
+        cards: [
+          { title: "Curl / Wget", snippet: "curl -v localhost:3000\nwget http://site.com/f.zip" },
+          { title: "Ping / Trace", snippet: "ping google.com\ntraceroute google.com" },
+          { title: "Netstat", snippet: "netstat -tuln" },
+          { title: "SSH", snippet: "ssh user@host\nscp local.txt user@host:/path" },
+        ]
+      },
+      {
+        title: "Shell Patterns",
+        cards: [
+          { title: "Pipes", snippet: "cat f.log | grep ERR | wc -l" },
+          { title: "Redirect", snippet: "echo 'hi' > f.txt\necho 'bye' >> f.txt" },
+          { title: "Aliases", snippet: "alias gs='git status'\nunalias gs" },
+          { title: "History", snippet: "history | grep \"docker\"" },
+        ]
+      }
+    ]
   },
-  {
-    title: "Useful Imports",
-    cards: [
+  git: {
+    icon: GitBranch,
+    color: "indigo",
+    sections: [
       {
-        title: "Math and Random",
-        snippet: `import math
-import random
-
-print(math.sqrt(81))
-print(random.randint(1, 10))`,
+        title: "Daily Flow",
+        cards: [
+          { title: "Stage & Commit", snippet: "git add .\ngit commit -m \"msg\"" },
+          { title: "Status & Diff", snippet: "git status\ngit diff --staged" },
+          { title: "Push / Pull", snippet: "git push origin main\ngit pull origin main" },
+          { title: "Log / Short", snippet: "git log --oneline -n 10" },
+        ]
       },
       {
-        title: "Datetime",
-        snippet: `from datetime import datetime
-
-now = datetime.now()
-print(now.strftime("%Y-%m-%d"))`,
+        title: "Branching",
+        cards: [
+          { title: "New Branch", snippet: "git checkout -b feature-1" },
+          { title: "Switch / Delete", snippet: "git checkout main\ngit branch -d feature-1" },
+          { title: "Merge", snippet: "git merge feature-1" },
+          { title: "List Branches", snippet: "git branch -a\ngit branch -vv" },
+        ]
       },
       {
-        title: "Counter and Defaultdict",
-        snippet: `from collections import Counter, defaultdict
-
-counts = Counter("banana")
-graph = defaultdict(list)`,
+        title: "Collaboration",
+        cards: [
+          { title: "Remote Sync", snippet: "git fetch origin\ngit remote -v" },
+          { title: "Fetch & Prune", snippet: "git fetch --prune" },
+          { title: "Track Remote", snippet: "git branch --set-upstream-to=origin/main" },
+          { title: "Stash", snippet: "git stash\ngit stash pop\ngit stash list" },
+        ]
       },
       {
-        title: "Heapq",
-        snippet: `import heapq
-
-nums = [5, 1, 9]
-heapq.heapify(nums)
-print(heapq.heappop(nums))`,
-      },
-    ],
-  },
-  {
-    title: "Interview Patterns",
-    cards: [
-      {
-        title: "Enumerate",
-        snippet: `items = ["a", "b", "c"]
-for idx, value in enumerate(items):
-    print(idx, value)`,
+        title: "Advanced / Rebase",
+        cards: [
+          { title: "Rebase Main", snippet: "git fetch origin\ngit rebase origin/main" },
+          { title: "Interactive", snippet: "git rebase -i HEAD~3" },
+          { title: "Cherry Pick", snippet: "git cherry-pick <hash>" },
+          { title: "Log Graph", snippet: "git log --oneline --graph --all" },
+        ]
       },
       {
-        title: "Zip",
-        snippet: `names = ["Ana", "Kai"]
-scores = [90, 88]
-for name, score in zip(names, scores):
-    print(name, score)`,
+        title: "Debugging & Undo",
+        cards: [
+          { title: "Undo Soft", snippet: "git reset --soft HEAD~1" },
+          { title: "Undo Hard", snippet: "git reset --hard HEAD~1" },
+          { title: "Revert Commit", snippet: "git revert <hash>" },
+          { title: "Reflog (Safety)", snippet: "git reflog # recovery point" },
+        ]
       },
       {
-        title: "Sorting",
-        snippet: `nums = [5, 2, 9]
-print(sorted(nums))
-
-users = [{"xp": 5}, {"xp": 2}]
-print(sorted(users, key=lambda x: x["xp"]))`,
-      },
-      {
-        title: "Stack and Queue",
-        snippet: `stack = []
-stack.append(1)
-stack.pop()
-
-from collections import deque
-queue = deque([1, 2])`,
-      },
-    ],
-  },
-  {
-    title: "Shortcuts and Optimized Ways",
-    cards: [
-      {
-        title: "Ternary Shortcut",
-        snippet: `status = "pass" if score >= 40 else "fail"
-smallest = a if a < b else b`,
-      },
-      {
-        title: "Swap Without Temp",
-        snippet: `a, b = b, a
-left, right = right, left`,
-      },
-      {
-        title: "Fast Counting",
-        snippet: `from collections import Counter
-
-counts = Counter(nums)
-most_common = counts.most_common(1)[0]`,
-      },
-      {
-        title: "Safe Dictionary Access",
-        snippet: `value = data.get("name", "Unknown")
-items = mapping.setdefault("python", [])`,
-      },
-      {
-        title: "Any and All",
-        snippet: `has_even = any(n % 2 == 0 for n in nums)
-all_positive = all(n > 0 for n in nums)`,
-      },
-      {
-        title: "Fast String Join",
-        snippet: `letters = ["P", "y", "t", "h", "o", "n"]
-word = "".join(letters)`,
-      },
-      {
-        title: "Enumerate and Zip",
-        snippet: `for idx, value in enumerate(items):
-    print(idx, value)
-
-for a, b in zip(list1, list2):
-    print(a, b)`,
-      },
-      {
-        title: "Reverse and Sort Quickly",
-        snippet: `nums.sort(reverse=True)
-reversed_nums = nums[::-1]
-ordered = sorted(users, key=lambda x: x["xp"])`,
-      },
-      {
-        title: "Set for Fast Lookup",
-        snippet: `seen = set(nums)
-if target in seen:
-    print("found")`,
-      },
-      {
-        title: "Prefix Sum Shortcut",
-        snippet: `prefix = [0]
-for n in nums:
-    prefix.append(prefix[-1] + n)`,
-      },
-      {
-        title: "List Flatten Shortcut",
-        snippet: `matrix = [[1, 2], [3, 4]]
-flat = [item for row in matrix for item in row]`,
-      },
-      {
-        title: "Two-Pointer Template",
-        snippet: `left, right = 0, len(nums) - 1
-while left < right:
-    total = nums[left] + nums[right]
-    if total < target:
-        left += 1
-    else:
-        right -= 1`,
-      },
-    ],
-  },
-];
+        title: "Config & Utils",
+        cards: [
+          { title: "Global User", snippet: "git config --global user.name \"Name\"\ngit config --global user.email \"em@ail.com\"" },
+          { title: "List Config", snippet: "git config --list" },
+          { title: "Aliases", snippet: "git config --global alias.co checkout\ngit config --global alias.br branch" },
+          { title: "Blame", snippet: "git blame file.py" },
+        ]
+      }
+    ]
+  }
+};
 
 export default function QuickPrepPage() {
-  const totalCheatSnippets = cheatSheetSections.reduce((count, section) => count + section.cards.length, 0);
+  const [activeTab, setActiveTab] = useState<TechType>('python');
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Snippet copied!", { icon: "📋" });
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0b1020] text-slate-100 selection:bg-primary/30">
       <Helmet>
-        <title>Quick Prep | PyMaster</title>
-        <meta
-          name="description"
-          content="Quick Python prep routines for daily study, interview practice, and career-focused warmups."
-        />
+        <title>Quick Prep | PyMaster Hub</title>
+        <meta name="description" content="Multi-tech interview prep for Python, SQL, Pandas, Linux, and Git." />
       </Helmet>
 
-      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-background via-secondary/20 to-background">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_32%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.14),transparent_28%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              <Clock3 className="h-3.5 w-3.5" />
-              Quick Prep
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Short study runs that keep you moving.
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Pick a prep track when you want momentum without overthinking it. Each route is designed to get you coding fast and leave you with one clear win.
-            </p>
-          </div>
+      <section className="relative overflow-hidden border-b border-white/5 bg-[#0b1020]/50 py-16 sm:py-20">
+        <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary/20 to-indigo-500/10 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
         </div>
-      </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-3">
-          {prepTracks.map((track) => (
-            <div
-              key={track.title}
-              className={`rounded-3xl border border-border/70 bg-gradient-to-br ${track.accent} p-6 shadow-sm`}
-            >
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">{track.title}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{track.description}</p>
-                </div>
-                <div className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-foreground">
-                  {track.duration}
-                </div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+            <div className="max-w-4xl flex-1 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-primary">
+                <Target className="h-4 w-4" />
+                Master Prep hub
               </div>
-
-              <div className="space-y-3">
-                {track.steps.map((step, index) => {
-                  const Icon = step.icon;
-
-                  return (
-                    <Link
-                      key={step.label}
-                      to={step.to}
-                      className="flex items-center justify-between rounded-2xl border border-border/60 bg-background/80 px-4 py-3 transition-colors hover:bg-background"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Step {index + 1}
-                          </div>
-                          <div className="text-sm font-medium text-foreground">{step.label}</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold text-primary">Open</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-2xl md:rounded-3xl border border-border/70 bg-card p-5 md:p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Quick Rules</h2>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            {quickTips.map((tip) => (
-              <div key={tip} className="rounded-xl md:rounded-2xl border border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
-                {tip}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl md:rounded-[2rem] border border-primary/15 bg-[linear-gradient(135deg,rgba(14,165,233,0.08),rgba(245,158,11,0.08),rgba(16,185,129,0.08))] p-5 shadow-[0_18px_60px_rgba(15,23,42,0.12)] sm:p-8">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
-          <div className="relative mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                <BookOpen className="h-3.5 w-3.5" />
-                Must-Know Python
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                Python Cheatsheet
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-                Keep this section close before interviews, practice rounds, and quick revision sessions. These are the patterns you’ll reach for again and again.
+              <h1 className="text-4xl font-black tracking-tighter text-white sm:text-6xl lg:text-7xl">
+                Ready in <span className="text-primary italic font-serif">Minutes</span>.
+              </h1>
+              <p className="max-w-2xl text-lg leading-relaxed text-slate-400 sm:text-xl font-medium">
+                High-yield patterns for <span className="text-white">Python</span>, <span className="text-white">SQL</span>, <span className="text-white">Data</span>, and <span className="text-white">System Ops</span>.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-sky-500/20 bg-background/75 px-4 py-3">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Core</div>
-                <div className="mt-1 text-lg font-bold text-foreground">{totalCheatSnippets}</div>
-                <div className="text-xs text-muted-foreground">key patterns</div>
-              </div>
-              <div className="rounded-2xl border border-amber-500/20 bg-background/75 px-4 py-3">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-600">Focus</div>
-                <div className="mt-1 text-lg font-bold text-foreground">Fast</div>
-                <div className="text-xs text-muted-foreground">scan blocks</div>
-              </div>
-              <div className="rounded-2xl border border-emerald-500/20 bg-background/75 px-4 py-3 col-span-2 sm:col-span-1">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-600">Use</div>
-                <div className="mt-1 text-lg font-bold text-foreground">Daily</div>
-                <div className="text-xs text-muted-foreground">prep reference</div>
-              </div>
-            </div>
           </div>
-          <div className="relative space-y-6 md:space-y-8">
-            {cheatSheetSections.map((section) => (
-              <div key={section.title} className="rounded-2xl md:rounded-[1.75rem] border border-border/60 bg-background/78 p-4 backdrop-blur-sm sm:p-6">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                      High Value Section
-                    </div>
-                    <h3 className="mt-1 text-lg font-semibold text-foreground sm:text-xl">
-                      {section.title}
-                    </h3>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        
+        {/* --- STATS OVERVIEW --- */}
+        <div className="mb-10 flex flex-wrap gap-4 items-center justify-center sm:justify-start">
+           <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-xl">
+              <Code2 className="h-5 w-5 text-blue-400" />
+              <div>
+                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Coverage</div>
+                 <div className="text-xl font-bold text-white tracking-tight">Full Hub</div>
+              </div>
+           </div>
+           <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-md shadow-xl">
+              <Brain className="h-5 w-5 text-amber-400" />
+              <div>
+                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Readiness</div>
+                 <div className="text-xl font-bold text-white tracking-tight">High Yield</div>
+              </div>
+           </div>
+        </div>
+
+        {/* --- PREP TRACKS --- */}
+        <div className="mb-16 grid gap-6 md:grid-cols-3">
+          {prepTracks.map((track, idx) => (
+            <motion.div
+              key={track.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className={`group relative rounded-[2rem] border border-white/5 bg-slate-900/40 p-1 overflow-hidden transition-all hover:border-white/10 hover:shadow-2xl`}
+            >
+              <div className={`p-6 space-y-6`}>
+                <div className="flex items-center justify-between">
+                  <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary border border-white/5 shadow-inner">
+                    <Clock3 className="h-6 w-6" />
                   </div>
-                  <div className="rounded-full border border-border/60 bg-secondary/70 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-                    {section.cards.length} snippets
-                  </div>
+                  <span className="text-[11px] font-bold tracking-widest text-slate-500 uppercase">{track.duration}</span>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {section.cards.map((card) => (
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-2">{track.title}</h2>
+                  <p className="text-base text-slate-400 leading-relaxed line-clamp-2">{track.description}</p>
+                </div>
+                
+                <div className="space-y-2">
+                   {track.steps.map((step) => {
+                     const StepIcon = step.icon;
+                     return (
+                        <Link 
+                          key={step.label} 
+                          to={step.to}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.08] transition-all group/step"
+                        >
+                          <StepIcon className="h-4 w-4 text-slate-500 group-hover/step:text-primary" />
+                          <span className="text-sm font-bold text-slate-300">{step.label}</span>
+                        </Link>
+                     );
+                   })}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mb-10 space-y-4">
+          <div className="flex items-center gap-2 text-slate-500">
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Tech Selection</span>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-900/80 border border-white/5 backdrop-blur-md">
+            {Object.entries(TECH_DATA).map(([key, data]: [string, TechEntry]) => {
+              const Icon = data.icon;
+              const isActive = activeTab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key as TechType)}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-xl text-base font-bold transition-all duration-300 ${
+                    isActive 
+                      ? `bg-${data.color}-500/20 text-${data.color}-400 ring-2 ring-${data.color}-500/40 shadow-xl` 
+                      : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 ${isActive ? `text-${data.color}-400` : ""}`} />
+                  <span className="capitalize">{key === 'pandas' ? 'Pandas' : key}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-12"
+          >
+            {TECH_DATA[activeTab].sections.map((section: CheatsheetSection) => (
+              <div key={section.title} className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-sm font-black tracking-widest text-slate-500 uppercase">{section.title}</h3>
+                  <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {section.cards.map((card: CheatsheetCard) => (
                     <div
                       key={card.title}
-                      className="group rounded-2xl border border-border/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.06))] p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_18px_35px_rgba(14,165,233,0.12)]"
+                      className="group relative rounded-[1.5rem] border border-white/5 bg-slate-900/40 p-5 transition-all hover:border-primary/20 hover:bg-slate-900/60"
                     >
-                      <div className="mb-3 flex items-start justify-between gap-3">
-                        <h4 className="text-sm font-semibold text-foreground">{card.title}</h4>
-                        <span className="rounded-full border border-primary/15 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
-                          Essential
-                        </span>
+                      <div className="mb-4 flex items-center justify-between">
+                         <h4 className="text-sm font-bold text-slate-100">{card.title}</h4>
+                         <button 
+                          onClick={() => copyToClipboard(card.snippet)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-primary transition-all"
+                         >
+                           <Copy className="h-4 w-4" />
+                         </button>
                       </div>
-                      <pre className="overflow-x-auto rounded-xl border border-black/5 bg-slate-950/95 p-3 text-xs leading-6 text-slate-100 shadow-inner">
-                        <code>{card.snippet}</code>
-                      </pre>
+                      
+                      {/* --- TERMINAL WRAPPER FOR LINUX --- */}
+                      <div className={`rounded-xl overflow-hidden shadow-xl ${activeTab === 'linux' ? 'ring-1 ring-white/10' : ''}`}>
+                        {activeTab === 'linux' && (
+                          <div className="bg-[#1e1e1e] px-3 py-1.5 border-b border-white/5 flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-rose-500" />
+                            <div className="w-2 h-2 rounded-full bg-amber-500" />
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          </div>
+                        )}
+                        <div className="bg-black/40 p-4 ring-1 ring-inset ring-white/[0.03]">
+                          <pre className="text-[14px] font-mono text-emerald-400/90 whitespace-pre-wrap break-words selection:bg-primary/30 leading-snug italic">
+                            <code>
+                              {activeTab === 'linux' ? (
+                                <span className="text-primary font-bold mr-1.5">user@arena:~$ </span>
+                              ) : null}
+                              {card.snippet}
+                            </code>
+                          </pre>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                        <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">High Yield Pattern</span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+          </motion.div>
+        </AnimatePresence>
+
+        <section className="mt-20">
+           <div className="rounded-[3rem] bg-gradient-to-br from-primary/10 via-slate-900 to-slate-950 p-10 sm:p-16 border border-white/5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-12 opacity-10">
+                 <Sparkles className="h-48 w-48 text-primary" />
+              </div>
+              <div className="relative space-y-12">
+                 <div className="space-y-4">
+                    <h2 className="text-4xl font-black text-white tracking-tighter">Quick Rules for Mastery</h2>
+                    <p className="max-w-xl text-lg text-slate-400 leading-relaxed">Apply these simple principles to your daily prep to level up fast.</p>
+                 </div>
+                 
+                 <div className="grid gap-6 md:grid-cols-3">
+                    {QUICK_TIPS.map((tip, i) => (
+                       <div key={i} className="flex gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5 ring-1 ring-inset ring-white/[0.01]">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary font-bold text-lg border border-primary/20">
+                             {i + 1}
+                          </div>
+                          <p className="text-sm font-medium text-slate-300 leading-relaxed">{tip}</p>
+                       </div>
+                    ))}
+                 </div>
+
+                 <div className="pt-4">
+                    <Button asChild className="rounded-2xl h-14 px-10 text-xl font-bold shadow-xl shadow-primary/20">
+                       <Link to="/compiler" className="flex items-center gap-3">
+                          Go to Compiler <Terminal className="h-5 w-5" />
+                       </Link>
+                    </Button>
+                 </div>
+              </div>
+           </div>
+        </section>
+      </main>
     </div>
   );
 }

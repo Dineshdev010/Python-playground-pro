@@ -18,7 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CompanyBadge } from "@/components/CompanyBadge";
-import { SPONSOR_DESTINATIONS } from "@/data/ads";
+
 
 function normalizeOutput(output: string) {
   return output.replace(/\r\n/g, "\n").trim();

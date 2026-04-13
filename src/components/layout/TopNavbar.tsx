@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { navItems } from "./navItems";
-import { SUPPORT_TIP_EVENT } from "@/components/SupportTipPopup";
+
 
 const MENU_HINT_KEY = "pymaster_menu_hint_dismissed";
 

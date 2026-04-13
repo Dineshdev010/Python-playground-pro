@@ -38,7 +38,17 @@ export class SectionErrorBoundary extends Component<Props, State> {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => this.setState({ hasError: false, error: null })}
+            onClick={() => {
+              if (
+                this.state.error?.message?.includes("Failed to fetch dynamically imported module") ||
+                this.state.error?.message?.includes("Importing a module script failed") ||
+                this.state.error?.message?.includes("dynamically imported module")
+              ) {
+                window.location.reload();
+              } else {
+                this.setState({ hasError: false, error: null });
+              }
+            }}
           >
             Retry
           </Button>

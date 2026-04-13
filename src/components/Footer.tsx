@@ -122,7 +122,7 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               <li><Link to="/jobs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Python Jobs</Link></li>
               <li><Link to="/dsa" className="text-sm text-muted-foreground hover:text-foreground transition-colors">DSA Mastery</Link></li>
-              <li><Link to="/career/data-analysis" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Job Roadmap</Link></li>
+              <li><Link to="/career-roadmap" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Job Roadmap</Link></li>
               <li><Link to="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Leaderboard</Link></li>
             </ul>
           </div>
@@ -159,7 +159,7 @@ export function Footer() {
 
               <Link
                 to="/donate"
-                onClick={(e) => {
+                onClick={(_e) => {
                   window.dispatchEvent(new CustomEvent(SUPPORT_TIP_EVENT));
                 }}
                 className="group flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 hover:bg-surface-2 transition-colors"

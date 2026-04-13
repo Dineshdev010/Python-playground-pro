@@ -8,10 +8,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
-import { Play, RotateCcw, FileCode, Square, Terminal, Brain, ChevronDown } from "lucide-react";
+import { Play, RotateCcw, FileCode, Square, Brain, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Helmet } from "react-helmet-async";
+import { useTheme } from "@/components/ThemeProvider";
+import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { analyzePythonCode } from "@/utils/PyBrainUtils";
 import { useProgress } from "@/contexts/ProgressContext";
@@ -82,6 +85,16 @@ const TEMPLATES: Record<LangMode, Record<string, string>> = {
 };
 
 // ---------- SQL Table View Component ----------
+function downloadCsv(csvText: string, filename = "query_result.csv") {
+  const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function splitCsvLine(line: string): string[] {
   const result: string[] = [];
   let cell = "";
@@ -111,25 +124,35 @@ function SqlTableView({ csvOutput }: { csvOutput: string }) {
   const rows = lines.slice(1).map(line => splitCsvLine(line));
 
   return (
-    <div className="flex flex-col flex-1 h-full min-h-[300px] p-4">
-      <div className="flex-1 min-h-[250px] md:min-h-0 overflow-auto border border-border rounded-lg bg-card/10 backdrop-blur-md shadow-2xl relative custom-scrollbar isolate">
-        <table className="w-full text-left border-collapse min-w-max relative z-0 border-spacing-0">
-          <thead className="sticky top-0 z-20 shadow-sm backdrop-blur-md w-full">
-            <tr className="border-b border-border bg-surface-2/95">
+    <div className="flex flex-col flex-1 min-h-0 w-full overflow-hidden px-3 pb-2 pt-2">
+      <div className="flex-1 min-h-0 overflow-auto border border-border rounded-lg bg-surface-1 shadow-md custom-scrollbar">
+        <table className="w-full text-left border-collapse table-auto">
+          <thead className="sticky top-0 z-30 shadow-sm bg-surface-1 ring-1 ring-border">
+            <tr>
               {headers.map((h, i) => (
-                <th key={i} className="px-5 py-3 text-[11px] font-bold text-python-blue uppercase tracking-widest whitespace-nowrap">
+                <th
+                  key={i}
+                  className={`px-4 py-2.5 text-[11px] font-bold text-python-blue uppercase tracking-widest whitespace-nowrap bg-surface-1 ${
+                    i === 0 ? "sticky left-0 z-40 border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)]" : ""
+                  }`}
+                >
                   {h.replace(/^"|"$/g, '')}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5 bg-transparent">
+          <tbody className="divide-y divide-border">
             {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-white/10 transition-colors duration-150 group">
+              <tr key={i} className="hover:bg-surface-2 transition-colors duration-150 group">
                 {row.map((cell, j) => {
                   const cleanCell = cell.replace(/^"|"$/g, '').replace(/""/g, '"');
                   return (
-                    <td key={j} className="px-5 py-3 text-xs sm:text-sm font-mono text-foreground/85 group-hover:text-foreground whitespace-nowrap">
+                    <td
+                      key={j}
+                      className={`px-4 py-2 text-xs font-mono text-foreground/90 group-hover:text-foreground whitespace-nowrap ${
+                        j === 0 ? "sticky left-0 z-10 bg-surface-1 group-hover:bg-surface-2 border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)]" : ""
+                      }`}
+                    >
                       {cleanCell === "NULL" ? (
                         <span className="text-muted-foreground/50 italic font-sans text-[10px]">null</span>
                       ) : (
@@ -143,11 +166,20 @@ function SqlTableView({ csvOutput }: { csvOutput: string }) {
           </tbody>
         </table>
       </div>
-      <div className="shrink-0 flex items-center justify-between mt-3 text-[10px] text-muted-foreground font-mono uppercase tracking-tighter px-1 pb-1">
-        <span>SQL Query Execution</span>
-        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full lg:text-[11px]">
-          {rows.length} {rows.length === 1 ? 'row' : 'rows'} returned
-        </span>
+      <div className="shrink-0 flex items-center justify-between pt-1.5 text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
+        <span>SQL · Query Executed</span>
+        <div className="flex items-center gap-2">
+          <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+            {rows.length} {rows.length === 1 ? 'row' : 'rows'} returned
+          </span>
+          <button
+            onClick={() => downloadCsv(csvOutput)}
+            title="Download as CSV"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-streak-green/10 text-streak-green border border-streak-green/20 hover:bg-streak-green/20 transition-colors font-semibold text-[10px] uppercase tracking-tighter"
+          >
+            ⬇ CSV
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -160,21 +192,46 @@ const DEFAULT_CODE: Record<LangMode, string> = {
   sql:    TEMPLATES.sql["Select All"],
 };
 
+// localStorage helpers for code persistence
+const LS_KEY = (mode: LangMode) => `pymaster_code_${mode}`;
+function loadSavedCode(mode: LangMode): string {
+  try { return localStorage.getItem(LS_KEY(mode)) || DEFAULT_CODE[mode]; } catch { return DEFAULT_CODE[mode]; }
+}
+function saveCode(mode: LangMode, code: string) {
+  try { localStorage.setItem(LS_KEY(mode), code); } catch { /* ignore */ }
+}
+
+const HISTORY_KEY = (mode: LangMode) => `pymaster_history_${mode}`;
+function getHistory(mode: LangMode): string[] {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY(mode)) || "[]"); } catch { return []; }
+}
+function addToHistory(mode: LangMode, codeSnippet: string) {
+  try {
+    const hist = getHistory(mode);
+    const newHist = [codeSnippet, ...hist.filter(c => c !== codeSnippet)].slice(0, 10);
+    localStorage.setItem(HISTORY_KEY(mode), JSON.stringify(newHist));
+  } catch { /* ignore */ }
+}
+
 export default function CompilerPage() {
   const [searchParams] = useSearchParams();
   const [mode, setMode]     = useState<LangMode>("python");
   const [showModeMenu, setShowModeMenu] = useState(false);
-  const [code, setCode]     = useState(searchParams.get("code") || DEFAULT_CODE.python);
+  const [code, setCode]     = useState(searchParams.get("code") || loadSavedCode("python"));
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning]           = useState(false);
   const [executionTime, setExecutionTime]   = useState<number | null>(null);
   const [runtimeStatus, setRuntimeStatus]   = useState<PythonRuntimeStatus>(getPythonRuntimeStatus());
   const [runtimeError, setRuntimeError]     = useState(getPythonRuntimeError());
   const [isEditorMounted, setIsEditorMounted]   = useState(false);
-  const [showEditorFallback, setShowEditorFallback] = useState(false);
   const [isBrainOpen, setIsBrainOpen]       = useState(false);
   const [executionHistory, setExecutionHistory] = useState<{runId: number; time: number}[]>([]);
   const [activeTab, setActiveTab]           = useState<"output" | "performance">("output");
+  const [sqlSplit, setSqlSplit]             = useState(50); // percentage for editor height in SQL mode
+  const [history, setHistory]               = useState<string[]>([]);
+  const isDraggingRef                       = useRef(false);
+  const containerRef                        = useRef<HTMLDivElement>(null);
+  const { theme }                           = useTheme();
 
   // Linux terminal state
   const [linuxInput, setLinuxInput]         = useState("");
@@ -210,17 +267,51 @@ export default function CompilerPage() {
 
   useEffect(() => {
     preloadPyodide();
+    setHistory(getHistory(mode));
     return subscribePythonRuntimeStatus((status, error) => {
       setRuntimeStatus(status);
       setRuntimeError(error);
     });
-  }, []);
+  }, [mode]);
 
+
+  // Drag-to-resize handler for SQL split
+  const handleResizerMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+
+    const onMove = (clientY: number) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const pct = ((clientY - rect.top) / rect.height) * 100;
+      setSqlSplit(Math.min(80, Math.max(20, pct)));
+    };
+
+    const onMouseMove = (ev: MouseEvent) => onMove(ev.clientY);
+    const onTouchMove = (ev: TouchEvent) => onMove(ev.touches[0].clientY);
+    const onUp = () => {
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchend", onUp);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+  };
+
+
+  // Save code to localStorage whenever it changes (debounced via useEffect)
   useEffect(() => {
-    if (isEditorMounted) return;
-    const timer = window.setTimeout(() => setShowEditorFallback(true), 4500);
-    return () => window.clearTimeout(timer);
-  }, [isEditorMounted]);
+    const t = setTimeout(() => saveCode(mode, code), 800);
+    return () => clearTimeout(t);
+  }, [code, mode]);
 
   // Auto-correct stale SQL code that references the non-existent 'students' table
   useEffect(() => {
@@ -234,7 +325,8 @@ export default function CompilerPage() {
   const switchMode = (newMode: LangMode) => {
     setMode(newMode);
     setShowModeMenu(false);
-    setCode(DEFAULT_CODE[newMode]);
+    setCode(loadSavedCode(newMode));   // restore last saved code for this mode
+    setHistory(getHistory(newMode));
     setOutput("");
     setExecutionTime(null);
     setExecutionHistory([]);
@@ -284,6 +376,12 @@ export default function CompilerPage() {
     setOutput(outputText);
     setIsRunning(false);
     logActivity();
+
+    if (!result.error && code.trim()) {
+      addToHistory(mode, code);
+      setHistory(getHistory(mode));
+    }
+
     if (isMobile) {
       setTimeout(() => outputPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
@@ -367,7 +465,14 @@ export default function CompilerPage() {
   const isLinux = mode === "linux";
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
+    <div className="flex h-[calc(100dvh-3.5rem-4rem)] lg:h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
+      <Helmet>
+        <title>{lang.label} Compiler | PyMaster</title>
+        <meta name="description" content={`Run ${lang.label} code in your browser with our professional-grade interactive compiler. No installation required.`} />
+        <meta property="og:title" content={`${lang.label} Code Playground`} />
+        <meta property="og:description" content="Master coding with real-time feedback and professional tools." />
+      </Helmet>
+
       {/* ---------- PyBrain Dialog ---------- */}
       <Dialog open={isBrainOpen} onOpenChange={setIsBrainOpen}>
         <DialogContent className="sm:max-w-[425px] bg-background/90 backdrop-blur-xl border border-white/10 shadow-2xl">
@@ -405,6 +510,7 @@ export default function CompilerPage() {
           <div className="relative">
             <button
               onClick={() => setShowModeMenu(v => !v)}
+              aria-label="Change language mode"
               className={`flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1.5 rounded-md bg-secondary border border-border hover:border-primary/40 transition-colors ${lang.color}`}
             >
               <span>{lang.emoji}</span>
@@ -473,8 +579,25 @@ export default function CompilerPage() {
             ))}
           </select>
 
+          {/* History selector */}
+          {history.length > 0 && (
+            <select
+              className="bg-secondary text-foreground text-xs h-8 px-2 py-1.5 rounded-md border border-border w-full sm:w-auto font-mono"
+              onChange={(e) => setCode(e.target.value)}
+              defaultValue=""
+            >
+              <option value="" disabled>🕒 History</option>
+              {history.map((histCode, i) => (
+                <option key={i} value={histCode}>
+                  {histCode.split("\n")[0].substring(0, 20) || "Run #" + (history.length - i)}...
+                </option>
+              ))}
+            </select>
+          )}
+
+
           {/* Clear button */}
-          <Button size="sm" variant="outline" className="h-8 text-xs gap-1 flex-1 sm:flex-none" onClick={() => {
+          <Button size="sm" variant="outline" className="h-8 text-xs gap-1 flex-1 sm:flex-none" aria-label="Clear code" onClick={() => {
             if (isLinux) {
               setLinuxHistory([{ type: "out", text: "🐧 Terminal cleared. Type a command to start." }]);
             } else {
@@ -486,7 +609,7 @@ export default function CompilerPage() {
 
           {/* PyBrain — only for Python */}
           {(mode === "python" || mode === "pandas") && (
-            <Button size="sm" variant="outline" className="h-8 text-xs gap-1 flex-1 sm:flex-none border-python-blue/30 text-python-blue hover:bg-python-blue/10 hover:text-python-blue" onClick={() => setIsBrainOpen(true)}>
+            <Button size="sm" variant="outline" className="h-8 text-xs gap-1 flex-1 sm:flex-none border-python-blue/30 text-python-blue hover:bg-python-blue/10 hover:text-python-blue" aria-label="PyBrain AI analysis" onClick={() => setIsBrainOpen(true)}>
               <Brain className="w-3 h-3" /> PyBrain
             </Button>
           )}
@@ -494,11 +617,11 @@ export default function CompilerPage() {
           {/* Run / Stop */}
           {!isLinux && (
             isRunning ? (
-              <Button size="sm" variant="destructive" className="h-8 text-xs gap-1 flex-1 sm:flex-none" onClick={cancelActivePythonExecution}>
+              <Button size="sm" variant="destructive" className="h-8 text-xs gap-1 flex-1 sm:flex-none" aria-label="Stop execution" onClick={cancelActivePythonExecution}>
                 <Square className="w-3 h-3" /> Stop
               </Button>
             ) : (
-              <Button size="sm" className="h-8 text-xs gap-1 flex-1 sm:flex-none" onClick={runCode}>
+              <Button size="sm" className="h-8 text-xs gap-1 flex-1 sm:flex-none" aria-label="Run code" onClick={runCode}>
                 <Play className="w-3 h-3" />▶ Run
               </Button>
             )
@@ -513,7 +636,10 @@ export default function CompilerPage() {
       )}
 
       {/* ---------- Main Area ---------- */}
-      <div className={`flex-1 flex flex-col ${!isLinux && mode !== "sql" ? "md:flex-row" : "md:flex-col"} overflow-y-auto md:overflow-hidden min-h-0`}>
+      <div
+        ref={containerRef}
+        className={`flex-1 flex flex-col ${!isLinux && mode !== "sql" ? "md:flex-row" : "flex-col"} overflow-hidden min-h-0`}
+      >
 
         {/* ===== LINUX TERMINAL MODE ===== */}
         {isLinux && (
@@ -569,36 +695,61 @@ export default function CompilerPage() {
             {/* Monaco Editor Panel */}
             <div
               ref={editorPanelRef}
-              className={`flex flex-col min-h-0 shrink-0 ${mode === "sql" ? "h-[40vh] md:h-[40%] border-b border-border" : "h-[50vh] md:h-full md:flex-1 border-b md:border-b-0 md:border-r border-border md:shrink"}`}
+              style={mode === "sql" ? { height: `${sqlSplit}%` } : undefined}
+              className={`flex flex-col min-h-0 shrink-0 ${mode === "sql" ? "border-b border-border" : "h-[50vh] md:h-full md:flex-1 border-b md:border-b-0 md:border-r border-border md:shrink"}`}
             >
-              {showEditorFallback && !isEditorMounted ? (
-                <div className="h-full bg-surface-0 border-b md:border-b-0 md:border-r border-border p-3 sm:p-4 flex flex-col gap-3">
-                  <div className="text-xs text-muted-foreground">
-                    Editor engine is taking longer than expected. Fallback editor is active.
-                  </div>
-                  <textarea
-                    className="flex-1 min-h-[45vh] md:min-h-0 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm font-mono text-foreground outline-none focus:ring-2 focus:ring-primary/30"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    spellCheck={false}
-                    aria-label="Code editor fallback"
-                  />
-                </div>
-              ) : (
+
                 <Editor
                   height="100%"
                   language={lang.monacoLang}
-                  theme="vs-dark"
+                  theme={theme === "dark" ? "vs-dark" : "vs-light"}
                   value={code}
                   onChange={(v) => setCode(v || "")}
-                  onMount={(editor) => {
+                  onMount={(editor, monaco) => {
                     editorRef.current = editor;
                     setIsEditorMounted(true);
-                    setShowEditorFallback(false);
+
+                    // Sync SQL autocomplete
+                    if (mode === "sql") {
+                      monaco.languages.registerCompletionItemProvider("sql", {
+                        provideCompletionItems: (model, position) => {
+                          const word = model.getWordUntilPosition(position);
+                          const range = {
+                            startLineNumber: position.lineNumber,
+                            endLineNumber: position.lineNumber,
+                            startColumn: word.startColumn,
+                            endColumn: word.endColumn,
+                          };
+                          const suggestions = [
+                            { label: "customers", kind: monaco.languages.CompletionItemKind.Struct, insertText: "customers", range },
+                            { label: "products", kind: monaco.languages.CompletionItemKind.Struct, insertText: "products", range },
+                            { label: "orders", kind: monaco.languages.CompletionItemKind.Struct, insertText: "orders", range },
+                            { label: "order_items", kind: monaco.languages.CompletionItemKind.Struct, insertText: "order_items", range },
+                          ];
+                          return { suggestions };
+                        },
+                      });
+                    }
+
+                    // Ctrl+Enter / Cmd+Enter → Run
+                    editor.addCommand(
+                      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+                      () => { if (!isRunning) runCode(); }
+                    );
+
+                    // Ctrl+S / Cmd+S → Mock Save
+                    editor.addCommand(
+                      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+                      () => {
+                        saveCode(mode, editor.getValue());
+                        toast.success("Code saved locally");
+                      }
+                    );
                   }}
                   loading={
-                    <div className="h-full w-full flex items-center justify-center bg-surface-0">
-                      <span className="text-sm text-muted-foreground animate-pulse">Loading editor...</span>
+                    <div className="h-full w-full flex flex-col items-center justify-center bg-surface-0 gap-4">
+                      <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                      <span className="text-sm font-medium text-muted-foreground animate-pulse">Initializing Editor...</span>
                     </div>
                   }
                   options={{
@@ -613,7 +764,6 @@ export default function CompilerPage() {
                     automaticLayout: true,
                   }}
                 />
-              )}
 
               {/* Mobile Coding Shortcut Bar */}
               {isMobile && isEditorMounted && (mode === "python" || mode === "pandas") && (
@@ -631,10 +781,26 @@ export default function CompilerPage() {
               )}
             </div>
 
+            {/* SQL Drag Resizer */}
+            {mode === "sql" && (
+              <div
+                onMouseDown={handleResizerMouseDown}
+                onTouchStart={handleResizerMouseDown}
+                className="shrink-0 h-[6px] flex items-center justify-center cursor-row-resize z-10 group bg-surface-1 hover:bg-primary/20 transition-colors border-y border-border relative select-none"
+                title="Drag to resize"
+              >
+                <div className="flex gap-1">
+                  <div className="w-8 h-0.5 rounded-full bg-border group-hover:bg-primary/60 transition-colors" />
+                  <div className="w-8 h-0.5 rounded-full bg-border group-hover:bg-primary/60 transition-colors" />
+                  <div className="w-8 h-0.5 rounded-full bg-border group-hover:bg-primary/60 transition-colors" />
+                </div>
+              </div>
+            )}
+
             {/* Output Panel */}
             <div
               ref={outputPanelRef}
-              className={`flex flex-col bg-surface-0 shrink-0 ${mode === "sql" ? "min-h-[85vh] md:min-h-0 md:flex-1 w-full border-t border-border" : "min-h-[55vh] md:min-h-0 md:h-full md:w-[28rem] md:flex-none"}`}
+              className={`flex flex-col bg-surface-0 min-h-0 ${mode === "sql" ? "flex-1 w-full" : "min-h-[55vh] md:min-h-0 md:h-full md:w-[28rem] md:flex-none shrink-0"}`}
             >
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "output" | "performance")} className="flex flex-col flex-1 min-h-0 bg-surface-0">
                 <div className="px-4 py-2 border-b border-border bg-surface-1 flex items-center justify-between shadow-sm shrink-0">
@@ -651,7 +817,8 @@ export default function CompilerPage() {
                   )}
                 </div>
 
-                <TabsContent value="output" className="flex-1 m-0 p-0 overflow-hidden flex flex-col focus-visible:outline-none">
+                <TabsContent value="output" className="flex-1 m-0 p-0 overflow-hidden focus-visible:outline-none">
+                  <div className="h-full flex flex-col overflow-hidden">
                   {/* SQL Schema Reference Strip */}
                   {mode === "sql" && (
                     <div className="shrink-0 border-b border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
@@ -667,7 +834,7 @@ export default function CompilerPage() {
                   )}
 
                   {isRunning ? (
-                    <div className="p-4 animate-pulse text-[13px] sm:text-sm font-mono text-muted-foreground">
+                    <div className="flex-1 p-4 animate-pulse text-[13px] sm:text-sm font-mono text-muted-foreground">
                       {mode === "sql"
                         ? "⏳ Running SQL query..."
                         : mode === "pandas"
@@ -690,9 +857,11 @@ export default function CompilerPage() {
                       </pre>
                     )
                   )}
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="performance" className="flex-1 m-0 p-4 focus-visible:outline-none flex flex-col overflow-hidden">
+                <TabsContent value="performance" className="flex-1 m-0 p-0 overflow-hidden focus-visible:outline-none">
+                  <div className="h-full flex flex-col overflow-hidden p-4">
                   {executionHistory.length > 0 ? (
                     <div className="flex-1 min-h-0 relative">
                       <ResponsiveContainer width="100%" height="100%">
@@ -717,6 +886,7 @@ export default function CompilerPage() {
                       Run code to see performance tracking
                     </div>
                   )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>

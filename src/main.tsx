@@ -8,6 +8,10 @@ import { createRoot } from "react-dom/client"; // React 18's method to create a 
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx"; // The main App component
 import "./index.css"; // Global styles (Tailwind CSS + custom styles)
+import { initSentry } from "./lib/sentry";
+
+// Initialize error tracking
+initSentry();
 
 const CHUNK_RELOAD_KEY = "pymaster_chunk_reload_once";
 let appMounted = false;

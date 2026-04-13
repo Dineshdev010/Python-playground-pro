@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 
 const TRAIL_COUNT = 6;
 
-type CursorMode = "playful" | "focused" | "elegant" | "default";
+type CursorMode = "playful" | "focused" | "elegant" | "coding" | "default";
 
 type Burst = {
   id: number;
@@ -141,6 +141,32 @@ const cursorThemes: Record<CursorMode, CursorTheme> = {
     coreHoverSize: 14,
     coreIdleSize: 10,
   },
+  coding: {
+    magneticPull: 0,
+    trailColor: "rgb(16 185 129)",
+    auraBackground:
+      "radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.15) 38%, rgba(6,78,59,0.05) 72%, transparent 100%)",
+    ringHoverBorder: "rgba(16,185,129,0.95)",
+    ringIdleBorder: "rgba(16,185,129,0.4)",
+    ringHoverBackground: "rgba(16,185,129,0.1)",
+    ringIdleBackground: "rgba(0,0,0,0.2)",
+    ringHoverShadow: "0 0 20px rgba(16,185,129,0.4), inset 0 0 10px rgba(16,185,129,0.2)",
+    ringIdleShadow: "0 0 10px rgba(16,185,129,0.15)",
+    coreBackground:
+      "radial-gradient(circle at 30% 30%, rgba(255,255,255,1) 0%, rgba(110,231,183,0.98) 35%, rgba(16,185,129,1) 100%)",
+    coreHoverShadow: "0 0 20px rgba(16,185,129,0.8)",
+    coreIdleShadow: "0 0 10px rgba(16,185,129,0.5)",
+    burstBorder: "rgba(16,185,129,0.95)",
+    burstShadow: "0 0 20px rgba(16,185,129,0.3)",
+    sparkBackground:
+      "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(110,231,183,0.95) 45%, rgba(16,185,129,0) 100%)",
+    auraHoverSize: 90,
+    auraIdleSize: 60,
+    ringHoverSize: 46,
+    ringIdleSize: 28,
+    coreHoverSize: 10,
+    coreIdleSize: 6,
+  },
 };
 
 function TrailDot({
@@ -188,19 +214,21 @@ export function CustomCursor() {
   const cursorX = useMotionValue<number>(-100);
   const cursorY = useMotionValue<number>(-100);
   const [isHovering, setIsHovering] = useState(false);
+  const [isCoding, setIsCoding]     = useState(false);
   const [isPointerReady, setIsPointerReady] = useState(false);
   const [bursts, setBursts] = useState<Burst[]>([]);
 
-  const cursorMode: CursorMode =
-    location.pathname === "/"
-      ? "focused"
-      : location.pathname.startsWith("/compiler") || location.pathname.startsWith("/problems")
+    const baseMode: CursorMode =
+      location.pathname === "/"
         ? "focused"
-        : location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/certificate")
-          ? "elegant"
-          : "default";
-
-  const theme = cursorThemes[cursorMode];
+        : location.pathname.startsWith("/compiler") || location.pathname.startsWith("/problems")
+          ? "focused"
+          : location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/certificate")
+            ? "elegant"
+            : "default";
+  
+    const cursorMode: CursorMode = isCoding ? "coding" : baseMode;
+    const theme = cursorThemes[cursorMode];
 
   const coreSpring = { damping: 34, stiffness: 420, mass: 0.28 };
   const ringSpring = { damping: 40, stiffness: 190, mass: 0.9 };
@@ -264,9 +292,12 @@ export function CustomCursor() {
       const isEditorSurface =
         !!target.closest(".monaco-editor") ||
         !!target.closest("pre") ||
-        !!target.closest("code");
+        !!target.closest("code") ||
+        !!target.closest(".workshop-arena") || // for the puzzle game
+        String(target.className).includes("monaco-mouse-cursor-text");
 
       setIsHovering(isClickable || isHeading || isEditorSurface);
+      setIsCoding(isEditorSurface);
     };
 
     const handleClick = (e: MouseEvent) => {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Check, Lock, Terminal as TerminalIcon, Play, Key } from "lucide-react";
+import { Check, Lock, Terminal as TerminalIcon, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProgress } from "@/contexts/ProgressContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -47,7 +47,7 @@ export function GitTerminalEditor({ exercise, level, lessonId, locked }: GitTerm
     const newHistory = [...history, { type: "in", text: `$ ${cmd}` } as const];
     
     // Check if right command
-    let isCorrect = isCorrectCommand(cmd);
+    const isCorrect = isCorrectCommand(cmd);
 
     const output = simulator.executeCommand(cmd);
     

@@ -1557,20 +1557,18 @@ $ sudo mount /dev/sdb1 /mnt/data`,
       },
     },
     {
-      id: "linux-25-final",
-      title: "25. Final Project",
-      description: "Build a Pro Web Server",
-      content: `## The Graduation
+      id: "linux-25-webserver",
+      title: "25. Web Server Setup",
+      description: "Basic Production Deployment",
+      content: `## Hosting the Pipeline
 
-You've made it! For your final task, you will simulate setting up a production web server.
+A necessary skill for DevOps is setting up a web server to host applications.
 
 ### The Workflow
 1. Install Nginx.
 2. Allow port 80 in Firewall.
 3. Enable the service.
-4. Check the logs.
-
-Congratulations, Master!`,
+4. Check the logs.`,
       codeExample: `$ sudo apt install nginx
 $ sudo ufw allow 80
 $ sudo systemctl status nginx`,
@@ -1578,6 +1576,180 @@ $ sudo systemctl status nginx`,
         beginner: { prompt: "Install the nginx web server.", starterCode: "", expectedOutput: "sudo apt install nginx" },
         intermediate: { prompt: "Enable nginx to start on boot.", starterCode: "", expectedOutput: "sudo systemctl enable nginx" },
         advanced: { prompt: "Allow web traffic (HTTP) through the firewall.", starterCode: "", expectedOutput: "sudo ufw allow 80" },
+      },
+    },
+    {
+      id: "linux-26-hacker-intro",
+      title: "26. Intro to Ethical Hacking",
+      description: "White-hat methodology & Kali tools",
+      content: `## The Hacker Mindset
+
+To defend a system, you must understand how adversaries attack it. Linux is the operating system of choice for both attackers and defenders (e.g. Kali Linux, ParrotOS).
+
+### Offensive Operations
+As an ethical hacker (White-Hat), your goal is to find vulnerabilities *before* malicious attackers (Black-Hats) do, under strict authorization.
+
+We will focus on basic reconnaissance and bug-finding using standard Linux tools.`,
+      codeExample: `$ whois example.com
+$ apt search nmap`,
+      exercises: {
+        beginner: { prompt: "Search for the 'nmap' package in apt.", starterCode: "", expectedOutput: "apt search nmap" },
+        intermediate: { prompt: "Find information about the domain google.com", starterCode: "", expectedOutput: "whois google.com" },
+        advanced: { prompt: "Check the status of the 'apache2' vulnerability service", starterCode: "", expectedOutput: "systemctl status apache2" },
+      },
+    },
+    {
+      id: "linux-27-recon",
+      title: "27. Network Reconnaissance",
+      description: "Nmap scanning and Service detection",
+      content: `## Seeing the Invicible
+
+Reconnaissance is the first phase of any security audit. You need to know what devices exist on a network and what doors (ports) are open.
+
+### The Nmap Tool
+\`nmap\` (Network Mapper) is the industry standard for network scanning.
+
+- \`nmap <ip>\`: Basic port scan.
+- \`nmap -sV <ip>\`: Version detection (finds out *what* is running on the port).
+- \`ping -c 4 <ip>\`: Check if a host is alive before scanning.`,
+      codeExample: `$ ping -c 1 192.168.1.1
+$ nmap -sV 10.0.0.5`,
+      exercises: {
+        beginner: { prompt: "Ping google.com exactly 4 times.", starterCode: "", expectedOutput: "ping -c 4 google.com" },
+        intermediate: { prompt: "Run a basic nmap scan against 10.10.10.1", starterCode: "", expectedOutput: "nmap 10.10.10.1" },
+        advanced: { prompt: "Run a version-detection scan against localhost.", starterCode: "", expectedOutput: "nmap -sV localhost" },
+      },
+    },
+    {
+      id: "linux-28-netcat",
+      title: "28. The Swiss Army Knife (Netcat)",
+      description: "Raw sockets and Reverse shells",
+      content: `## Raw Network Control
+
+Netcat (\`nc\`) allows you to arbitrarily read and write data across network connections. It is a fundamental tool for debugging networks and executing specialized attacks.
+
+### Use Cases
+1. **Banner Grabbing**: Connect to an open port to see how it responds.
+2. **Listeners**: Open a port to catch incoming connections.
+3. **Reverse Shells**: (Ethical only) Connecting a victim's terminal back to the attacker machine.`,
+      codeExample: `# Catching an incoming connection
+$ nc -l -p 8080
+
+# Connecting to a service
+$ nc -v example.com 80`,
+      exercises: {
+        beginner: { prompt: "Connect verbosely to 192.168.1.1 on port 22.", starterCode: "", expectedOutput: "nc -v 192.168.1.1 22" },
+        intermediate: { prompt: "Set up a netcat listener on port 4444.", starterCode: "", expectedOutput: "nc -l -p 4444" },
+        advanced: { prompt: "Use grep on the netcat binary to look for strings.", starterCode: "", expectedOutput: "strings /usr/bin/nc | grep shell" },
+      },
+    },
+    {
+      id: "linux-29-bug-finding",
+      title: "29. Bug Finding & Secrets",
+      description: "Hunting for exposed API keys and passwords",
+      content: `## The Grep Bounty
+
+A huge portion of Bug Bounty rewards come from discovering developers accidentally leaving secrets (API keys, passwords, private SSH keys) in code repositories or log files.
+
+Linux makes hunting for these extremely efficient.
+
+### The Hunter's Toolkit
+- \`grep -r "password" .\`: Search recursively inside all files for 'password'.
+- \`find . -name "*.env"\`: Look for hidden environment files that hold secrets.
+- \`strings <binary>\`: Extract readable text from compiled binaries.`,
+      codeExample: `$ grep -rE "API_KEY|PASSWORD" /var/www/
+$ find / -type f -name ".env" 2>/dev/null`,
+      exercises: {
+        beginner: { prompt: "Find all files named '.env' in the current directory.", starterCode: "", expectedOutput: "find . -name \".env\"" },
+        intermediate: { prompt: "Recursively search the current folder for 'SECRET_KEY'.", starterCode: "", expectedOutput: "grep -r \"SECRET_KEY\" ." },
+        advanced: { prompt: "Extract readable strings from a binary named 'app_agent'.", starterCode: "", expectedOutput: "strings app_agent" },
+      },
+    },
+    {
+      id: "linux-30-web-probing",
+      title: "30. Web App Probing",
+      description: "Inspecting HTTP exchanges like a scanner",
+      content: `## Talking HTTP
+
+When finding bugs in web applications, browsers hide the raw data. Hackers use \`curl\` to manually interact with APIs and find flaws like IDOR or Injection.
+
+### Advanced Curl
+- \`curl -I\`: Fetch only the headers (banner grabbing).
+- \`curl -X POST -d "param=1"\`: Send data to test an endpoint.
+- \`curl -H "X-Forwarded-For: 127.0.0.1"\`: Spoof HTTP headers to bypass restrictions.`,
+      codeExample: `$ curl -I https://pymaster.com
+$ curl -X OPTIONS http://10.10.10.5`,
+      exercises: {
+        beginner: { prompt: "Fetch only the headers from http://sandbox.local.", starterCode: "", expectedOutput: "curl -I http://sandbox.local" },
+        intermediate: { prompt: "Send an OPTIONS request to that same URL.", starterCode: "", expectedOutput: "curl -X OPTIONS http://sandbox.local" },
+        advanced: { prompt: "Send a POST request with the data 'admin=true'.", starterCode: "", expectedOutput: "curl -X POST -d \"admin=true\" http://sandbox.local" },
+      },
+    },
+    {
+      id: "linux-31-blue-team",
+      title: "31. Blue Team Ops (Defense)",
+      description: "Log analysis and Intrusion detection",
+      content: `## Finding the Attacker
+
+Blue Teams defend networks. To stop a hacker, you must find their tracks. In Linux, tracks are left in \`/var/log/\`.
+
+### Log Analysis
+Attackers often try to brute-force SSH. You can detect this by counting the failed login attempts.
+
+- \`cat /var/log/auth.log | grep "Failed"\`: See failed logins.
+- \`awk '{print $11}'\`: Extract the IP addresses from those logs.
+- \`sort | uniq -c\`: Count how many times each IP failed.`,
+      codeExample: `$ grep "Failed password" /var/log/auth.log | wc -l
+$ tail -n 50 /var/log/syslog`,
+      exercises: {
+        beginner: { prompt: "View the last 20 lines of the authentication log.", starterCode: "", expectedOutput: "tail -n 20 /var/log/auth.log" },
+        intermediate: { prompt: "Count how many times 'Failed' appears in auth.log.", starterCode: "", expectedOutput: "grep \"Failed\" /var/log/auth.log | wc -l" },
+        advanced: { prompt: "Search both auth.log and syslog for the IP '192.168.1.5'.", starterCode: "", expectedOutput: "grep \"192.168.1.5\" /var/log/auth.log /var/log/syslog" },
+      },
+    },
+    {
+      id: "linux-32-hardening",
+      title: "32. System Hardening",
+      description: "Permissions and Securing SSH",
+      content: `## Locking the Castle
+
+Hardening is the process of eliminating vulnerabilities.
+
+### Essential Hardening
+1. **Never allow Root Login**: Edit \`/etc/ssh/sshd_config\` and set \`PermitRootLogin no\`.
+2. **Protect SSH Keys**: Your private key must never be readable by others.
+3. **Least Privilege**: Only give users the permissions they absolutely need.`,
+      codeExample: `$ chmod 600 ~/.ssh/id_rsa
+$ sudo systemctl restart ssh`,
+      exercises: {
+        beginner: { prompt: "Set the permissions of your private key to 600.", starterCode: "", expectedOutput: "chmod 600 ~/.ssh/id_rsa" },
+        intermediate: { prompt: "Check the contents of the ssh daemon config file.", starterCode: "", expectedOutput: "cat /etc/ssh/sshd_config" },
+        advanced: { prompt: "Restart the ssh service to apply new configurations.", starterCode: "", expectedOutput: "sudo systemctl restart ssh" },
+      },
+    },
+    {
+      id: "linux-33-cyber-final",
+      title: "33. Ultimate Cyber Final",
+      description: "Find the intrusion and secure the system",
+      content: `## Operation: Blackout
+
+A malicious actor has infiltrated your simulated environment. You must use everything you've learned to locate the backdoor and secure the system.
+
+### Your Objectives
+1. **Recon**: Find the active process named 'backdoor_script.sh', running on the system.
+2. **Blue Team**: Kill the malicious process.
+3. **Hardening**: Set up the firewall (UFW) to block incoming connections on port 4444.
+4. **Bug Bounty**: Find the hidden \`.env\` file holding the stolen API key in the \`/tmp\` directory.
+
+The Linux Kernel is now entirely yours. Good luck, Master.`,
+      codeExample: `$ ps aux | grep backdoor
+$ kill -9 <PID>
+$ sudo ufw deny 4444
+$ find /tmp -name ".env"`,
+      exercises: {
+        beginner: { prompt: "Search for a running process named 'backdoor'.", starterCode: "", expectedOutput: "ps aux | grep backdoor" },
+        intermediate: { prompt: "Deny traffic on port 4444 using UFW.", starterCode: "", expectedOutput: "sudo ufw deny 4444" },
+        advanced: { prompt: "Find the stolen .env file hidden in the /tmp directory.", starterCode: "", expectedOutput: "find /tmp -name \".env\"" },
       },
     },
   ];

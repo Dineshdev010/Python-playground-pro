@@ -250,7 +250,6 @@ export class GitSimulator {
 
       // ── Search ────────────────────────────────────────────────────
       case "find": {
-        const dir = args.find(a => !a.startsWith("-")) || ".";
         const name = args.includes("-name") ? args[args.indexOf("-name") + 1] : "*";
         const found = Array.from(this.fileSystem.keys()).filter(f => name === "*" || f.includes(name.replace(/\*/g, "")));
         return found.map(f => `${this.cwd}/${f}`).join("\n") || "(no files found)";
@@ -457,7 +456,7 @@ export class GitSimulator {
       case "history":
         return this.cmdHistory.map((c, i) => `  ${String(i+1).padStart(4)}  ${c}`).join("\n");
 
-      // ── User / permissions ─────────────────────────────────────────
+      // ── Identity & Permissions ─────────────────────────────────────
       case "sudo":
         if (!args.length) return "sudo: usage: sudo COMMAND";
         return this.executeCommand(args.join(" "));
@@ -469,12 +468,6 @@ export class GitSimulator {
         return `useradd: user '${args[args.length-1]}' added`;
       case "userdel":
         return `userdel: user '${args[args.length-1]}' deleted`;
-      case "groups":
-        return "learner sudo users";
-      case "id":
-        return "uid=1000(learner) gid=1000(learner) groups=1000(learner),27(sudo),100(users)";
-      case "last":
-        return "learner  pts/0  192.168.1.1  Sun Apr 12 10:00  still logged in";
 
       // ── Services ───────────────────────────────────────────────────
       case "systemctl": {

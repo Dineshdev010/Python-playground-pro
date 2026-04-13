@@ -3,18 +3,33 @@ import { createClient } from "@supabase/supabase-js";
 // =========================================================================
 // SUPABASE CLIENT SETUP - src/lib/supabase.ts
 // =========================================================================
-// Instructions for the Developer:
 // 1. Create a project at https://supabase.com
-// 2. Go to Project Settings -> API
-// 3. Copy your URL and anon key into your frontend .env file:
+// 2. Go to Project Settings → API
+// 3. Copy your URL and anon key into .env.local:
 //      VITE_SUPABASE_URL="https://your-project.supabase.co"
 //      VITE_SUPABASE_ANON_KEY="your-anon-key"
 // =========================================================================
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://placeholder-url.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "placeholder-key";
+const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL     as string | undefined;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Validate env vars at startup — catch missing config early instead of silently breaking auth
+if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+  const msg = "[PyMaster] VITE_SUPABASE_URL is not set. Copy .env.example → .env.local and fill in your Supabase project URL.";
+  if (import.meta.env.DEV) console.warn(msg);
+  else console.error(msg);
+}
+if (!supabaseAnonKey || supabaseAnonKey === "placeholder-key") {
+  const msg = "[PyMaster] VITE_SUPABASE_ANON_KEY is not set. Copy .env.example → .env.local and fill in your Supabase anon key.";
+  if (import.meta.env.DEV) console.warn(msg);
+  else console.error(msg);
+}
+
+export const supabase = createClient(
+  supabaseUrl     ?? "https://placeholder-url.supabase.co",
+  supabaseAnonKey ?? "placeholder-key",
+);
+
 
 /**
  * ---------------------------------------------------------

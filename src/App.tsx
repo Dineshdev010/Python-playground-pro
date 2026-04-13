@@ -53,6 +53,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const LinuxLearningPage = lazy(() => import("./pages/LinuxLearningPage"));
+const CareerRoadmapPage = lazy(() => import("./pages/CareerRoadmapPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +98,8 @@ const appRoutes: AppRoute[] = [
   { path: "/python-game", element: <PythonGamePage />, fallback: <PageSkeleton /> },
   { path: "/python-learning-for-beginners", element: <PythonLearningBeginnersPage />, fallback: <PageSkeleton /> },
   { path: "/python-quiz-100", element: <PythonQuizPage />, fallback: <PageSkeleton /> },
+  { path: "/linux-learn", element: <LinuxLearningPage />, fallback: <EditorSkeleton /> },
+  { path: "/career-roadmap", element: <CareerRoadmapPage />, fallback: <PageSkeleton /> },
   { path: "/u/:userId", element: <PublicProfilePage />, fallback: <PageSkeleton /> },
   { path: "/privacy", element: <PrivacyPolicyPage />, fallback: <PageSkeleton /> },
   { path: "/contact", element: <ContactPage />, fallback: <PageSkeleton /> },

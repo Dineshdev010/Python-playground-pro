@@ -34,6 +34,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     location.pathname.startsWith("/learn") ||
     location.pathname.startsWith("/career") ||
     location.pathname.startsWith("/dsa") ||
+    location.pathname.startsWith("/linux-learn") ||
+    location.pathname === "/aptitude" ||
+    location.pathname === "/python-game" ||
+    location.pathname === "/python-quiz-100" ||
+    location.pathname === "/quick-prep" ||
     location.pathname === "/jobs";
   const hideActiveUsersBadge =
     location.pathname.startsWith("/learn") ||
