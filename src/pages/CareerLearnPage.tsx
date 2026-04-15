@@ -501,7 +501,7 @@ export default function CareerLearnPage() {
             })()}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+          <div className="flex flex-col items-center text-center px-6 py-6 overflow-y-auto max-h-[calc(100dvh-3.5rem)]">
             <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">{track.title}</h2>
             <p className="text-muted-foreground mb-6">Select a lesson from the sidebar to start learning</p>

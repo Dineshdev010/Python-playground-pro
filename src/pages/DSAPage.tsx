@@ -12,6 +12,7 @@ import type { Easing } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
 import { problems, type Problem } from "@/data/problems";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DSATopic {
   id: string;
@@ -28,6 +29,40 @@ interface DSATopic {
   codeExample: string;
   realWorldUse: string;
   visualExplanation: string;
+  translations?: Partial<
+    Record<
+      "tamil" | "kannada" | "telugu" | "hindi",
+      Partial<
+        Pick<
+          DSATopic,
+          | "title"
+          | "whatIsIt"
+          | "whyUseIt"
+          | "whenToUse"
+          | "patternDetection"
+          | "timeComplexity"
+          | "spaceComplexity"
+          | "realWorldUse"
+          | "visualExplanation"
+        >
+      >
+    >
+  >;
+}
+
+type LearnLanguage = "english" | "tamil" | "kannada" | "telugu" | "hindi";
+
+function getLocalizedDSATopic(topic: DSATopic | undefined, language: LearnLanguage) {
+  if (!topic) return undefined;
+  if (language === "english") return topic;
+  const localized = topic.translations?.[language];
+  if (!localized) return topic;
+  return {
+    ...topic,
+    ...localized,
+    whenToUse: localized.whenToUse ?? topic.whenToUse,
+    patternDetection: localized.patternDetection ?? topic.patternDetection,
+  };
 }
 
 const dsaTopics: DSATopic[] = [
@@ -57,6 +92,53 @@ def two_sum_sorted(nums, target):
         else: right -= 1`,
     realWorldUse: "Database records, pixel arrays in images, sensor data streams, playlist ordering",
     visualExplanation: "Think of an array like a row of numbered lockers 🗄️. Each locker (index) holds one item. You can instantly go to locker #5, but inserting a new locker in the middle means moving everything after it.",
+    translations: {
+      tamil: {
+        title: "Arrays & Lists",
+        whatIsIt:
+          "Array என்பது memory-ல் தொடர்ச்சியாக (contiguous) இருக்கும் பகுதியில் elements-ஐ சேமிக்கும் அமைப்பு. Python-ல் list என்பது dynamic array — அது தானாக வளரவும் குறையவும் முடியும்.",
+        whyUseIt:
+          "Index மூலம் O(1) random access கிடைக்கும். Position மூலம் items-ஐ அணுக வேண்டும் என்றால் arrays/lists சிறந்த தேர்வு.",
+        whenToUse: [
+          "Index மூலம் விரைவான access (O(1)) வேண்டும்",
+          "Order முக்கியம்",
+          "அனைத்து elements-ஐ iterate செய்ய வேண்டும்",
+          "Fixed-size அல்லது growing collections",
+        ],
+        visualExplanation:
+          "Array-ஐ எண்ணப்பட்ட lockers வரிசை 🗄️ போல நினையுங்கள். Locker #5-க்கு உடனே செல்லலாம்; ஆனால் நடுவில் புதிய locker சேர்க்க எல்லாவற்றையும் நகர்த்த வேண்டும்.",
+      },
+      kannada: {
+        title: "Arrays & Lists",
+        whatIsIt:
+          "Array ಅಂದರೆ memory ನಲ್ಲಿ contiguous ಆಗಿ elements ಅನ್ನು ಸಂಗ್ರಹಿಸುವ ರಚನೆ. Python ನಲ್ಲಿ list ಒಂದು dynamic array — ಅದು ಸ್ವಯಂಚಾಲಿತವಾಗಿ grow/shrink ಆಗುತ್ತದೆ.",
+        whyUseIt:
+          "Index ಮೂಲಕ O(1) random access. Position ಆಧಾರಿತ access ಬೇಕಾದರೆ arrays/lists ಉತ್ತಮ.",
+        whenToUse: ["Index ಮೂಲಕ fast access (O(1))", "Order ಮುಖ್ಯ", "ಎಲ್ಲ elements iterate", "Fixed ಅಥವಾ growing collections"],
+        visualExplanation:
+          "Array ಅನ್ನು ಸಂಖ್ಯೆ ಹಾಕಿದ lockers ಸಾಲು 🗄️ ಎಂದು ಕಲ್ಪಿಸಿ. Locker #5 ಗೆ ತಕ್ಷಣ ಹೋಗಬಹುದು, ಆದರೆ ಮಧ್ಯದಲ್ಲಿ ಹೊಸ locker ಸೇರಿಸಲು ನಂತರದ ಎಲ್ಲವನ್ನು shift ಮಾಡಬೇಕು.",
+      },
+      telugu: {
+        title: "Arrays & Lists",
+        whatIsIt:
+          "Array అనేది memory లో contiguous గా elements ను store చేసే structure. Python లో list అనేది dynamic array — అది auto గా grow/shrink అవుతుంది.",
+        whyUseIt:
+          "Index ద్వారా O(1) random access. Position ఆధారంగా items ని access చేయాలంటే arrays/lists best.",
+        whenToUse: ["Index తో fast access (O(1))", "Order ముఖ్యము", "All elements iterate", "Fixed లేదా growing collections"],
+        visualExplanation:
+          "Array ని numbered lockers వరుస 🗄️ లా ఊహించండి. Locker #5 కి వెంటనే వెళ్లొచ్చు, కానీ మధ్యలో కొత్త locker పెడితే తరువాతివన్నీ shift చేయాలి.",
+      },
+      hindi: {
+        title: "Arrays & Lists",
+        whatIsIt:
+          "Array memory में contiguous block में elements store करता है। Python में list dynamic array है — यह अपने आप grow/shrink हो सकती है।",
+        whyUseIt:
+          "Index से O(1) random access मिलता है। Position से items access करने हों तो arrays/lists best हैं।",
+        whenToUse: ["Index से fast access (O(1))", "Order important", "All elements iterate", "Fixed या growing collections"],
+        visualExplanation:
+          "Array को numbered lockers की row 🗄️ समझो। Locker #5 पर तुरंत जा सकते हो, लेकिन बीच में नया locker जोड़ने पर बाद वाले सब shift करने पड़ते हैं।",
+      },
+    },
   },
   {
     id: "hash-maps", title: "Hash Maps (Dictionaries)", emoji: "🗺️", category: "fundamentals", difficulty: "Easy",
@@ -86,6 +168,36 @@ def group_by_length(words):
     return dict(groups)`,
     realWorldUse: "Caches, database indexes, symbol tables in compilers, configuration settings",
     visualExplanation: "Imagine a library catalog 📚. Instead of searching every shelf, you look up a book by its call number (key) and go directly to its location (value). That's hashing!",
+    translations: {
+      tamil: {
+        title: "Hash Maps (Dictionaries)",
+        whatIsIt:
+          "Hash map என்பது key → value mapping. Python `dict` ஒரு hash map; key-ஐ hash செய்து O(1) average access க்காக உள்ளே index-ஆக மாற்றுகிறது.",
+        whyUseIt:
+          "Key மூலம் lookup/insert/delete O(1) average. Counting, caching, mapping relationships போன்றவற்றுக்கு மிக பயனுள்ளது.",
+      },
+      kannada: {
+        title: "Hash Maps (Dictionaries)",
+        whatIsIt:
+          "Hash map ಎಂದರೆ key → value mapping. Python `dict` ಒಂದು hash map; key ಅನ್ನು hash ಮಾಡಿ O(1) avg access ಗಾಗಿ internal index ಗೆ ಮ್ಯಾಪ್ ಮಾಡುತ್ತದೆ.",
+        whyUseIt:
+          "Key ಮೂಲಕ lookup/insert/delete O(1) avg. Counting, caching, relationships mapping ಗೆ ಅತ್ಯಂತ ಉಪಯುಕ್ತ.",
+      },
+      telugu: {
+        title: "Hash Maps (Dictionaries)",
+        whatIsIt:
+          "Hash map అనేది key → value mapping. Python `dict` hash map; key ని hash చేసి O(1) avg access కోసం internal index గా map చేస్తుంది.",
+        whyUseIt:
+          "Key తో lookup/insert/delete O(1) avg. Counting, caching, relationships mapping కి చాలా ఉపయోగం.",
+      },
+      hindi: {
+        title: "Hash Maps (Dictionaries)",
+        whatIsIt:
+          "Hash map key → value mapping है। Python `dict` hash map है; key को hash करके O(1) avg access के लिए internal index में map करता है।",
+        whyUseIt:
+          "Key से lookup/insert/delete O(1) avg। Counting, caching, relationships mapping के लिए बहुत उपयोगी।",
+      },
+    },
   },
   {
     id: "stacks-queues", title: "Stacks & Queues", emoji: "📚", category: "fundamentals", difficulty: "Easy",
@@ -117,6 +229,32 @@ queue.append(1)
 first = queue.popleft()  # 1`,
     realWorldUse: "Browser back/forward (stack), print job queue, call stack in programming, BFS in social networks",
     visualExplanation: "Stack 📚: Like a stack of books — you can only take from the top. Queue 🎫: Like a ticket line — first person in line gets served first.",
+    translations: {
+      tamil: {
+        title: "Stacks & Queues",
+        whatIsIt: "Stack = LIFO. Queue = FIFO. இரண்டும் elements-ஐ access செய்யும் முறையை கட்டுப்படுத்தும்.",
+        visualExplanation:
+          "Stack 📚: புத்தகக் குவியல் போல — மேலே இருப்பதையே எடுக்க முடியும். Queue 🎫: வரிசை போல — முதலில் வந்தவர் முதலில் சேவை பெறுவர்.",
+      },
+      kannada: {
+        title: "Stacks & Queues",
+        whatIsIt: "Stack = LIFO. Queue = FIFO. ಎರಡೂ access ಕ್ರಮವನ್ನು ನಿಯಂತ್ರಿಸುತ್ತವೆ.",
+        visualExplanation:
+          "Stack 📚: ಪುಸ್ತಕಗಳ ಕಟ್ಟು — ಮೇಲಿಂದಲೇ ತೆಗೆದುಕೊಳ್ಳಬಹುದು. Queue 🎫: ಸಾಲು — ಮೊದಲಿಗೆ ಬಂದವನು ಮೊದಲಿಗೆ ಸೇವೆ.",
+      },
+      telugu: {
+        title: "Stacks & Queues",
+        whatIsIt: "Stack = LIFO. Queue = FIFO. రెండూ access ఆర్డర్ ను నియంత్రిస్తాయి.",
+        visualExplanation:
+          "Stack 📚: పుస్తకాల కట్ట లా — పై నుండి మాత్రమే తీస్తాం. Queue 🎫: క్యూలైన్ లా — ముందుగా వచ్చినవాడు ముందుగా.",
+      },
+      hindi: {
+        title: "Stacks & Queues",
+        whatIsIt: "Stack = LIFO. Queue = FIFO. दोनों access order को restrict करते हैं।",
+        visualExplanation:
+          "Stack 📚: किताबों की stack — ऊपर से ही निकालते हैं। Queue 🎫: लाइन — जो पहले आया, वो पहले।",
+      },
+    },
   },
   {
     id: "linked-lists", title: "Linked Lists", emoji: "🔗", category: "fundamentals", difficulty: "Medium",
@@ -151,6 +289,72 @@ def has_cycle(head):
     return False`,
     realWorldUse: "Browser history, music playlists, memory allocation, polynomial representation",
     visualExplanation: "Like a treasure hunt 🗺️ — each clue (node) tells you where to find the next clue, but you can't jump ahead. You must follow the chain!",
+    translations: {
+      tamil: {
+        title: "Linked Lists",
+        whatIsIt:
+          "Linked list என்பது nodes சங்கிலி. ஒவ்வொரு node-ம் data + next pointer வைத்திருக்கும். Array போல contiguous memory அல்ல.",
+        whyUseIt:
+          "Known position-ல் insertion/deletion O(1) (shift செய்ய வேண்டாம்). Size முன்கூட்டியே தெரியாததும் frequent insertions தேவைப்படும் போதும் பயன்.",
+        whenToUse: ["Known positions-ல் frequent insert/delete", "Index random access தேவையில்லை", "Stacks/queues/LRU cache implement செய்ய", "Memory fragmented ஆகும் சூழல்"],
+        patternDetection: [
+          "🔍 'Cycle detect...' → Fast/slow pointer (Floyd)",
+          "🔍 'Middle node...' → Fast/slow pointer",
+          "🔍 'Reverse...' → prev/curr/next pointers",
+          "🔍 'Merge sorted lists...' → Dummy head + compare",
+        ],
+        visualExplanation:
+          "Treasure hunt 🗺️ போல நினையுங்கள் — ஒவ்வொரு node-மும் next clue எங்கே என்பதை சொல்கிறது; நீங்கள் chain-ஐ பின்பற்றியே செல்ல வேண்டும்.",
+      },
+      kannada: {
+        title: "Linked Lists",
+        whatIsIt:
+          "Linked list nodes ಸರಪಳಿ. ಪ್ರತಿಯೊಂದು node ನಲ್ಲಿ data + next pointer. Array ನಂತೆ contiguous memory ಅಲ್ಲ.",
+        whyUseIt:
+          "Known position ನಲ್ಲಿ insertion/deletion O(1) (shift ಬೇಡ). Size ಮುಂಚಿತವಾಗಿ ತಿಳಿಯದಾಗ ಅಥವಾ frequent insertions ಬೇಕಾದಾಗ ಉಪಯುಕ್ತ.",
+        whenToUse: ["Known positions ನಲ್ಲಿ frequent insert/delete", "Index random access ಬೇಡ", "Stacks/queues/LRU cache implement", "Memory fragmented ಆಗಿರುವಾಗ"],
+        patternDetection: [
+          "🔍 'Cycle detect...' → Fast/slow pointer (Floyd)",
+          "🔍 'Middle node...' → Fast/slow pointer",
+          "🔍 'Reverse...' → prev/curr/next pointers",
+          "🔍 'Merge sorted lists...' → Dummy head + compare",
+        ],
+        visualExplanation:
+          "Treasure hunt 🗺️ ಹೀಗೇ — ಪ್ರತಿಯೊಂದು node next clue ಎಲ್ಲಿದೆ ಎಂದು ಹೇಳುತ್ತದೆ; ನೀವು chain ಅನ್ನು ಅನುಸರಿಸಬೇಕು.",
+      },
+      telugu: {
+        title: "Linked Lists",
+        whatIsIt:
+          "Linked list అనేది nodes chain. ప్రతి node లో data + next pointer ఉంటుంది. Array లా contiguous memory కాదు.",
+        whyUseIt:
+          "Known position లో insertion/deletion O(1) (shift అవసరం లేదు). Size ముందుగా తెలియనప్పుడు లేదా frequent insertions అవసరమైనప్పుడు ఉపయోగం.",
+        whenToUse: ["Known positions లో frequent insert/delete", "Index random access అవసరం లేదు", "Stacks/queues/LRU cache implement", "Memory fragmented అయినప్పుడు"],
+        patternDetection: [
+          "🔍 'Cycle detect...' → Fast/slow pointer (Floyd)",
+          "🔍 'Middle node...' → Fast/slow pointer",
+          "🔍 'Reverse...' → prev/curr/next pointers",
+          "🔍 'Merge sorted lists...' → Dummy head + compare",
+        ],
+        visualExplanation:
+          "Treasure hunt 🗺️ లా — ప్రతి node next clue ఎక్కడుందో చెబుతుంది; మీరు chain ని follow అవ్వాలి.",
+      },
+      hindi: {
+        title: "Linked Lists",
+        whatIsIt:
+          "Linked list nodes की chain है। हर node में data + next pointer होता है। Array की तरह contiguous memory नहीं।",
+        whyUseIt:
+          "Known position पर insertion/deletion O(1) (shift नहीं करना पड़ता)। Size पहले से न पता हो या frequent insertions हों तो useful।",
+        whenToUse: ["Known positions पर frequent insert/delete", "Index random access नहीं चाहिए", "Stacks/queues/LRU cache implement", "Fragmented memory cases"],
+        patternDetection: [
+          "🔍 'Cycle detect...' → Fast/slow pointer (Floyd)",
+          "🔍 'Middle node...' → Fast/slow pointer",
+          "🔍 'Reverse...' → prev/curr/next pointers",
+          "🔍 'Merge sorted lists...' → Dummy head + compare",
+        ],
+        visualExplanation:
+          "Treasure hunt 🗺️ जैसा — हर node बताता है next clue कहाँ है; आपको chain follow करनी होती है।",
+      },
+    },
   },
   {
     id: "strings", title: "String Manipulation", emoji: "📝", category: "fundamentals", difficulty: "Easy",
@@ -182,6 +386,72 @@ def is_palindrome(s):
     return clean == clean[::-1]`,
     realWorldUse: "Search engines, text editors, compilers, data validation, natural language processing",
     visualExplanation: "A string is like a necklace of beads 📿 — each bead is a character. You can look at any bead by position, but to change one, you have to make a whole new necklace.",
+    translations: {
+      tamil: {
+        title: "String Manipulation",
+        whatIsIt:
+          "String என்பது immutable characters sequence. Python-ல் slicing, search, formatting, regex போன்ற சக்திவாய்ந்த tools உள்ளன.",
+        whyUseIt:
+          "Text processing எங்கும் உள்ளது: input parse, data validate, pattern match, JSON/CSV போன்ற serialization. Strings-ஐ நன்றாக அறிதல் அவசியம்.",
+        whenToUse: ["Text parsing/validation", "Pattern matching/search", "Serialization (JSON/CSV)", "URL/path manipulation"],
+        patternDetection: [
+          "🔍 'Anagram...' → sort அல்லது frequency count",
+          "🔍 'Palindrome...' → two pointers",
+          "🔍 'Substring search...' → sliding window / KMP",
+          "🔍 'Transform...' → char-by-char build",
+        ],
+        visualExplanation:
+          "String-ஐ மணிகளின் மாலை 📿 போல நினையுங்கள். ஒரு character மாற்ற வேண்டுமெனில் புதிய string உருவாக்க வேண்டும்.",
+      },
+      kannada: {
+        title: "String Manipulation",
+        whatIsIt:
+          "String ಒಂದು immutable characters sequence. Python slicing/search/formatting/regex tools ಕೊಡುತ್ತದೆ.",
+        whyUseIt:
+          "Text processing ಎಲ್ಲೆಡೆ: input parse, data validate, pattern match, JSON/CSV serialization. Strings mastery ಅಗತ್ಯ.",
+        whenToUse: ["Text parsing/validation", "Pattern matching/search", "Serialization (JSON/CSV)", "URL/path manipulation"],
+        patternDetection: [
+          "🔍 'Anagram...' → sort ಅಥವಾ frequency count",
+          "🔍 'Palindrome...' → two pointers",
+          "🔍 'Substring search...' → sliding window / KMP",
+          "🔍 'Transform...' → char-by-char build",
+        ],
+        visualExplanation:
+          "String ಅನ್ನು ಮುತ್ತಿನ ಹಾರ 📿 ಎಂದು ಕಲ್ಪಿಸಿ. ಒಂದು character ಬದಲಾಯಿಸಲು ಹೊಸ string ಬೇಕು (immutable).",
+      },
+      telugu: {
+        title: "String Manipulation",
+        whatIsIt:
+          "String అనేది immutable characters sequence. Python లో slicing/search/formatting/regex tools ఉన్నాయి.",
+        whyUseIt:
+          "Text processing everywhere: input parse, data validate, pattern match, JSON/CSV serialization. Strings mastery అవసరం.",
+        whenToUse: ["Text parsing/validation", "Pattern matching/search", "Serialization (JSON/CSV)", "URL/path manipulation"],
+        patternDetection: [
+          "🔍 'Anagram...' → sort లేదా frequency count",
+          "🔍 'Palindrome...' → two pointers",
+          "🔍 'Substring search...' → sliding window / KMP",
+          "🔍 'Transform...' → char-by-char build",
+        ],
+        visualExplanation:
+          "String ని ముత్యాల హారం 📿 లా ఊహించండి. ఒక character మార్చాలంటే కొత్త string తయారు చేయాలి (immutable).",
+      },
+      hindi: {
+        title: "String Manipulation",
+        whatIsIt:
+          "String immutable characters sequence है। Python में slicing/search/formatting/regex tools हैं।",
+        whyUseIt:
+          "Text processing हर जगह: input parse, data validate, pattern match, JSON/CSV serialization. Strings mastery जरूरी।",
+        whenToUse: ["Text parsing/validation", "Pattern matching/search", "Serialization (JSON/CSV)", "URL/path manipulation"],
+        patternDetection: [
+          "🔍 'Anagram...' → sort या frequency count",
+          "🔍 'Palindrome...' → two pointers",
+          "🔍 'Substring search...' → sliding window / KMP",
+          "🔍 'Transform...' → char-by-char build",
+        ],
+        visualExplanation:
+          "String को beads की necklace 📿 समझो। एक character बदलना हो तो नई string बनानी पड़ती है (immutable).",
+      },
+    },
   },
   {
     id: "heaps", title: "Heaps & Priority Queues", emoji: "⛰️", category: "fundamentals", difficulty: "Medium",
@@ -219,6 +489,72 @@ def merge_k_sorted(lists):
     return result`,
     realWorldUse: "OS task schedulers, Dijkstra's shortest path, event-driven simulation, bandwidth management",
     visualExplanation: "Imagine a tournament bracket 🏆 — the winner (smallest/largest) is always at the top. When you remove the champion, a new one quickly rises up through the bracket.",
+    translations: {
+      tamil: {
+        title: "Heaps & Priority Queues",
+        whatIsIt:
+          "Heap என்பது tree-based structure. Min-heap-ல் parent எப்போதும் children-ஐ விட சிறியது. Python `heapq` min-heap implement செய்கிறது.",
+        whyUseIt:
+          "Min/Max O(1) peek, insert/remove O(log n). Top-K, streaming median, scheduling போன்றவற்றில் சிறப்பு.",
+        whenToUse: ["k largest/smallest", "Merge k sorted lists", "Median in stream", "Priority scheduling"],
+        patternDetection: [
+          "🔍 'Top K...' → size K heap",
+          "🔍 'Merge K sorted...' → heap with 1 elem per list",
+          "🔍 'Running median...' → two heaps",
+          "🔍 'Schedule by priority...' → priority queue",
+        ],
+        visualExplanation:
+          "Tournament bracket 🏆 போல — champion மேலே. Champion-ஐ நீக்கினால் புதிய champion வேகமாக மேலே வரும்.",
+      },
+      kannada: {
+        title: "Heaps & Priority Queues",
+        whatIsIt:
+          "Heap ಒಂದು tree-based structure. Min-heap ನಲ್ಲಿ parent ಯಾವಾಗಲೂ children ಗಿಂತ ಚಿಕ್ಕದು. Python `heapq` min-heap.",
+        whyUseIt:
+          "Min/Max peek O(1), insert/remove O(log n). Top-K, streaming median, scheduling ಗೆ ಸೂಕ್ತ.",
+        whenToUse: ["k largest/smallest", "Merge k sorted lists", "Median in stream", "Priority scheduling"],
+        patternDetection: [
+          "🔍 'Top K...' → size K heap",
+          "🔍 'Merge K sorted...' → heap with 1 elem per list",
+          "🔍 'Running median...' → two heaps",
+          "🔍 'Schedule by priority...' → priority queue",
+        ],
+        visualExplanation:
+          "Tournament bracket 🏆 — champion ಮೇಲ್ನೋಟದಲ್ಲಿ. Champion ತೆಗೆದರೆ ಹೊಸ champion ಬೇಗ ಮೇಲಕ್ಕೆ ಬರುತ್ತಾನೆ.",
+      },
+      telugu: {
+        title: "Heaps & Priority Queues",
+        whatIsIt:
+          "Heap అనేది tree-based structure. Min-heap లో parent ఎప్పుడూ children కంటే చిన్నది. Python `heapq` min-heap.",
+        whyUseIt:
+          "Min/Max peek O(1), insert/remove O(log n). Top-K, streaming median, scheduling కి బాగా సరిపోతుంది.",
+        whenToUse: ["k largest/smallest", "Merge k sorted lists", "Median in stream", "Priority scheduling"],
+        patternDetection: [
+          "🔍 'Top K...' → size K heap",
+          "🔍 'Merge K sorted...' → heap with 1 elem per list",
+          "🔍 'Running median...' → two heaps",
+          "🔍 'Schedule by priority...' → priority queue",
+        ],
+        visualExplanation:
+          "Tournament bracket 🏆 లా — champion పైభాగంలో. Champion తీసేస్తే కొత్త champion త్వరగా పైకి వస్తాడు.",
+      },
+      hindi: {
+        title: "Heaps & Priority Queues",
+        whatIsIt:
+          "Heap tree-based structure है। Min-heap में parent हमेशा children से छोटा होता है। Python `heapq` min-heap implement करता है।",
+        whyUseIt:
+          "Min/Max peek O(1), insert/remove O(log n). Top-K, streaming median, scheduling के लिए best।",
+        whenToUse: ["k largest/smallest", "Merge k sorted lists", "Median in stream", "Priority scheduling"],
+        patternDetection: [
+          "🔍 'Top K...' → size K heap",
+          "🔍 'Merge K sorted...' → heap with 1 elem per list",
+          "🔍 'Running median...' → two heaps",
+          "🔍 'Schedule by priority...' → priority queue",
+        ],
+        visualExplanation:
+          "Tournament bracket 🏆 जैसा — champion सबसे ऊपर। Champion हटाओ तो नया champion जल्दी ऊपर आ जाता है।",
+      },
+    },
   },
   // PATTERNS
   {
@@ -254,6 +590,72 @@ def is_palindrome(s):
     return True`,
     realWorldUse: "Database merge operations, collision detection, DNA sequence matching",
     visualExplanation: "Imagine two people walking toward each other on a bridge 🌉. They start at opposite ends and meet in the middle, checking conditions as they go.",
+    translations: {
+      tamil: {
+        title: "Two Pointers Pattern",
+        whatIsIt:
+          "இரண்டு pointers மூலம் data structure-ஐ ஒருங்கிணைந்து traverse செய்வது (எதிர் முனைகளில் இருந்து அல்லது வேகங்கள் வேறாக).",
+        whyUseIt:
+          "Brute force O(n²) ஐ O(n) ஆக குறைக்க முடியும். Sorted arrays மற்றும் linked lists-ல் சிறப்பு.",
+        whenToUse: ["Sorted array pair sum", "In-place duplicates remove", "Water container / rain water", "Palindrome check"],
+        patternDetection: [
+          "🔍 'Sorted pair...' → both ends",
+          "🔍 'In-place remove...' → read/write pointers",
+          "🔍 'Palindrome...' → compare ends",
+          "🔍 '3-sum/4-sum...' → fix one + two pointers",
+        ],
+        visualExplanation:
+          "Bridge 🌉-ல் இரண்டு பேர் எதிர் முனைகளில் இருந்து நடந்து நடுவில் சந்திப்பது போல — pointers move செய்து condition check செய்க.",
+      },
+      kannada: {
+        title: "Two Pointers Pattern",
+        whatIsIt:
+          "ಎರಡು pointers ಬಳಸಿ coordinated traversal (ಎದುರು ದಿಕ್ಕಿನಿಂದ ಅಥವಾ ಬೇರೆ ವೇಗದಲ್ಲಿ).",
+        whyUseIt:
+          "O(n²) brute force ಅನ್ನು O(n) ಗೆ ಇಳಿಸುತ್ತದೆ. Sorted arrays/linked lists ನಲ್ಲಿ ಉತ್ತಮ.",
+        whenToUse: ["Sorted pair sum", "In-place duplicates remove", "Water container", "Palindrome check"],
+        patternDetection: [
+          "🔍 'Sorted pair...' → both ends",
+          "🔍 'In-place remove...' → read/write pointers",
+          "🔍 'Palindrome...' → compare ends",
+          "🔍 '3-sum/4-sum...' → fix one + two pointers",
+        ],
+        visualExplanation:
+          "Bridge 🌉 ನಲ್ಲಿ ಎರಡು ಜನ ಎದುರು ತುದಿಗಳಿಂದ ನಡೆದು ಮಧ್ಯದಲ್ಲಿ ಸೇರುವಂತೆ — pointers move ಮಾಡಿ check ಮಾಡಿ.",
+      },
+      telugu: {
+        title: "Two Pointers Pattern",
+        whatIsIt:
+          "రెండు pointers తో coordinated traversal (opposite ends లేదా different speeds).",
+        whyUseIt:
+          "O(n²) brute force ని O(n) గా తగ్గిస్తుంది. Sorted arrays/linked lists లో అద్భుతం.",
+        whenToUse: ["Sorted pair sum", "In-place duplicates remove", "Water container", "Palindrome check"],
+        patternDetection: [
+          "🔍 'Sorted pair...' → both ends",
+          "🔍 'In-place remove...' → read/write pointers",
+          "🔍 'Palindrome...' → compare ends",
+          "🔍 '3-sum/4-sum...' → fix one + two pointers",
+        ],
+        visualExplanation:
+          "Bridge 🌉 పై రెండు మంది opposite ends నుండి నడుస్తూ మధ్యలో కలిసేలా — pointers move చేసి condition చెక్ చేయండి.",
+      },
+      hindi: {
+        title: "Two Pointers Pattern",
+        whatIsIt:
+          "दो pointers से coordinated traversal (opposite ends से या अलग speed).",
+        whyUseIt:
+          "O(n²) brute force को O(n) में बदल देता है। Sorted arrays/linked lists में बहुत काम आता है।",
+        whenToUse: ["Sorted pair sum", "In-place duplicates remove", "Water container", "Palindrome check"],
+        patternDetection: [
+          "🔍 'Sorted pair...' → both ends",
+          "🔍 'In-place remove...' → read/write pointers",
+          "🔍 'Palindrome...' → compare ends",
+          "🔍 '3-sum/4-sum...' → fix one + two pointers",
+        ],
+        visualExplanation:
+          "Bridge 🌉 पर दो लोग दोनों ends से चलते हुए बीच में मिलते हैं — वैसे pointers move करके check करते जाएँ।",
+      },
+    },
   },
   {
     id: "sliding-window", title: "Sliding Window Pattern", emoji: "🪟", category: "patterns", difficulty: "Medium",
@@ -283,6 +685,72 @@ def longest_unique_substring(s):
     return result`,
     realWorldUse: "Network packet analysis, real-time analytics dashboards, stock price analysis, text pattern matching",
     visualExplanation: "Like looking through a train window 🚂 as it moves — you see a portion of the landscape at a time. As the train moves forward, new scenery enters and old scenery leaves your view.",
+    translations: {
+      tamil: {
+        title: "Sliding Window Pattern",
+        whatIsIt:
+          "ஒரு window (subarray/substring) வைத்து data-ல் slide செய்வது. Fixed-size அல்லது dynamic (expand/shrink) ஆக இருக்கலாம்.",
+        whyUseIt:
+          "Substring/subarray brute force O(n²)/O(n³) ஐ O(n) ஆக மாற்றும். Edge-ல் add/remove செய்து update செய்யலாம்.",
+        whenToUse: ["Longest/shortest substring", "Max sum subarray size k", "Anagram/permutation match", "Minimum window substring"],
+        patternDetection: [
+          "🔍 'Sum of k consecutive...' → fixed window",
+          "🔍 'Longest with at most...' → dynamic window",
+          "🔍 'Find anagram...' → fixed + freq count",
+          "🔍 'Minimum window...' → dynamic + hashmap",
+        ],
+        visualExplanation:
+          "Train window 🚂 போல — ஒரு பகுதியை மட்டும் பார்க்கிறோம்; train முன்னேறும்போது புதியது வரும், பழையது வெளியேறும்.",
+      },
+      kannada: {
+        title: "Sliding Window Pattern",
+        whatIsIt:
+          "Window (subarray/substring) ಅನ್ನು maintain ಮಾಡಿ data ಮೇಲೆ slide ಮಾಡುವುದು. Fixed-size ಅಥವಾ dynamic (expand/shrink).",
+        whyUseIt:
+          "O(n²)/O(n³) brute force ಅನ್ನು O(n) ಗೆ ಇಳಿಸುತ್ತದೆ. Edges ನಲ್ಲಿ add/remove ಮಾಡಿ update.",
+        whenToUse: ["Longest/shortest substring", "Max sum size k", "Anagram/permutation match", "Minimum window substring"],
+        patternDetection: [
+          "🔍 'Sum of k consecutive...' → fixed window",
+          "🔍 'Longest with at most...' → dynamic window",
+          "🔍 'Find anagram...' → fixed + freq count",
+          "🔍 'Minimum window...' → dynamic + hashmap",
+        ],
+        visualExplanation:
+          "Train window 🚂 ಹೀಗೇ — ಒಂದು ಭಾಗ ಮಾತ್ರ ಕಾಣುತ್ತದೆ; train ಮುಂದುವರಿದಂತೆ ಹೊಸದು ಬರುತ್ತದೆ, ಹಳೆಯದು ಹೋಗುತ್ತದೆ.",
+      },
+      telugu: {
+        title: "Sliding Window Pattern",
+        whatIsIt:
+          "Window (subarray/substring) ని maintain చేసి data పై slide చేయడం. Fixed-size లేదా dynamic (expand/shrink).",
+        whyUseIt:
+          "O(n²)/O(n³) brute force ని O(n) కి తగ్గిస్తుంది. Edges వద్ద add/remove చేసి update.",
+        whenToUse: ["Longest/shortest substring", "Max sum size k", "Anagram/permutation match", "Minimum window substring"],
+        patternDetection: [
+          "🔍 'Sum of k consecutive...' → fixed window",
+          "🔍 'Longest with at most...' → dynamic window",
+          "🔍 'Find anagram...' → fixed + freq count",
+          "🔍 'Minimum window...' → dynamic + hashmap",
+        ],
+        visualExplanation:
+          "Train window 🚂 లా — ఒక్క భాగమే కనిపిస్తుంది; train ముందుకు పోతే కొత్తది వస్తుంది, పాతది వెళ్తుంది.",
+      },
+      hindi: {
+        title: "Sliding Window Pattern",
+        whatIsIt:
+          "Window (subarray/substring) maintain करके data पर slide करना। Fixed-size या dynamic (expand/shrink) हो सकता है।",
+        whyUseIt:
+          "O(n²)/O(n³) brute force को O(n) बनाता है। Edges पर add/remove करके update करते हैं।",
+        whenToUse: ["Longest/shortest substring", "Max sum size k", "Anagram/permutation match", "Minimum window substring"],
+        patternDetection: [
+          "🔍 'Sum of k consecutive...' → fixed window",
+          "🔍 'Longest with at most...' → dynamic window",
+          "🔍 'Find anagram...' → fixed + freq count",
+          "🔍 'Minimum window...' → dynamic + hashmap",
+        ],
+        visualExplanation:
+          "Train window 🚂 जैसा — एक time पर landscape का छोटा हिस्सा दिखता है; आगे बढ़ते ही नया आता है, पुराना चला जाता है।",
+      },
+    },
   },
   {
     id: "binary-search-pattern", title: "Binary Search Pattern", emoji: "🔍", category: "patterns", difficulty: "Medium",
@@ -314,6 +782,64 @@ def find_first(nums, target):
     return result`,
     realWorldUse: "Database indexes, searching sorted files, version control bisect, game AI decision trees",
     visualExplanation: "Like the guessing game 🎯 — 'I'm thinking of a number 1-100'. If you guess 50 and I say 'higher', you've eliminated half the possibilities in one step!",
+    translations: {
+      tamil: {
+        title: "Binary Search Pattern",
+        whatIsIt: "Search space-ஐ ஒவ்வொரு step-லும் பாதியாக குறைக்கும் divide-and-conquer technique. Sorted data அல்லது monotonic function-க்கு பயன்படும்.",
+        whyUseIt: "1 billion sorted elements-ல் ~30 steps போதும். Sorted data-க்கு மிக திறமையான search (O(log n)).",
+        whenToUse: ["Sorted arrays search", "Boundaries (first/last occurrence)", "Binary search on answer (monotonic)", "Sqrt/peak finding"],
+        patternDetection: [
+          "🔍 'Target in sorted...' → classic binary search",
+          "🔍 'First/last position...' → boundary binary search",
+          "🔍 'Minimum capacity/speed...' → binary search on answer",
+          "🔍 'Peak element...' → modified binary search",
+        ],
+        visualExplanation:
+          "Guessing game 🎯 போல — 1-100 எண்ணில் 50 என்று guess செய்தால் பாதி possibilities உடனே நீங்கும்.",
+      },
+      kannada: {
+        title: "Binary Search Pattern",
+        whatIsIt: "ಪ್ರತಿ step ನಲ್ಲಿ search space ಅನ್ನು ಅರ್ಧ ಮಾಡಿ ಕಡಿಮೆ ಮಾಡುವ divide-and-conquer technique. Sorted data ಅಥವಾ monotonic function ಗೆ ಸೂಕ್ತ.",
+        whyUseIt: "1 billion sorted elements ನಲ್ಲಿ ~30 steps ಸಾಕು. O(log n) ಪರಿಣಾಮಕಾರಿ search.",
+        whenToUse: ["Sorted arrays search", "Boundaries (first/last)", "Binary search on answer", "Sqrt/peak finding"],
+        patternDetection: [
+          "🔍 'Target in sorted...' → classic binary search",
+          "🔍 'First/last position...' → boundary binary search",
+          "🔍 'Minimum capacity/speed...' → answer binary search",
+          "🔍 'Peak element...' → modified binary search",
+        ],
+        visualExplanation:
+          "Guessing game 🎯 — 1-100 ನಲ್ಲಿ 50 ಊಹಿಸಿದರೆ ಅರ್ಧ possibilities ಒಂದೇ ಬಾರಿ ಕಡಿಮೆಯಾಗುತ್ತವೆ.",
+      },
+      telugu: {
+        title: "Binary Search Pattern",
+        whatIsIt: "ప్రతి step లో search space ని half చేసే divide-and-conquer technique. Sorted data లేదా monotonic function కి ఉపయోగపడుతుంది.",
+        whyUseIt: "1 billion sorted elements లో ~30 steps చాలు. O(log n) efficient search.",
+        whenToUse: ["Sorted arrays search", "Boundaries (first/last)", "Binary search on answer", "Sqrt/peak finding"],
+        patternDetection: [
+          "🔍 'Target in sorted...' → classic binary search",
+          "🔍 'First/last position...' → boundary binary search",
+          "🔍 'Minimum capacity/speed...' → answer binary search",
+          "🔍 'Peak element...' → modified binary search",
+        ],
+        visualExplanation:
+          "Guessing game 🎯 లా — 1-100 లో 50 guess చేస్తే half possibilities తొలగిపోతాయి.",
+      },
+      hindi: {
+        title: "Binary Search Pattern",
+        whatIsIt: "Divide-and-conquer technique जो हर step में search space आधा कर देता है। Sorted data या monotonic function पर काम करता है।",
+        whyUseIt: "1 billion sorted elements में ~30 steps। O(log n) सबसे efficient search।",
+        whenToUse: ["Sorted arrays search", "Boundaries (first/last)", "Binary search on answer", "Sqrt/peak finding"],
+        patternDetection: [
+          "🔍 'Target in sorted...' → classic binary search",
+          "🔍 'First/last position...' → boundary binary search",
+          "🔍 'Minimum capacity/speed...' → answer binary search",
+          "🔍 'Peak element...' → modified binary search",
+        ],
+        visualExplanation:
+          "Guessing game 🎯 जैसा — 1-100 में 50 guess करो, तो आधी possibilities एक step में खत्म।",
+      },
+    },
   },
   {
     id: "greedy", title: "Greedy Algorithms", emoji: "🤑", category: "patterns", difficulty: "Medium",
@@ -343,6 +869,72 @@ def can_jump(nums):
     return True`,
     realWorldUse: "Job scheduling, network routing, file compression (Huffman), coin vending machines",
     visualExplanation: "Like eating at a buffet 🍽️ — at each station, take the best-looking dish. You don't go back and swap. Sometimes this gets you the best meal, sometimes not!",
+    translations: {
+      tamil: {
+        title: "Greedy Algorithms",
+        whatIsIt:
+          "ஒவ்வொரு step-லும் locally best choice எடுத்து globally best கிடைக்கும் என்று நம்பும் algorithm. முடிவு செய்த பிறகு திரும்ப மாற்றாது.",
+        whyUseIt:
+          "சரளமானது, வேகமானது. Greedy-choice property உள்ள problems-ல் சிறப்பாக வேலை செய்கிறது. பெரும்பாலும் sort காரணமாக O(n log n).",
+        whenToUse: ["Interval scheduling", "Coin change (specific denominations)", "Huffman coding", "Fractional knapsack"],
+        patternDetection: [
+          "🔍 'Max non-overlapping...' → end time sort + greedy pick",
+          "🔍 'Min rooms/platforms...' → sort events + track overlaps",
+          "🔍 'Assign tasks...' → sort + pair",
+          "🔍 'Jump game...' → farthest reachable track",
+        ],
+        visualExplanation:
+          "Buffet 🍽️ போல — ஒவ்வொரு நிலையிலும் best dish எடுப்போம்; திரும்ப போய் swap செய்ய மாட்டோம்.",
+      },
+      kannada: {
+        title: "Greedy Algorithms",
+        whatIsIt:
+          "ಪ್ರತಿ step ನಲ್ಲಿ locally best ಆಯ್ಕೆ ಮಾಡಿ global optimum ಸಿಗುತ್ತದೆ ಎಂದು ಭಾವಿಸುವ algorithm. ಆಯ್ಕೆಯನ್ನು ಮರುಪರಿಶೀಲಿಸದು.",
+        whyUseIt:
+          "ಸರಳ ಮತ್ತು ವೇಗವಾದುದು. Greedy-choice property ಇದ್ದರೆ ಪರಿಣಾಮಕಾರಿ. ಬಹುಸಾ sorting ಕಾರಣ O(n log n).",
+        whenToUse: ["Interval scheduling", "Coin change", "Huffman coding", "Fractional knapsack"],
+        patternDetection: [
+          "🔍 'Max non-overlapping...' → end time sort + greedy pick",
+          "🔍 'Min rooms/platforms...' → sort events + overlaps",
+          "🔍 'Assign tasks...' → sort + pair",
+          "🔍 'Jump game...' → farthest reachable",
+        ],
+        visualExplanation:
+          "Buffet 🍽️ — ಪ್ರತಿ station ನಲ್ಲಿ best dish ತೆಗೆದು, ಹಿಂದಿರುಗಿ swap ಮಾಡುವುದಿಲ್ಲ.",
+      },
+      telugu: {
+        title: "Greedy Algorithms",
+        whatIsIt:
+          "ప్రతి step లో locally best choice తీసుకుని global best వస్తుందని ఆశించే algorithm. ఒకసారి నిర్ణయం తీసుకున్నాక మార్చదు.",
+        whyUseIt:
+          "సింపుల్, ఫాస్ట్. Greedy-choice property ఉన్న problems లో బాగా పనిచేస్తుంది. సాధారణంగా sorting వల్ల O(n log n).",
+        whenToUse: ["Interval scheduling", "Coin change", "Huffman coding", "Fractional knapsack"],
+        patternDetection: [
+          "🔍 'Max non-overlapping...' → end time sort + greedy pick",
+          "🔍 'Min rooms/platforms...' → sort events + overlaps",
+          "🔍 'Assign tasks...' → sort + pair",
+          "🔍 'Jump game...' → farthest reachable",
+        ],
+        visualExplanation:
+          "Buffet 🍽️ లా — ప్రతి station లో best dish తీసుకుంటారు; తిరిగి swap చేయరు.",
+      },
+      hindi: {
+        title: "Greedy Algorithms",
+        whatIsIt:
+          "हर step पर locally best choice लेकर global optimum पाने की कोशिश करने वाला algorithm। एक बार choice हो गई तो वापस नहीं बदलता।",
+        whyUseIt:
+          "Simple और fast। Greedy-choice property वाले problems में effective। अक्सर sorting के कारण O(n log n)।",
+        whenToUse: ["Interval scheduling", "Coin change", "Huffman coding", "Fractional knapsack"],
+        patternDetection: [
+          "🔍 'Max non-overlapping...' → end time sort + greedy pick",
+          "🔍 'Min rooms/platforms...' → sort events + overlaps",
+          "🔍 'Assign tasks...' → sort + pair",
+          "🔍 'Jump game...' → farthest reachable",
+        ],
+        visualExplanation:
+          "Buffet 🍽️ जैसा — हर station पर best dish ले लो; वापस जाकर swap नहीं करते।",
+      },
+    },
   },
   {
     id: "prefix-sum", title: "Prefix Sum Pattern", emoji: "📊", category: "patterns", difficulty: "Easy",
@@ -376,6 +968,72 @@ def subarray_sum_k(nums, k):
     return count`,
     realWorldUse: "Financial running totals, image processing (integral images), database aggregations",
     visualExplanation: "Like a running total on a receipt 🧾 — instead of re-adding items each time, you just look at the subtotal at any point and subtract where you started.",
+    translations: {
+      tamil: {
+        title: "Prefix Sum Pattern",
+        whatIsIt:
+          "Cumulative sums முன்னதாக கணக்கிட்டு வைத்தால் range sum query O(1) ஆகும். `prefix[i] = sum(0..i)` போல.",
+        whyUseIt:
+          "O(n) range sum queries-ஐ O(1) ஆக மாற்றும் (O(n) preprocessing பிறகு). Subarray sum problems-க்கு முக்கியம்.",
+        whenToUse: ["Range sum queries", "Subarray sum = K", "Count subarrays with sum", "2D region sums"],
+        patternDetection: [
+          "🔍 'Sum i..j...' → prefix difference",
+          "🔍 'Count subarrays sum K...' → prefix + hashmap",
+          "🔍 'Equilibrium index...' → prefix both sides",
+          "🔍 'Running average...' → cumulative/ count",
+        ],
+        visualExplanation:
+          "Receipt 🧾-ல் running total போல — மீண்டும் மீண்டும் சேர்க்காமல் subtotal-ஐ பார்த்து கழித்தால் போதும்.",
+      },
+      kannada: {
+        title: "Prefix Sum Pattern",
+        whatIsIt:
+          "Cumulative sums ಮೊದಲು compute ಮಾಡಿದರೆ range sum query O(1). `prefix[i]=sum(0..i)`.",
+        whyUseIt:
+          "O(n) range sum queries ಅನ್ನು O(1) ಮಾಡುತ್ತದೆ (O(n) preprocessing ನಂತರ). Subarray sum problems ಗೆ ಮುಖ್ಯ.",
+        whenToUse: ["Range sum queries", "Subarray sum = K", "Count subarrays", "2D region sums"],
+        patternDetection: [
+          "🔍 'Sum i..j...' → prefix difference",
+          "🔍 'Count subarrays sum K...' → prefix + hashmap",
+          "🔍 'Equilibrium index...' → prefix both sides",
+          "🔍 'Running average...' → cumulative/count",
+        ],
+        visualExplanation:
+          "Receipt 🧾 ನಲ್ಲಿ running total — ಮತ್ತೆ ಸೇರಿಸದೆ subtotal ನೋಡಿ subtract ಮಾಡಬಹುದು.",
+      },
+      telugu: {
+        title: "Prefix Sum Pattern",
+        whatIsIt:
+          "Cumulative sums ముందే compute చేస్తే range sum query O(1). `prefix[i]=sum(0..i)`.",
+        whyUseIt:
+          "O(n) range sum queries ని O(1) చేస్తుంది (O(n) preprocessing తర్వాత). Subarray sum problems కు కీలకం.",
+        whenToUse: ["Range sum queries", "Subarray sum = K", "Count subarrays", "2D region sums"],
+        patternDetection: [
+          "🔍 'Sum i..j...' → prefix difference",
+          "🔍 'Count subarrays sum K...' → prefix + hashmap",
+          "🔍 'Equilibrium index...' → prefix both sides",
+          "🔍 'Running average...' → cumulative/count",
+        ],
+        visualExplanation:
+          "Receipt 🧾 లో running total లా — మళ్లీ మళ్లీ add చేయకుండా subtotal చూసి subtract చేస్తారు.",
+      },
+      hindi: {
+        title: "Prefix Sum Pattern",
+        whatIsIt:
+          "Cumulative sums पहले compute कर लो तो range sum query O(1) हो जाती है। `prefix[i]=sum(0..i)`।",
+        whyUseIt:
+          "O(n) range sum queries को O(1) बनाता है (O(n) preprocessing के बाद)। Subarray sum problems के लिए जरूरी।",
+        whenToUse: ["Range sum queries", "Subarray sum = K", "Count subarrays", "2D region sums"],
+        patternDetection: [
+          "🔍 'Sum i..j...' → prefix difference",
+          "🔍 'Count subarrays sum K...' → prefix + hashmap",
+          "🔍 'Equilibrium index...' → prefix both sides",
+          "🔍 'Running average...' → cumulative/count",
+        ],
+        visualExplanation:
+          "Receipt 🧾 के running total जैसा — बार-बार जोड़ने की जगह subtotal देखकर subtract कर लो।",
+      },
+    },
   },
   // ADVANCED
   {
@@ -413,6 +1071,72 @@ def solve_n_queens(n):
     return solutions`,
     realWorldUse: "AI game solving, compiler parsing, route planning, scheduling algorithms",
     visualExplanation: "Like exploring a maze 🏰 — at each fork, pick a path. If you hit a dead end, backtrack to the last fork and try a different path.",
+    translations: {
+      tamil: {
+        title: "Recursion & Backtracking",
+        whatIsIt:
+          "Recursion என்பது function தன்னைத் தான் அழைப்பது. Backtracking என்பது recursion + undo — ஒரு தேர்வை முயன்று, வேலை செய்யவில்லை என்றால் திரும்பி வேறு தேர்வு முயலுவது.",
+        whyUseIt:
+          "Multiple choices உள்ள problems-க்கு அவசியம்: permutations, combinations, puzzles, constraint satisfaction.",
+        whenToUse: ["Permutations/combinations generate", "Sudoku/N-Queens போன்ற puzzles", "Tree/graph DFS traversal", "All paths / all solutions"],
+        patternDetection: [
+          "🔍 'Generate all possible...' → backtracking",
+          "🔍 'Find all paths...' → DFS + backtracking",
+          "🔍 'Partition...' → backtracking + pruning",
+          "🔍 'Solve puzzle...' → constraint backtracking",
+        ],
+        visualExplanation:
+          "Maze 🏰 explore செய்வது போல — fork-ல் ஒரு பாதை தேர்வு; dead end என்றால் கடைசி fork-க்கு திரும்பி வேறு பாதை.",
+      },
+      kannada: {
+        title: "Recursion & Backtracking",
+        whatIsIt:
+          "Recursion ಎಂದರೆ function ತನ್ನನ್ನೇ ಕರೆಯುವುದು. Backtracking ಎಂದರೆ recursion + undo — ಆಯ್ಕೆ ಮಾಡಿ, ಕೆಲಸ ಆಗದಿದ್ದರೆ undo ಮಾಡಿ ಮತ್ತೊಂದು ಆಯ್ಕೆ.",
+        whyUseIt:
+          "Multiple choices ಇರುವ problems ಗೆ ಅಗತ್ಯ: permutations, combinations, puzzles, constraints.",
+        whenToUse: ["Permutations/combinations", "Sudoku/N-Queens", "Tree/graph DFS", "All paths / all solutions"],
+        patternDetection: [
+          "🔍 'Generate all possible...' → backtracking",
+          "🔍 'Find all paths...' → DFS + backtracking",
+          "🔍 'Partition...' → backtracking + pruning",
+          "🔍 'Solve puzzle...' → constraint backtracking",
+        ],
+        visualExplanation:
+          "Maze 🏰 ನಲ್ಲಿ ನಡೆಯುವಂತೆ — fork ನಲ್ಲಿ ಒಂದು ದಾರಿ; dead end ಆದರೆ ಹಿಂದಿರುಗಿ ಇನ್ನೊಂದು ದಾರಿ.",
+      },
+      telugu: {
+        title: "Recursion & Backtracking",
+        whatIsIt:
+          "Recursion అంటే function తనను తానే call చేసుకోవడం. Backtracking అంటే recursion + undo — ఒక choice try చేసి, పని కాకపోతే undo చేసి ఇంకొక choice try చేయడం.",
+        whyUseIt:
+          "Multiple choices ఉన్న problems కి అవసరం: permutations, combinations, puzzles, constraints.",
+        whenToUse: ["Permutations/combinations", "Sudoku/N-Queens", "Tree/graph DFS", "All paths / all solutions"],
+        patternDetection: [
+          "🔍 'Generate all possible...' → backtracking",
+          "🔍 'Find all paths...' → DFS + backtracking",
+          "🔍 'Partition...' → backtracking + pruning",
+          "🔍 'Solve puzzle...' → constraint backtracking",
+        ],
+        visualExplanation:
+          "Maze 🏰 లో explore చేసేలా — fork వద్ద ఒక దారి; dead end అయితే తిరిగి వచ్చి ఇంకో దారి.",
+      },
+      hindi: {
+        title: "Recursion & Backtracking",
+        whatIsIt:
+          "Recursion में function खुद को call करता है। Backtracking = recursion + undo — एक choice try करो, नहीं चले तो undo करके दूसरा try करो।",
+        whyUseIt:
+          "Multiple choices वाले problems के लिए जरूरी: permutations, combinations, puzzles, constraints.",
+        whenToUse: ["Permutations/combinations", "Sudoku/N-Queens", "Tree/graph DFS", "All paths / all solutions"],
+        patternDetection: [
+          "🔍 'Generate all possible...' → backtracking",
+          "🔍 'Find all paths...' → DFS + backtracking",
+          "🔍 'Partition...' → backtracking + pruning",
+          "🔍 'Solve puzzle...' → constraint backtracking",
+        ],
+        visualExplanation:
+          "Maze 🏰 explore करने जैसा — fork पर एक path, dead end हो तो वापस और दूसरा path।",
+      },
+    },
   },
   {
     id: "dynamic-programming", title: "Dynamic Programming", emoji: "🧮", category: "advanced", difficulty: "Hard",
@@ -447,6 +1171,72 @@ def knapsack(weights, values, capacity):
     return dp[n][capacity]`,
     realWorldUse: "Route optimization (GPS), resource allocation, text diffing (git), speech recognition",
     visualExplanation: "Like building with LEGO blocks 🧱 — you solve tiny problems first, save the results, then combine them to solve bigger problems. Each block is built exactly once!",
+    translations: {
+      tamil: {
+        title: "Dynamic Programming (DP)",
+        whatIsIt:
+          "DP என்பது overlapping subproblems-ஆக பிரித்து, results-ஐ சேமித்து மீண்டும் கணக்கிடாமல் தீர்ப்பது. Recursion + memoization-ஐ iteration-ஆக optimize செய்தது.",
+        whyUseIt:
+          "Exponential (O(2^n)) ஐ polynomial (O(n²)/O(n)) ஆக மாற்ற முடியும். Optimization problems-க்கு சக்திவாய்ந்த technique.",
+        whenToUse: ["Optimal substructure", "Overlapping subproblems", "Counting: 'how many ways'", "Min/Max: 'minimum cost'"],
+        patternDetection: [
+          "🔍 'Minimum/maximum cost...' → DP state transitions",
+          "🔍 'How many ways...' → counting DP",
+          "🔍 'Longest increasing/common...' → sequence DP",
+          "🔍 'Can you reach/achieve...' → boolean DP",
+        ],
+        visualExplanation:
+          "LEGO 🧱 போல — சிறிய blocks முதலில்; முடிவுகளை சேமித்து பெரிய problem-க்கு இணைக்கவும். ஒவ்வொரு block ஒரே முறை கட்டப்படும்.",
+      },
+      kannada: {
+        title: "Dynamic Programming (DP)",
+        whatIsIt:
+          "DP ಎಂದರೆ overlapping subproblems ಗೆ ವಿಭಜಿಸಿ, results store ಮಾಡಿ ಮರು ಲೆಕ್ಕ ಹಾಕದಂತೆ ಪರಿಹರಿಸುವುದು. Recursion+memo → iteration optimization.",
+        whyUseIt:
+          "Exponential (O(2^n)) ಅನ್ನು polynomial (O(n²)/O(n)) ಗೆ ಇಳಿಸುತ್ತದೆ. Optimization problems ಗೆ ಶಕ್ತಿಶಾಲಿ.",
+        whenToUse: ["Optimal substructure", "Overlapping subproblems", "Counting problems", "Min/Max cost problems"],
+        patternDetection: [
+          "🔍 'Minimum/maximum cost...' → DP transitions",
+          "🔍 'How many ways...' → counting DP",
+          "🔍 'Longest increasing/common...' → sequence DP",
+          "🔍 'Can you reach/achieve...' → boolean DP",
+        ],
+        visualExplanation:
+          "LEGO 🧱 — ಸಣ್ಣ blocks ಮೊದಲು, results ಉಳಿಸಿ, ದೊಡ್ಡ problem ಗೆ ಸೇರಿಸಿ. ಪ್ರತಿ block ಒಂದೇ ಬಾರಿ.",
+      },
+      telugu: {
+        title: "Dynamic Programming (DP)",
+        whatIsIt:
+          "DP అంటే overlapping subproblems గా విడదీసి, results నిల్వ చేసి మళ్లీ లెక్కించకుండా solve చేయడం. Recursion+memo ని iteration గా optimize చేయడం.",
+        whyUseIt:
+          "Exponential (O(2^n)) ని polynomial (O(n²)/O(n)) కి మార్చగలదు. Optimization problems కి powerful.",
+        whenToUse: ["Optimal substructure", "Overlapping subproblems", "Counting problems", "Min/Max cost problems"],
+        patternDetection: [
+          "🔍 'Minimum/maximum cost...' → DP transitions",
+          "🔍 'How many ways...' → counting DP",
+          "🔍 'Longest increasing/common...' → sequence DP",
+          "🔍 'Can you reach/achieve...' → boolean DP",
+        ],
+        visualExplanation:
+          "LEGO 🧱 లా — చిన్న problems ముందుగా, results save చేసి పెద్ద problem కి కలపండి. ప్రతి block ఒక్కసారి.",
+      },
+      hindi: {
+        title: "Dynamic Programming (DP)",
+        whatIsIt:
+          "DP में problem को overlapping subproblems में तोड़कर results store करते हैं ताकि बार-बार calculate न करना पड़े। Recursion+memo को iteration में optimize किया जाता है।",
+        whyUseIt:
+          "Exponential (O(2^n)) को polynomial (O(n²)/O(n)) बना देता है। Optimization problems के लिए बहुत powerful।",
+        whenToUse: ["Optimal substructure", "Overlapping subproblems", "Counting problems", "Min/Max cost problems"],
+        patternDetection: [
+          "🔍 'Minimum/maximum cost...' → DP transitions",
+          "🔍 'How many ways...' → counting DP",
+          "🔍 'Longest increasing/common...' → sequence DP",
+          "🔍 'Can you reach/achieve...' → boolean DP",
+        ],
+        visualExplanation:
+          "LEGO 🧱 जैसा — पहले छोटे blocks, results save करो, फिर बड़े problem में जोड़ो। हर block सिर्फ एक बार बनता है।",
+      },
+    },
   },
   {
     id: "trees-graphs", title: "Trees & Graphs", emoji: "🌳", category: "advanced", difficulty: "Hard",
@@ -489,6 +1279,72 @@ def shortest_path(graph, start, end):
                 queue.append((neighbor, path + [neighbor]))`,
     realWorldUse: "Google Maps (shortest path), social media (friend suggestions), file systems, AI decision trees",
     visualExplanation: "A tree 🌳 is like a family tree — one ancestor at top, branching down. A graph 🕸️ is like a social network — everyone can connect to anyone.",
+    translations: {
+      tamil: {
+        title: "Trees & Graphs",
+        whatIsIt:
+          "Tree என்பது hierarchy structure (root + children, cycles இல்லை). Graph என்பது nodes + edges network (cycles இருக்கலாம்).",
+        whyUseIt:
+          "Real-world relationships model செய்ய: file system (tree), social network (graph), road map (graph), DOM (tree).",
+        whenToUse: ["Hierarchy data", "Shortest path/connectivity", "BFS/DFS traversal", "Decision trees/parsing"],
+        patternDetection: [
+          "🔍 'Shortest path unweighted...' → BFS",
+          "🔍 'Explore all paths...' → DFS",
+          "🔍 'Level-order...' → BFS queue",
+          "🔍 'LCA...' → DFS on tree",
+        ],
+        visualExplanation:
+          "Tree 🌳 குடும்ப மரம் போல; Graph 🕸️ சமூக வலை போல — யார் வேண்டுமானாலும் connect ஆகலாம்.",
+      },
+      kannada: {
+        title: "Trees & Graphs",
+        whatIsIt:
+          "Tree hierarchy structure (root + children, cycles ಇಲ್ಲ). Graph nodes+edges network (cycles ಇರಬಹುದು).",
+        whyUseIt:
+          "Real-world relationships model: file system (tree), social network (graph), road map (graph), DOM (tree).",
+        whenToUse: ["Hierarchy data", "Shortest path/connectivity", "BFS/DFS traversal", "Decision trees/parsing"],
+        patternDetection: [
+          "🔍 'Shortest path unweighted...' → BFS",
+          "🔍 'Explore all paths...' → DFS",
+          "🔍 'Level-order...' → BFS queue",
+          "🔍 'LCA...' → DFS on tree",
+        ],
+        visualExplanation:
+          "Tree 🌳 ಕುಟುಂಬ ಮರದಂತೆ; Graph 🕸️ ಸಾಮಾಜಿಕ ಜಾಲದಂತೆ — ಎಲ್ಲರೂ ಎಲ್ಲರಿಗೂ connect ಆಗಬಹುದು.",
+      },
+      telugu: {
+        title: "Trees & Graphs",
+        whatIsIt:
+          "Tree అనేది hierarchy structure (root + children, cycles లేవు). Graph అనేది nodes+edges network (cycles ఉండొచ్చు).",
+        whyUseIt:
+          "Real-world relationships model: file system (tree), social network (graph), road map (graph), DOM (tree).",
+        whenToUse: ["Hierarchy data", "Shortest path/connectivity", "BFS/DFS traversal", "Decision trees/parsing"],
+        patternDetection: [
+          "🔍 'Shortest path unweighted...' → BFS",
+          "🔍 'Explore all paths...' → DFS",
+          "🔍 'Level-order...' → BFS queue",
+          "🔍 'LCA...' → DFS on tree",
+        ],
+        visualExplanation:
+          "Tree 🌳 కుటుంబ వృక్షం లా; Graph 🕸️ social network లా — ఎవరైనా ఎవరితోనైనా connect కావచ్చు.",
+      },
+      hindi: {
+        title: "Trees & Graphs",
+        whatIsIt:
+          "Tree hierarchy structure है (root + children, cycles नहीं)। Graph nodes+edges का network है (cycles हो सकते हैं)।",
+        whyUseIt:
+          "Real-world relationships model करने के लिए: file system (tree), social network (graph), road map (graph), DOM (tree).",
+        whenToUse: ["Hierarchy data", "Shortest path/connectivity", "BFS/DFS traversal", "Decision trees/parsing"],
+        patternDetection: [
+          "🔍 'Shortest path unweighted...' → BFS",
+          "🔍 'Explore all paths...' → DFS",
+          "🔍 'Level-order...' → BFS queue",
+          "🔍 'LCA...' → DFS on tree",
+        ],
+        visualExplanation:
+          "Tree 🌳 family tree जैसा; Graph 🕸️ social network जैसा — कोई भी किसी से connect हो सकता है।",
+      },
+    },
   },
   {
     id: "trie", title: "Trie (Prefix Tree)", emoji: "🌲", category: "advanced", difficulty: "Medium",
@@ -524,6 +1380,60 @@ class Trie:
         return node.is_word`,
     realWorldUse: "Search engine autocomplete, router IP prefix matching, spell checkers, phone book contacts",
     visualExplanation: "Imagine a filing cabinet sorted by the first letter, then folders by the second letter, then files by the third. You only open what exactly matches your prefix!",
+    translations: {
+      tamil: {
+        title: "Trie (Prefix Tree)",
+        whatIsIt: "Strings சேமிக்க சிறப்பு tree. ஒவ்வொரு node ஒரு character-ஐ குறிக்கும்.",
+        whyUseIt: "Prefix search/autocomplete O(L) — word length L. மிகவும் வேகம்.",
+        whenToUse: ["Autocomplete", "Spell check", "Word search games", "IP routing"],
+        patternDetection: [
+          "🔍 'Words starting with prefix...' → Trie",
+          "🔍 'Maximum XOR...' → bitwise Trie",
+          "🔍 'Word search board...' → Trie + DFS",
+        ],
+        visualExplanation:
+          "Filing cabinet போல — முதல் எழுத்து, இரண்டாம் எழுத்து... என அடுக்கி வைத்தால் prefix match ஆனவற்றை மட்டும் திறப்போம்.",
+      },
+      kannada: {
+        title: "Trie (Prefix Tree)",
+        whatIsIt: "Strings store ಮಾಡಲು ವಿಶೇಷ tree. ಪ್ರತಿ node ಒಂದು character.",
+        whyUseIt: "Prefix search/autocomplete O(L) (L = word length). ಬಹಳ ವೇಗ.",
+        whenToUse: ["Autocomplete", "Spell check", "Word search games", "IP routing"],
+        patternDetection: [
+          "🔍 'Words starting with prefix...' → Trie",
+          "🔍 'Maximum XOR...' → bitwise Trie",
+          "🔍 'Word search board...' → Trie + DFS",
+        ],
+        visualExplanation:
+          "Filing cabinet — ಮೊದಲ ಅಕ್ಷರ, ನಂತರ ಎರಡನೇ... prefix match ಆದ್ದನ್ನು ಮಾತ್ರ ತೆಗೆಯಿರಿ.",
+      },
+      telugu: {
+        title: "Trie (Prefix Tree)",
+        whatIsIt: "Strings నిల్వ చేయడానికి ప్రత్యేక tree. ప్రతి node ఒక character ని represent చేస్తుంది.",
+        whyUseIt: "Prefix search/autocomplete O(L) (L = word length). చాలా ఫాస్ట్.",
+        whenToUse: ["Autocomplete", "Spell check", "Word search games", "IP routing"],
+        patternDetection: [
+          "🔍 'Words starting with prefix...' → Trie",
+          "🔍 'Maximum XOR...' → bitwise Trie",
+          "🔍 'Word search board...' → Trie + DFS",
+        ],
+        visualExplanation:
+          "Filing cabinet లా — మొదటి letter, తర్వాత రెండో... prefix match అయ్యేవి మాత్రమే ఓపెన్ చేయండి.",
+      },
+      hindi: {
+        title: "Trie (Prefix Tree)",
+        whatIsIt: "Strings store करने के लिए special tree। हर node एक character represent करता है।",
+        whyUseIt: "Prefix search/autocomplete O(L) (L = word length) — बहुत तेज़।",
+        whenToUse: ["Autocomplete", "Spell check", "Word search games", "IP routing"],
+        patternDetection: [
+          "🔍 'Words starting with prefix...' → Trie",
+          "🔍 'Maximum XOR...' → bitwise Trie",
+          "🔍 'Word search board...' → Trie + DFS",
+        ],
+        visualExplanation:
+          "Filing cabinet जैसा — first letter, फिर second... आप सिर्फ वही खोलते हैं जो आपके prefix से match करता है।",
+      },
+    },
   },
   {
     id: "union-find", title: "Union Find (Disjoint Set)", emoji: "🖇️", category: "advanced", difficulty: "Hard",
@@ -559,6 +1469,62 @@ class Trie:
         return False`,
     realWorldUse: "Network connectivity in social platforms, image segmentation, clustering algorithms",
     visualExplanation: "Think of merging companies. Finding the parent company (Find) takes you to the ultimate CEO. Merging two companies (Union) means making one CEO report to the other.",
+    translations: {
+      tamil: {
+        title: "Union Find (Disjoint Set)",
+        whatIsIt:
+          "Disjoint sets-ஆக பிரிக்கப்பட்ட elements-ஐ track செய்யும் structure. இரண்டு operations: Find மற்றும் Union.",
+        whyUseIt:
+          "இரண்டு elements connected-ஆ என்பதை near O(1) (amortized) நேரத்தில் check/connect செய்ய முடியும். Components கண்டறிய பயன்படும்.",
+        whenToUse: ["Kruskal MST", "Connected components", "Undirected cycle detect", "Dynamic connectivity"],
+        patternDetection: [
+          "🔍 'Connected?' → Union Find",
+          "🔍 'Number of islands/components...' → Union Find / DFS",
+          "🔍 'Redundant edge...' → Union Find cycle detect",
+        ],
+        visualExplanation:
+          "Companies merge போல. Find = ultimate CEO-வை கண்டுபிடி. Union = ஒரு CEO மற்றொன்றிற்கு report ஆக இணை.",
+      },
+      kannada: {
+        title: "Union Find (Disjoint Set)",
+        whatIsIt: "Disjoint sets ಆಗಿ ವಿಭಜಿಸಲಾದ elements track ಮಾಡುವ structure. Find ಮತ್ತು Union operations.",
+        whyUseIt: "Connected? check/connect near O(1) amortized. Components ಕಂಡುಹಿಡಿಯಲು ಉಪಯುಕ್ತ.",
+        whenToUse: ["Kruskal MST", "Connected components", "Undirected cycle detect", "Dynamic connectivity"],
+        patternDetection: [
+          "🔍 'Connected?' → Union Find",
+          "🔍 'Islands/components count...' → Union Find / DFS",
+          "🔍 'Redundant edge...' → Union Find cycle detect",
+        ],
+        visualExplanation:
+          "Companies merge — Find = ultimate CEO. Union = ಒಬ್ಬ CEO ಇನ್ನೊಬ್ಬರಿಗೆ report ಆಗುವಂತೆ ಸೇರಿಸಿ.",
+      },
+      telugu: {
+        title: "Union Find (Disjoint Set)",
+        whatIsIt: "Disjoint sets గా partition అయిన elements ని track చేసే structure. Find, Union operations.",
+        whyUseIt: "Connected? check/connect near O(1) amortized. Components కోసం essential.",
+        whenToUse: ["Kruskal MST", "Connected components", "Undirected cycle detect", "Dynamic connectivity"],
+        patternDetection: [
+          "🔍 'Connected?' → Union Find",
+          "🔍 'Islands/components count...' → Union Find / DFS",
+          "🔍 'Redundant edge...' → Union Find cycle detect",
+        ],
+        visualExplanation:
+          "Companies merge లా. Find = ultimate CEO. Union = ఒక CEO మరో CEO కి report అయ్యేలా కలపడం.",
+      },
+      hindi: {
+        title: "Union Find (Disjoint Set)",
+        whatIsIt: "Elements को disjoint sets में track करने वाला structure। दो operations: Find और Union।",
+        whyUseIt: "दो elements connected हैं या नहीं near O(1) amortized में check/connect। Components के लिए essential।",
+        whenToUse: ["Kruskal MST", "Connected components", "Undirected cycle detect", "Dynamic connectivity"],
+        patternDetection: [
+          "🔍 'Connected?' → Union Find",
+          "🔍 'Islands/components count...' → Union Find / DFS",
+          "🔍 'Redundant edge...' → Union Find cycle detect",
+        ],
+        visualExplanation:
+          "Companies merge जैसा। Find = ultimate CEO। Union = एक CEO को दूसरे को report कराने जैसा जोड़ना।",
+      },
+    },
   },
   {
     id: "bit-manipulation", title: "Bit Manipulation", emoji: "🔢", category: "advanced", difficulty: "Hard",
@@ -597,14 +1563,130 @@ def subsets_bitmask(nums):
     return result`,
     realWorldUse: "Cryptography, compression algorithms, network subnet masks, game state encoding, hardware drivers",
     visualExplanation: "Think of bits as light switches 💡 — each switch is ON (1) or OFF (0). Bit operations flip, check, or combine these switches at lightning speed.",
+    translations: {
+      tamil: {
+        title: "Bit Manipulation",
+        whatIsIt:
+          "எண்களின் binary representation-ல் AND/OR/XOR/NOT மற்றும் shifts மூலம் நேரடியாக வேலை செய்வது.",
+        whyUseIt:
+          "மிக வேகமான CPU operations. சில set/subset operations-க்கு O(1) extra space. Optimization/crypto/low-level coding-ல் முக்கியம்.",
+        whenToUse: ["Power of 2 check", "Set bits count", "Single number via XOR", "Subset generation (bitmask)"],
+        patternDetection: [
+          "🔍 'Single number...' → XOR all",
+          "🔍 'Power of 2...' → n & (n-1) == 0",
+          "🔍 'All subsets...' → bitmask 0..2^n",
+          "🔍 'Toggle bits...' → XOR with mask",
+        ],
+        visualExplanation:
+          "Bits-ஐ switches 💡 போல — ON(1)/OFF(0). Bit ops lightning speed-ல் flip/check/combine செய்கின்றன.",
+      },
+      kannada: {
+        title: "Bit Manipulation",
+        whatIsIt: "ಸಂಖ್ಯೆಗಳ binary representation ಮೇಲೆ AND/OR/XOR/NOT ಮತ್ತು shifts ಮೂಲಕ ನೇರವಾಗಿ ಕೆಲಸ ಮಾಡುವುದು.",
+        whyUseIt: "CPU ಯ ಅತ್ಯಂತ ವೇಗದ operations. ಕೆಲವು operations ಗೆ O(1) extra space. Optimization/crypto/low-level ನಲ್ಲಿ ಮುಖ್ಯ.",
+        whenToUse: ["Power of 2 check", "Set bits count", "Single number XOR", "Subset generation bitmask"],
+        patternDetection: [
+          "🔍 'Single number...' → XOR all",
+          "🔍 'Power of 2...' → n & (n-1) == 0",
+          "🔍 'All subsets...' → bitmask 0..2^n",
+          "🔍 'Toggle bits...' → XOR with mask",
+        ],
+        visualExplanation:
+          "Bits ಅನ್ನು switches 💡 ಎಂದು ಕಲ್ಪಿಸಿ — ON(1)/OFF(0). Bit ops lightning speed ನಲ್ಲಿ flip/check/combine.",
+      },
+      telugu: {
+        title: "Bit Manipulation",
+        whatIsIt: "నంబర్ల binary representation పై AND/OR/XOR/NOT మరియు shifts తో నేరుగా పని చేయడం.",
+        whyUseIt: "CPU లో అత్యంత వేగమైన operations. కొన్ని operations కి O(1) extra space. Optimization/crypto/low-level లో కీలకం.",
+        whenToUse: ["Power of 2 check", "Set bits count", "Single number XOR", "Subset generation bitmask"],
+        patternDetection: [
+          "🔍 'Single number...' → XOR all",
+          "🔍 'Power of 2...' → n & (n-1) == 0",
+          "🔍 'All subsets...' → bitmask 0..2^n",
+          "🔍 'Toggle bits...' → XOR with mask",
+        ],
+        visualExplanation:
+          "Bits ని switches 💡 లా ఊహించండి — ON(1)/OFF(0). Bit ops lightning speed లో flip/check/combine చేస్తాయి.",
+      },
+      hindi: {
+        title: "Bit Manipulation",
+        whatIsIt: "Numbers के binary representation पर AND/OR/XOR/NOT और shifts से directly काम करना।",
+        whyUseIt: "CPU की सबसे fast operations। कुछ operations में O(1) extra space। Optimization/crypto/low-level programming में जरूरी।",
+        whenToUse: ["Power of 2 check", "Set bits count", "Single number XOR", "Subset generation bitmask"],
+        patternDetection: [
+          "🔍 'Single number...' → XOR all",
+          "🔍 'Power of 2...' → n & (n-1) == 0",
+          "🔍 'All subsets...' → bitmask 0..2^n",
+          "🔍 'Toggle bits...' → XOR with mask",
+        ],
+        visualExplanation:
+          "Bits को switches 💡 समझो — ON(1)/OFF(0)। Bit ops lightning speed पर flip/check/combine करते हैं।",
+      },
+    },
   },
 ];
 
 const categories = [
-  { id: "fundamentals", title: "Beginner", desc: "Start here: build intuition with core structures and simple patterns" },
-  { id: "patterns", title: "Intermediate", desc: "Learn repeatable solving patterns that work across many problems" },
-  { id: "advanced", title: "Advanced", desc: "Prepare for harder interviews: DP, graphs, and complex reasoning" },
+  {
+    id: "fundamentals",
+    title: {
+      english: "Beginner",
+      tamil: "தொடக்கநிலை",
+      kannada: "ಆರಂಭಿಕ",
+      telugu: "ప్రారంభ స్థాయి",
+      hindi: "शुरुआती",
+    },
+    desc: {
+      english: "Start here: build intuition with core structures and simple patterns",
+      tamil: "இங்கே தொடங்குங்கள்: அடிப்படை structures மற்றும் எளிய patterns மூலம் புரிதலை கட்டுங்கள்",
+      kannada: "ಇಲ್ಲಿ ಆರಂಭಿಸಿ: core structures ಮತ್ತು simple patterns ಮೂಲಕ intuition ಕಟ್ಟಿರಿ",
+      telugu: "ఇక్కడ ప్రారంభించండి: core structures + simple patterns తో intuition పెంచండి",
+      hindi: "यहीं से शुरू करें: core structures और simple patterns से intuition बनाएं",
+    },
+  },
+  {
+    id: "patterns",
+    title: {
+      english: "Intermediate",
+      tamil: "இடைக்கட்ட",
+      kannada: "ಮಧ್ಯಮ",
+      telugu: "మధ్యస్థ",
+      hindi: "मध्यम",
+    },
+    desc: {
+      english: "Learn repeatable solving patterns that work across many problems",
+      tamil: "பல பிரச்சினைகளுக்கும் வேலை செய்யும் மீண்டும் பயன்படுத்தக்கூடிய solving patterns கற்றுக்கொள்ளுங்கள்",
+      kannada: "ಅನೇಕರ ಸಮಸ್ಯೆಗಳಿಗೆ ಕೆಲಸ ಮಾಡುವ repeatable solving patterns ಕಲಿಯಿರಿ",
+      telugu: "చాలా problems కి పని చేసే repeatable solving patterns నేర్చుకోండి",
+      hindi: "कई problems में काम आने वाले repeatable solving patterns सीखें",
+    },
+  },
+  {
+    id: "advanced",
+    title: {
+      english: "Advanced",
+      tamil: "மேம்பட்ட",
+      kannada: "ಅಡ್ವಾನ್ಸ್ಡ್",
+      telugu: "అధునాతన",
+      hindi: "उन्नत",
+    },
+    desc: {
+      english: "Prepare for harder interviews: DP, graphs, and complex reasoning",
+      tamil: "கடினமான interviews-க்கு தயார்: DP, graphs, மற்றும் ஆழமான reasoning",
+      kannada: "ಕಠಿಣ interviews ಗೆ ತಯಾರಿ: DP, graphs, ಮತ್ತು complex reasoning",
+      telugu: "కఠినమైన interviews కోసం: DP, graphs, complex reasoning",
+      hindi: "कठिन interviews के लिए: DP, graphs और complex reasoning",
+    },
+  },
 ];
+
+function tCategory(
+  value: (typeof categories)[number]["title"] | string,
+  language: LearnLanguage,
+): string {
+  if (typeof value === "string") return value;
+  return value[language] ?? value.english;
+}
 
 function getLevelLabel(category: DSATopic["category"]) {
   if (category === "fundamentals") return "Beginner";
@@ -791,6 +1873,7 @@ function getTopicPlaybook(topic: DSATopic) {
 
 export default function DSAPage() {
   const canonical = "https://pymaster.pro/dsa";
+  const { language } = useLanguage();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [visualInput, setVisualInput] = useState("1,2,3,4,5");
   const [windowStart, setWindowStart] = useState(0);
@@ -803,7 +1886,10 @@ export default function DSAPage() {
   const [linkedListNodes, setLinkedListNodes] = useState<number[]>([1, 2, 3, 4]);
   const [masteredTopics, setMasteredTopics] = useState<string[]>([]);
 
-  const topic = dsaTopics.find(t => t.id === selectedTopic);
+  const topic = useMemo(() => {
+    const base = dsaTopics.find((t) => t.id === selectedTopic);
+    return getLocalizedDSATopic(base, language);
+  }, [language, selectedTopic]);
   const relatedProblems = useMemo(() => (topic ? getRelatedProblems(topic.id) : []), [topic]);
   const arrayValues = useMemo(() => parseNumberList(visualInput), [visualInput]);
   const stringValues = useMemo(() => visualInput.replace(/\s+/g, ""), [visualInput]);
@@ -899,7 +1985,7 @@ export default function DSAPage() {
             return (
               <div key={cat.id} className="mb-3">
                 <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                  {cat.title}
+                  {tCategory(cat.title, language)}
                 </div>
                 {catTopics.map(t => (
                   <button
@@ -912,7 +1998,9 @@ export default function DSAPage() {
                     }`}
                   >
                     <span>{t.emoji}</span>
-                    <span className="truncate flex-1">{t.title}</span>
+                    <span className="truncate flex-1">
+                      {getLocalizedDSATopic(t, language)?.title ?? t.title}
+                    </span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${difficultyColor[t.difficulty]}`}>
                       {t.difficulty}
                     </span>
@@ -1436,10 +2524,11 @@ export default function DSAPage() {
             <div className="md:hidden w-full max-w-lg space-y-5 text-left">
               {categories.map(cat => (
                 <div key={cat.id}>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5 px-1">{cat.title}</h3>
-                  <p className="text-[11px] text-muted-foreground mb-2 px-1">{cat.desc}</p>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-1.5 px-1">{tCategory(cat.title, language)}</h3>
+                  <p className="text-[11px] text-muted-foreground mb-2 px-1">{tCategory(cat.desc, language)}</p>
                   <div className="space-y-1.5">
                     {dsaTopics.filter(t => t.category === cat.id).map(t => (
+                      // Localize per-topic title in the list.
                       <button
                         key={t.id}
                         onClick={() => setSelectedTopic(t.id)}
@@ -1447,7 +2536,9 @@ export default function DSAPage() {
                       >
                         <span className="text-lg shrink-0">{t.emoji}</span>
                         <div className="flex-1 text-left min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">{t.title}</div>
+                          <div className="text-sm font-medium text-foreground truncate">
+                            {getLocalizedDSATopic(t, language)?.title ?? t.title}
+                          </div>
                         </div>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border shrink-0 ${difficultyColor[t.difficulty]}`}>
                           {t.difficulty}
