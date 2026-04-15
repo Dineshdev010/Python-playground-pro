@@ -226,16 +226,16 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
           <div className="flex min-w-0 items-center gap-0.5 overflow-hidden">
           {primaryNavItems.map((item) => {
             const navLabel = item.to === "/quick-prep"
-              ? t("nav.quickPrep").split(" ")[0]
+              ? t("nav.quickPrep")
               : item.to === "/python-game"
-                ? t("nav.pythonGame").split(" ")[0]
-                : t(item.labelKey).split(" ")[0];
+                ? t("nav.pythonGame")
+                : t(item.labelKey);
             const hideOnLg = item.to === "/dashboard";
             return (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 text-[11px] transition-all duration-200 xl:gap-1.5 xl:px-2.5 xl:text-xs ${
+              className={`flex min-w-0 items-center gap-1 rounded-md px-2 py-1.5 text-[10px] transition-all duration-200 xl:gap-1.5 xl:px-2.5 xl:text-[11px] ${
                 hideOnLg ? "hidden xl:flex" : "flex"
               } ${
                 isRouteActive(item.to)
@@ -245,7 +245,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
               title={navLabel}
             >
               <span className="shrink-0 text-sm">{item.emoji}</span>
-              <span className="truncate max-w-[78px] xl:max-w-[110px]">{navLabel}</span>
+              <span className="whitespace-nowrap">{navLabel}</span>
             </Link>
           );
           })}
@@ -307,13 +307,12 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0 border border-border/60"
+              className="hidden md:flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0 border border-border/60"
               aria-label="Select language"
               title={`Language: ${selectedLanguageLabel}`}
             >
-              <Languages className="w-3.5 h-3.5" />
-              <span>{selectedLanguageLabel}</span>
-              <ChevronDown className="w-3.5 h-3.5" />
+              <Languages className="w-3.5 h-3.5 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 shrink-0" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 mt-2">
