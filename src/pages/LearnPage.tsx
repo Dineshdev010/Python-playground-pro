@@ -16,6 +16,7 @@ import { BookOpen, CheckCircle2, ChevronRight, Terminal, Lock, Play, ArrowLeft, 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Helmet } from "react-helmet-async";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const categoryOrder = ["Beginner", "Intermediate", "Advanced", "Expert"] as const;
 
@@ -921,11 +922,40 @@ function getLessonUsagePlaybook(title: string): LessonUsagePlaybook {
 }
 
 export default function LearnPage() {
+  const { language } = useLanguage();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { progress, completeLesson, unlockLesson, resetLesson } = useProgress();
   const { user } = useAuth();
   const navigate = useNavigate();
   const categories = categoryOrder.filter((category) => lessons.some((lesson) => lesson.category === category));
+  const text = {
+    english: {
+      lessonsTitle: "Python Lessons",
+      completed: "completed",
+      unlockInfo: "View a sponsor message or pay $100 to unlock lessons",
+      takeQuiz: "Take 200 Python Quiz",
+      allLessons: "All Lessons",
+      resetLesson: "Reset Lesson",
+      reset: "Reset",
+      inThisLesson: "In This Lesson",
+      keyTerms: "Key Terms In This Lesson",
+      exercises: "Exercises",
+      complete3: "Complete all 3 to unlock next chapter",
+      nextUnlocked: "Next Chapter Unlocked!",
+      lockedText: "Locked — complete all 3 exercises, watch an ad, or pay $100",
+      sponsor: "Sponsor Message",
+      next: "Next",
+      selectLesson: "Select a Lesson",
+      selectLessonDesc: "Choose a topic from the sidebar to start learning with a broader, clearer Python track.",
+      startQuiz: "Start Quiz",
+      beginnerMastery: "Beginner Mastery On PyMaster",
+    },
+    tamil: { lessonsTitle: "Python பாடங்கள்", completed: "முடிந்தது", unlockInfo: "Sponsor செய்தியை பாருங்கள் அல்லது $100 செலுத்தி திறக்கவும்", takeQuiz: "200 Python வினாடி வினா", allLessons: "அனைத்து பாடங்கள்", resetLesson: "பாடத்தை மீட்டமை", reset: "மீட்டமை", inThisLesson: "இந்த பாடத்தில்", keyTerms: "இந்த பாடத்தின் முக்கிய சொற்கள்", exercises: "பயிற்சிகள்", complete3: "அடுத்த அத்தியாயத்திற்காக 3-ஐ முடிக்கவும்", nextUnlocked: "அடுத்த அத்தியாயம் திறந்தது!", lockedText: "பூட்டப்பட்டது — 3 பயிற்சிகளை முடிக்கவும் அல்லது ad பார்க்கவும் அல்லது $100 செலுத்தவும்", sponsor: "Sponsor செய்தி", next: "அடுத்து", selectLesson: "ஒரு பாடத்தை தேர்வு செய்க", selectLessonDesc: "பக்கப்பட்டியலில் ஒரு தலைப்பை தேர்வு செய்து கற்றலை தொடங்குங்கள்.", startQuiz: "வினாடி வினா தொடங்கு", beginnerMastery: "PyMaster தொடக்க நிபுணத்துவம்" },
+    kannada: { lessonsTitle: "Python ಪಾಠಗಳು", completed: "ಪೂರ್ಣಗೊಂಡವು", unlockInfo: "ಸ್ಪಾನ್ಸರ್ ಸಂದೇಶ ನೋಡಿ ಅಥವಾ $100 ನೀಡಿ ಅನ್‌ಲಾಕ್ ಮಾಡಿ", takeQuiz: "200 Python ಕ್ವಿಜ್ ತೆಗೆದುಕೊಳ್ಳಿ", allLessons: "ಎಲ್ಲಾ ಪಾಠಗಳು", resetLesson: "ಪಾಠ ಮರುಹೊಂದಿಸಿ", reset: "ಮರುಹೊಂದಿಸಿ", inThisLesson: "ಈ ಪಾಠದಲ್ಲಿ", keyTerms: "ಈ ಪಾಠದ ಮುಖ್ಯ ಪದಗಳು", exercises: "ಅಭ್ಯಾಸಗಳು", complete3: "ಮುಂದಿನ ಅಧ್ಯಾಯಕ್ಕಾಗಿ 3 ಪೂರ್ಣಗೊಳಿಸಿ", nextUnlocked: "ಮುಂದಿನ ಅಧ್ಯಾಯ ತೆರೆದಿದೆ!", lockedText: "ಲಾಕ್ — 3 ಅಭ್ಯಾಸಗಳು ಪೂರ್ಣಗೊಳಿಸಿ ಅಥವಾ ಜಾಹೀರಾತು ನೋಡಿ ಅಥವಾ $100 ಪಾವತಿಸಿ", sponsor: "ಸ್ಪಾನ್ಸರ್ ಸಂದೇಶ", next: "ಮುಂದೆ", selectLesson: "ಒಂದು ಪಾಠ ಆಯ್ಕೆಮಾಡಿ", selectLessonDesc: "ಕಲಿಕೆ ಪ್ರಾರಂಭಿಸಲು ಬದಿಪಟ್ಟಿಯಿಂದ ವಿಷಯ ಆಯ್ಕೆಮಾಡಿ.", startQuiz: "ಕ್ವಿಜ್ ಪ್ರಾರಂಭಿಸಿ", beginnerMastery: "PyMaster ಆರಂಭಿಕ ನಿಪುಣತೆ" },
+    telugu: { lessonsTitle: "Python పాఠాలు", completed: "పూర్తయ్యాయి", unlockInfo: "స్పాన్సర్ సందేశం చూడండి లేదా $100 చెల్లించి అన్‌లాక్ చేయండి", takeQuiz: "200 Python క్విజ్ చేయండి", allLessons: "అన్ని పాఠాలు", resetLesson: "పాఠాన్ని రీసెట్ చేయి", reset: "రీసెట్", inThisLesson: "ఈ పాఠంలో", keyTerms: "ఈ పాఠంలోని ముఖ్య పదాలు", exercises: "వ్యాయామాలు", complete3: "తదుపరి అధ్యాయం కోసం 3 పూర్తి చేయండి", nextUnlocked: "తదుపరి అధ్యాయం అన్‌లాక్ అయింది!", lockedText: "లాక్ — 3 వ్యాయామాలు పూర్తి చేయండి లేదా ad చూడండి లేదా $100 చెల్లించండి", sponsor: "స్పాన్సర్ సందేశం", next: "తదుపరి", selectLesson: "ఒక పాఠం ఎంచుకోండి", selectLessonDesc: "సైడ్‌బార్ నుండి టాపిక్ ఎంచుకుని లెర్నింగ్ ప్రారంభించండి.", startQuiz: "క్విజ్ ప్రారంభించండి", beginnerMastery: "PyMaster బిగినర్ మాస్టరీ" },
+    hindi: { lessonsTitle: "Python पाठ", completed: "पूरा", unlockInfo: "स्पॉन्सर संदेश देखें या $100 देकर अनलॉक करें", takeQuiz: "200 Python क्विज़ दें", allLessons: "सभी पाठ", resetLesson: "पाठ रीसेट करें", reset: "रीसेट", inThisLesson: "इस पाठ में", keyTerms: "इस पाठ के मुख्य शब्द", exercises: "अभ्यास", complete3: "अगला चैप्टर खोलने के लिए सभी 3 पूरे करें", nextUnlocked: "अगला चैप्टर अनलॉक!", lockedText: "लॉक — 3 अभ्यास पूरे करें, विज्ञापन देखें, या $100 दें", sponsor: "स्पॉन्सर संदेश", next: "अगला", selectLesson: "एक पाठ चुनें", selectLessonDesc: "सीखना शुरू करने के लिए साइडबार से विषय चुनें।", startQuiz: "क्विज़ शुरू करें", beginnerMastery: "PyMaster शुरुआती महारत" },
+  } as const;
+  const t = text[language];
 
   const selectedLesson = lessons.find(l => l.id === selectedId);
   const canonical = "https://pymaster.pro/learn";
@@ -1181,16 +1211,16 @@ export default function LearnPage() {
       <aside className="w-72 border-r border-border bg-surface-1 overflow-y-auto shrink-0 hidden md:block">
         <div className="p-4 border-b border-border">
           <h2 className="font-semibold text-foreground flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" /> Python Lessons
+            <BookOpen className="w-4 h-4 text-primary" /> {t.lessonsTitle}
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            {progress.completedLessons.length}/{lessons.length} completed
+            {progress.completedLessons.length}/{lessons.length} {t.completed}
           </p>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <Play className="w-3 h-3" /> View a sponsor message or pay $100 to unlock lessons
+            <Play className="w-3 h-3" /> {t.unlockInfo}
           </p>
           <Button asChild size="sm" variant="outline" className="mt-3 w-full justify-start">
-            <Link to="/python-quiz-100">Take 200 Python Quiz</Link>
+            <Link to="/python-quiz-100">{t.takeQuiz}</Link>
           </Button>
         </div>
         <nav className="p-2">
@@ -1269,7 +1299,7 @@ export default function LearnPage() {
               onClick={() => setSelectedId(null)} 
               className="md:hidden flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" /> All Lessons
+              <ArrowLeft className="w-4 h-4" /> {t.allLessons}
             </button>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full border ${categoryTone[selectedLesson.category as keyof typeof categoryTone]?.badge ?? "bg-secondary text-foreground border-border"}`}>
@@ -1295,8 +1325,8 @@ export default function LearnPage() {
                   }}
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span className="hidden sm:inline">Reset Lesson</span>
-                  <span className="sm:hidden">Reset</span>
+                  <span className="hidden sm:inline">{t.resetLesson}</span>
+                  <span className="sm:hidden">{t.reset}</span>
                 </Button>
               )}
             </div>
@@ -1348,7 +1378,7 @@ export default function LearnPage() {
 
             {selectedLessonHeadings.length > 0 && (
               <div className="mb-6 rounded-2xl border border-border bg-card/60 p-4">
-                <div className="text-sm font-semibold text-foreground mb-3">In This Lesson</div>
+                <div className="text-sm font-semibold text-foreground mb-3">{t.inThisLesson}</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedLessonHeadings.map((heading) => (
                     <span key={heading} className="rounded-full border border-border bg-background px-3 py-1 text-sm text-muted-foreground">
@@ -1361,7 +1391,7 @@ export default function LearnPage() {
 
             {selectedLessonGlossary.length > 0 && (
               <div className="mb-6 rounded-2xl border border-border bg-card/60 p-4">
-                <div className="text-sm font-semibold text-foreground mb-3">Key Terms In This Lesson</div>
+                <div className="text-sm font-semibold text-foreground mb-3">{t.keyTerms}</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedLessonGlossary.map((term) => (
                     <span key={term} className="rounded-full border border-border bg-background px-3 py-1 text-sm text-muted-foreground">
@@ -1611,9 +1641,9 @@ export default function LearnPage() {
             {/* Exercises */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-foreground mb-4">
-                 Exercises
+                 {t.exercises}
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  — Complete all 3 to unlock next chapter
+                  — {t.complete3}
                 </span>
               </h3>
               <div className="space-y-3">
@@ -1648,7 +1678,7 @@ export default function LearnPage() {
                       )}
                       <div>
                         <p className="text-sm font-medium text-foreground">
-                          {canProceed ? "Next Chapter Unlocked!" : "Locked — complete all 3 exercises, watch an ad, or pay $100"}
+                          {canProceed ? t.nextUnlocked : t.lockedText}
                         </p>
                         <p className="text-xs text-muted-foreground">{nextLesson.title}</p>
                       </div>
@@ -1662,7 +1692,7 @@ export default function LearnPage() {
                             onClick={() => handleAdUnlock(nextLesson.id)}
                             className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
                           >
-                            <Play className="w-3 h-3" /> Sponsor Message
+                            <Play className="w-3 h-3" /> {t.sponsor}
                           </Button>
                           <Button
                             size="sm"
@@ -1680,7 +1710,7 @@ export default function LearnPage() {
                         onClick={() => setSelectedId(nextLesson.id)}
                         className="gap-1"
                       >
-                        Next <ChevronRight className="w-3 h-3" />
+                        {t.next} <ChevronRight className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
@@ -1691,8 +1721,8 @@ export default function LearnPage() {
         ) : (
           <div className="flex flex-col items-center md:justify-center h-full text-center px-4 sm:px-6 py-6 overflow-y-auto">
             <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4 hidden md:block" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Select a Lesson</h2>
-            <p className="text-muted-foreground mb-6 hidden md:block">Choose a topic from the sidebar to start learning with a broader, clearer Python track.</p>
+            <h2 className="text-xl font-semibold text-foreground mb-2">{t.selectLesson}</h2>
+            <p className="text-muted-foreground mb-6 hidden md:block">{t.selectLessonDesc}</p>
 
             <div className="w-full max-w-5xl mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-5 text-left">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1703,7 +1733,7 @@ export default function LearnPage() {
                   </p>
                 </div>
                 <Button asChild>
-                  <Link to="/python-quiz-100">Start Quiz</Link>
+                  <Link to="/python-quiz-100">{t.startQuiz}</Link>
                 </Button>
               </div>
             </div>
@@ -1724,7 +1754,7 @@ export default function LearnPage() {
             </div>
 
             <div className="w-full max-w-5xl mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-left">
-              <div className="text-base font-semibold text-foreground mb-3">Beginner Mastery On PyMaster</div>
+              <div className="text-base font-semibold text-foreground mb-3">{t.beginnerMastery}</div>
               <p className="text-sm text-muted-foreground mb-4">
                 If someone completes the beginner track carefully, these are the core skills they should understand clearly before moving ahead.
               </p>

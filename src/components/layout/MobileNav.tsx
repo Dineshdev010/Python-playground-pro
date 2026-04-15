@@ -5,10 +5,12 @@
 // ============================================================
 
 import { Link, useLocation } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { mobileNavItems } from "./navItems";
 
 export function MobileNav() {
   const location = useLocation();
+  const { t } = useLanguage();
 
   return (
     // Fixed bottom bar, visible only on mobile (hidden on lg screens)
@@ -28,7 +30,7 @@ export function MobileNav() {
           {/* Show emoji instead of Lucide icon on mobile for compactness */}
           <span className="text-[1.22rem] leading-none">{item.emoji}</span>
           {/* Show only the first word of the label (e.g., "Learn" not "Learn Python") */}
-          {item.label.split(" ")[0]}
+          {t(item.labelKey).split(" ")[0]}
         </Link>
       )}
       </div>

@@ -18,6 +18,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProgressProvider } from "@/contexts/ProgressContext";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { GlobalConfetti } from "@/components/GlobalConfetti";
@@ -127,18 +128,20 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
                 <ProgressProvider>
-                  <Toaster />
-                  <Sonner />
-                  <GlobalConfetti />
-                  <AppLayout>
-                    <ErrorBoundary>
-                      <Routes>
-                        {appRoutes.map((route) => (
-                          <Route key={route.path} path={route.path} element={renderRouteElement(route)} />
-                        ))}
-                      </Routes>
-                    </ErrorBoundary>
-                  </AppLayout>
+                  <LanguageProvider>
+                    <Toaster />
+                    <Sonner />
+                    <GlobalConfetti />
+                    <AppLayout>
+                      <ErrorBoundary>
+                        <Routes>
+                          {appRoutes.map((route) => (
+                            <Route key={route.path} path={route.path} element={renderRouteElement(route)} />
+                          ))}
+                        </Routes>
+                      </ErrorBoundary>
+                    </AppLayout>
+                  </LanguageProvider>
                 </ProgressProvider>
               </AuthProvider>
             </BrowserRouter>

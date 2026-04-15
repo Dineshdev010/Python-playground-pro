@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { 
-  ChevronDown, Clock, HeartHandshake, LogIn, LogOut, Menu, Moon, Settings, Sun, 
+  Check, ChevronDown, Clock, HeartHandshake, Languages, LogIn, LogOut, Menu, Moon, Settings, Sun, 
   Trophy, User, Wallet, Volume2, VolumeX, Medal, ShieldCheck, Award, Zap, Star 
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ import { StreakFire } from "@/components/StreakFire";
 import { useTheme } from "@/components/ThemeProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useProgress } from "@/contexts/ProgressContext";
 import { useSound } from "@/contexts/SoundContext";
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +90,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   const { progress } = useProgress();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { language, setLanguage, languageOptions, t } = useLanguage();
   const { muted, toggleMuted } = useSound();
   const { toast } = useToast();
   const levelNumber = Math.floor(progress.xp / 500) + 1;
@@ -98,12 +100,11 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   const secondaryNavItems = navItems.filter((item) => !primaryNavRoutes.includes(item.to));
   const [menuOpen, setMenuOpen] = useState(false);
   const [showMenuHint, setShowMenuHint] = useState(false);
-
   const menuGroups: Array<{ label: string; routes: string[] }> = [
-    { label: "Content", routes: ["/blog", "/projects"] },
-    { label: "Practice", routes: ["/compiler", "/quick-prep", "/python-game", "/python-quiz-100", "/aptitude"] },
-    { label: "Career", routes: ["/jobs", "/career-roadmap", "/linux-learn", "/leaderboard", "/certificate"] },
-    { label: "Support", routes: ["/donate", "/about", "/contact"] },
+    { label: t("menu.content"), routes: ["/blog", "/projects"] },
+    { label: t("menu.practice"), routes: ["/compiler", "/quick-prep", "/python-game", "/python-quiz-100", "/aptitude"] },
+    { label: t("menu.career"), routes: ["/jobs", "/career-roadmap", "/linux-learn", "/leaderboard", "/certificate"] },
+    { label: t("menu.support"), routes: ["/donate", "/about", "/contact"] },
   ];
   const isRouteActive = (route: string) =>
     location.pathname === route || location.pathname.startsWith(`${route}/`);
@@ -161,6 +162,15 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
       delete document.body.dataset.navProfileOpen;
     };
   }, [profileMenuOpen]);
+
+  const languageLabelByValue = {
+    english: t("language.defaultEnglish"),
+    tamil: t("language.tamil"),
+    kannada: t("language.kannada"),
+    telugu: t("language.telugu"),
+    hindi: t("language.hindi"),
+  } as const;
+  const selectedLanguageLabel = languageLabelByValue[language] ?? t("language.defaultEnglish");
 
   return (
     <>
@@ -226,10 +236,10 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             >
               <span className="text-sm">{item.emoji}</span>
               {item.to === "/quick-prep"
-                ? "Quick"
+                ? t("nav.quickPrep").split(" ")[0]
                 : item.to === "/python-game"
-                  ? "Game"
-                  : item.label.split(" ")[0]}
+                  ? t("nav.pythonGame").split(" ")[0]
+                  : t(item.labelKey).split(" ")[0]}
             </Link>
           ))}
           </div>
@@ -246,11 +256,11 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
                 >
                   {showMenuHint && !menuOpen ? (
                     <span className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary text-primary-foreground px-3 py-1 text-[10px] font-semibold shadow-md border border-primary/30">
-                      More pages here
+                      {t("common.morePages")}
                       <span className="absolute left-1/2 top-full -translate-x-1/2 h-2 w-2 rotate-45 bg-primary border-r border-b border-primary/30" />
                     </span>
                   ) : null}
-                  Menu
+                  {t("common.menu")}
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -264,7 +274,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
                       <DropdownMenuItem key={item.to} asChild>
                         <Link to={item.to} className="flex w-full cursor-pointer items-center gap-2">
                           <span className="text-sm">{item.emoji}</span>
-                          <span>{item.label}</span>
+                          <span>{t(item.labelKey)}</span>
                         </Link>
                       </DropdownMenuItem>
                     ))}
@@ -275,7 +285,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
                   <DropdownMenuItem key={item.to} asChild>
                     <Link to={item.to} className="flex w-full cursor-pointer items-center gap-2">
                       <span className="text-sm">{item.emoji}</span>
-                      <span>{item.label}</span>
+                      <span>{t(item.labelKey)}</span>
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -287,13 +297,40 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
       <div className="ml-2 flex shrink-0 items-center gap-2 sm:gap-3">
         {/* Smooth Real-Time Study Clock */}
         <TimeTracker />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0 border border-border/60"
+              aria-label="Select language"
+              title={`${t("language.title")}: ${selectedLanguageLabel}`}
+            >
+              <Languages className="w-3.5 h-3.5" />
+              <span>{selectedLanguageLabel}</span>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 mt-2">
+            <DropdownMenuLabel>{t("language.title")}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {languageOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.value}
+                className="cursor-pointer flex items-center justify-between"
+                onClick={() => setLanguage(option.value)}
+              >
+                <span>{languageLabelByValue[option.value]}</span>
+                {language === option.value ? <Check className="w-4 h-4 text-primary" /> : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Link
           to="/contact"
           className="hidden xl:flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors shrink-0"
-          title="Contact Support"
+          title={t("common.support")}
         >
           <HeartHandshake className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Support</span>
+          <span className="hidden sm:inline">{t("common.support")}</span>
         </Link>
         {!user && (
           <button
@@ -355,17 +392,17 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
               <DropdownMenuItem asChild>
                 <Link to="/dashboard" className="cursor-pointer flex items-center w-full">
                   <User className="mr-2 h-4 w-4" />
-                  <span>Profile & Dashboard</span>
+                  <span>{t("common.profileDashboard")}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
                 {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                <span>{theme === "dark" ? t("common.lightMode") : t("common.darkMode")}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
+                <span>{t("common.signOut")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -375,7 +412,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>Sign In</span>
+            <span>{t("common.signIn")}</span>
           </Link>
         )}
       </div>

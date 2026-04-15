@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { AboutUsSection } from "@/components/landing/AboutUsSection";
 import { Helmet } from "react-helmet-async";
 import { siteConfig } from "@/config/site";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import type { Variants } from "framer-motion";
 
@@ -31,6 +32,70 @@ const scaleIn: Variants = {
 };
 
 export default function AboutPage() {
+  const { language } = useLanguage();
+  const text = {
+    english: {
+      about: "About",
+      intro: "PyMaster is a free, interactive platform designed to help anyone learn Python programming — from absolute beginners to aspiring professionals.",
+      mission: "Our Mission",
+      missionDesc: "We believe that quality programming education should be accessible to everyone, regardless of their background or financial situation. Our mission is to make learning Python fun, engaging, and effective through hands-on practice, structured lessons, and a supportive learning environment.",
+      offer: "What We Offer",
+      team: "Our Team",
+      touch: "Get In Touch",
+      touchDesc: "Have questions, feedback, or want to collaborate? We'd love to hear from you. Reach out to us anytime!",
+      emailUs: "Email Us",
+      supportUs: "Support Us ❤️",
+    },
+    tamil: {
+      about: "PyMaster பற்றி",
+      intro: "PyMaster என்பது இலவச, தொடர்பாடல் தளம். தொடக்க நிலையிலிருந்து தொழில்முறை நிலைவரை Python கற்க உதவுகிறது.",
+      mission: "எங்கள் நோக்கம்",
+      missionDesc: "தரமான நிரலாக்க கல்வி அனைவருக்கும் கிடைக்க வேண்டும் என்பதே எங்கள் நம்பிக்கை.",
+      offer: "நாங்கள் வழங்குவது",
+      team: "எங்கள் குழு",
+      touch: "தொடர்பு கொள்ளுங்கள்",
+      touchDesc: "கேள்விகள், கருத்துகள் அல்லது இணைந்து பணிபுரிய விருப்பமா? எங்களை எப்போது வேண்டுமானாலும் தொடர்பு கொள்ளுங்கள்.",
+      emailUs: "எங்களுக்கு மின்னஞ்சல் அனுப்புங்கள்",
+      supportUs: "எங்களை ஆதரிக்கவும் ❤️",
+    },
+    kannada: {
+      about: "PyMaster ಬಗ್ಗೆ",
+      intro: "PyMaster ಉಚಿತ ಹಾಗೂ ಸಂವಹನಾತ್ಮಕ ವೇದಿಕೆ, ಆರಂಭಿಕರಿಂದ ವೃತ್ತಿಪರರ ತನಕ Python ಕಲಿಯಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+      mission: "ನಮ್ಮ ಧ್ಯೇಯ",
+      missionDesc: "ಗುಣಮಟ್ಟದ ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಶಿಕ್ಷಣ ಎಲ್ಲರಿಗೂ ಲಭ್ಯವಾಗಬೇಕು ಎಂದು ನಾವು ನಂಬುತ್ತೇವೆ.",
+      offer: "ನಾವು ನೀಡುವುದು",
+      team: "ನಮ್ಮ ತಂಡ",
+      touch: "ಸಂಪರ್ಕಿಸಿ",
+      touchDesc: "ಪ್ರಶ್ನೆಗಳು, ಅಭಿಪ್ರಾಯಗಳು ಅಥವಾ ಸಹಕಾರ ಬೇಕೆ? ಯಾವಾಗ ಬೇಕಾದರೂ ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+      emailUs: "ನಮಗೆ ಇಮೇಲ್ ಮಾಡಿ",
+      supportUs: "ನಮ್ಮನ್ನು ಬೆಂಬಲಿಸಿ ❤️",
+    },
+    telugu: {
+      about: "PyMaster గురించి",
+      intro: "PyMaster ఒక ఉచిత ఇంటరాక్టివ్ ప్లాట్‌ఫామ్, ప్రారంభం నుంచి ప్రొఫెషనల్ వరకు Python నేర్చుకోవడానికి సహాయపడుతుంది.",
+      mission: "మా లక్ష్యం",
+      missionDesc: "నాణ్యమైన ప్రోగ్రామింగ్ విద్య అందరికీ అందుబాటులో ఉండాలని మేము నమ్ముతున్నాం.",
+      offer: "మేము అందించేది",
+      team: "మా బృందం",
+      touch: "మాతో సంప్రదించండి",
+      touchDesc: "ప్రశ్నలు, అభిప్రాయాలు లేదా కలసి పని చేయాలనుకుంటున్నారా? ఎప్పుడైనా మమ్మల్ని సంప్రదించండి.",
+      emailUs: "మాకు ఇమెయిల్ చేయండి",
+      supportUs: "మాకు మద్దతు ఇవ్వండి ❤️",
+    },
+    hindi: {
+      about: "PyMaster के बारे में",
+      intro: "PyMaster एक मुफ्त इंटरैक्टिव प्लेटफॉर्म है जो शुरुआती से प्रोफेशनल तक Python सीखने में मदद करता है।",
+      mission: "हमारा मिशन",
+      missionDesc: "हम मानते हैं कि गुणवत्तापूर्ण प्रोग्रामिंग शिक्षा सभी के लिए सुलभ होनी चाहिए।",
+      offer: "हम क्या प्रदान करते हैं",
+      team: "हमारी टीम",
+      touch: "संपर्क करें",
+      touchDesc: "कोई सवाल, फीडबैक या सहयोग करना चाहते हैं? कभी भी संपर्क करें।",
+      emailUs: "हमें ईमेल करें",
+      supportUs: "हमें सपोर्ट करें ❤️",
+    },
+  } as const;
+  const t = text[language];
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       <Helmet>
@@ -52,14 +117,14 @@ export default function AboutPage() {
             custom={0}
             className="text-4xl md:text-5xl font-bold text-foreground"
           >
-            About <span className="text-primary">PyMaster</span>
+            {t.about} <span className="text-primary">PyMaster</span>
           </motion.h1>
           <motion.p
             variants={fadeUp}
             custom={1}
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
-            PyMaster is a free, interactive platform designed to help anyone learn Python programming — from absolute beginners to aspiring professionals.
+            {t.intro}
           </motion.p>
         </motion.div>
       </section>
@@ -74,10 +139,10 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto space-y-6">
           <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3">
             <Target className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">Our Mission</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.mission}</h2>
           </motion.div>
           <motion.p variants={fadeUp} custom={1} className="text-muted-foreground leading-relaxed">
-            We believe that quality programming education should be accessible to everyone, regardless of their background or financial situation. Our mission is to make learning Python fun, engaging, and effective through hands-on practice, structured lessons, and a supportive learning environment.
+            {t.missionDesc}
           </motion.p>
         </div>
       </motion.section>
@@ -92,7 +157,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto space-y-8">
           <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">What We Offer</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.offer}</h2>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-6">
             {[
@@ -128,7 +193,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto space-y-6">
           <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3">
             <Users className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">Our Team</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.team}</h2>
           </motion.div>
           <div className="max-w-sm mx-auto">
             {[
@@ -170,10 +235,10 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <motion.div variants={fadeUp} custom={0} className="flex items-center justify-center gap-3">
             <Heart className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">Get In Touch</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.touch}</h2>
           </motion.div>
           <motion.p variants={fadeUp} custom={1} className="text-muted-foreground max-w-xl mx-auto">
-            Have questions, feedback, or want to collaborate? We'd love to hear from you. Reach out to us anytime!
+            {t.touchDesc}
           </motion.p>
           <motion.div variants={fadeUp} custom={2} className="flex flex-wrap justify-center gap-4">
             <motion.a
@@ -184,11 +249,11 @@ export default function AboutPage() {
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
-              Email Us
+              {t.emailUs}
             </motion.a>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link to="/donate" className="group px-6 py-3 rounded-lg border border-border bg-card text-foreground font-medium hover:bg-secondary transition-colors inline-flex items-center gap-2">
-                Support Us ❤️
+                {t.supportUs}
                 <motion.span
                   animate={{ x: [0, 4, 0] }}
                   transition={{ repeat: Infinity, duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}

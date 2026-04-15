@@ -8,6 +8,7 @@ import { Heart, Coffee, CreditCard, Star, Gift, ExternalLink, Smartphone } from 
 import { Button } from "@/components/ui/button";
 import { Helmet } from "react-helmet-async";
 import { siteConfig } from "@/config/site";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import gpayQR from "@/assets/gpay-qr.jpg";
 
@@ -62,6 +63,70 @@ const fadeUp = {
 };
 
 export default function DonatePage() {
+  const { language } = useLanguage();
+  const text = {
+    english: {
+      support: "Support",
+      intro: "PyMaster is free and always will be. Your donations help us create more lessons, build better tools, and reach more aspiring Python developers worldwide.",
+      gpayTitle: "Pay via GPay 📱",
+      gpayDesc: "Scan the QR code below with Google Pay or any UPI app to donate instantly.",
+      chooseSupport: "Choose How to Support 🎁",
+      champions: "Wall of Champions ⭐",
+      yourName: "Your name could be here! 🌟 Donate to join our Wall of Champions.",
+      thankYou: "Thank You!",
+      thanksDesc: "Every contribution, no matter how small, makes a huge difference. Together, we're building the best free Python learning platform.",
+      donateVia: "Donate via",
+    },
+    tamil: {
+      support: "ஆதரிக்கவும்",
+      intro: "PyMaster இலவசம், என்றும் இலவசமே. உங்கள் நன்கொடைகள் மேலும் பாடங்கள் மற்றும் நல்ல கருவிகளை உருவாக்க உதவுகின்றன.",
+      gpayTitle: "GPay மூலம் செலுத்தவும் 📱",
+      gpayDesc: "Google Pay அல்லது எந்த UPI ஆப்பாலும் கீழே உள்ள QR-ஐ ஸ்கேன் செய்து உடனே நன்கொடை அளிக்கலாம்.",
+      chooseSupport: "ஆதரிக்கும் முறையை தேர்வு செய்யவும் 🎁",
+      champions: "சாம்பியன் சுவர் ⭐",
+      yourName: "உங்கள் பெயரும் இங்கே இருக்கலாம்! 🌟",
+      thankYou: "நன்றி!",
+      thanksDesc: "சிறிய பங்களிப்பும் பெரிய மாற்றத்தை ஏற்படுத்தும். சேர்ந்து சிறந்த இலவச Python கற்றல் தளத்தை உருவாக்குகிறோம்.",
+      donateVia: "இதன் மூலம் நன்கொடை",
+    },
+    kannada: {
+      support: "ಬೆಂಬಲಿಸಿ",
+      intro: "PyMaster ಉಚಿತವಾಗಿದೆ ಮತ್ತು ಹಾಗೆಯೇ ಇರುತ್ತದೆ. ನಿಮ್ಮ ದೇಣಿಗೆಗಳು ಇನ್ನಷ್ಟು ಪಾಠಗಳು ಮತ್ತು ಉತ್ತಮ ಸಾಧನಗಳನ್ನು ನಿರ್ಮಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತವೆ.",
+      gpayTitle: "GPay ಮೂಲಕ ಪಾವತಿ 📱",
+      gpayDesc: "Google Pay ಅಥವಾ ಯಾವುದೇ UPI ಆಪ್ ಮೂಲಕ ಕೆಳಗಿನ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ದೇಣಿಗೆ ನೀಡಿ.",
+      chooseSupport: "ಹೇಗೆ ಬೆಂಬಲಿಸಬೇಕು ಆಯ್ಕೆಮಾಡಿ 🎁",
+      champions: "ಚಾಂಪಿಯನ್ ಗೋಡೆ ⭐",
+      yourName: "ನಿಮ್ಮ ಹೆಸರು ಕೂಡ ಇಲ್ಲಿ ಇರಬಹುದು! 🌟",
+      thankYou: "ಧನ್ಯವಾದಗಳು!",
+      thanksDesc: "ಚಿಕ್ಕ ಕೊಡುಗೆಯೂ ದೊಡ್ಡ ಬದಲಾವಣೆ ತರುತ್ತದೆ. ನಾವು ಸೇರಿ ಉತ್ತಮ ಉಚಿತ Python ಕಲಿಕಾ ವೇದಿಕೆಯನ್ನು ನಿರ್ಮಿಸುತ್ತಿದ್ದೇವೆ.",
+      donateVia: "ಇದರ ಮೂಲಕ ದೇಣಿಗೆ",
+    },
+    telugu: {
+      support: "మద్దతు ఇవ్వండి",
+      intro: "PyMaster ఉచితం మరియు అలాగే ఉంటుంది. మీ విరాళాలు మరిన్ని పాఠాలు, మెరుగైన టూల్స్ నిర్మించడానికి సహాయపడతాయి.",
+      gpayTitle: "GPay ద్వారా చెల్లించండి 📱",
+      gpayDesc: "Google Pay లేదా ఏదైనా UPI యాప్‌తో క్రింది QR కోడ్ స్కాన్ చేసి వెంటనే విరాళం ఇవ్వండి.",
+      chooseSupport: "మద్దతు విధానం ఎంచుకోండి 🎁",
+      champions: "చాంపియన్ల గోడ ⭐",
+      yourName: "మీ పేరు కూడా ఇక్కడ ఉండొచ్చు! 🌟",
+      thankYou: "ధన్యవాదాలు!",
+      thanksDesc: "చిన్న సహకారమైనా పెద్ద మార్పు చేస్తుంది. కలసి ఉత్తమ ఉచిత Python లెర్నింగ్ ప్లాట్‌ఫామ్‌ను నిర్మిస్తున్నాము.",
+      donateVia: "దీనివద్ద విరాళం",
+    },
+    hindi: {
+      support: "सपोर्ट करें",
+      intro: "PyMaster मुफ्त है और रहेगा। आपकी डोनेशन से हम और पाठ, बेहतर टूल्स और ज्यादा शिक्षार्थियों तक पहुंच बना पाते हैं।",
+      gpayTitle: "GPay से भुगतान करें 📱",
+      gpayDesc: "Google Pay या किसी भी UPI ऐप से नीचे का QR स्कैन करके तुरंत डोनेट करें।",
+      chooseSupport: "सपोर्ट का तरीका चुनें 🎁",
+      champions: "चैंपियंस वॉल ⭐",
+      yourName: "आपका नाम भी यहां हो सकता है! 🌟",
+      thankYou: "धन्यवाद!",
+      thanksDesc: "छोटी से छोटी मदद भी बड़ा फर्क लाती है। मिलकर हम बेहतरीन मुफ्त Python लर्निंग प्लेटफॉर्म बना रहे हैं।",
+      donateVia: "इससे डोनेट करें",
+    },
+  } as const;
+  const t = text[language];
   return (
     <div className="min-h-screen">
       <Helmet>
@@ -82,14 +147,13 @@ export default function DonatePage() {
             className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground mb-4"
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
           >
-            Support <span className="text-primary">PyMaster</span> 💙
+            {t.support} <span className="text-primary">PyMaster</span> 💙
           </motion.h1>
           <motion.p
             className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto mb-8"
             initial="hidden" animate="visible" variants={fadeUp} custom={2}
           >
-            PyMaster is free and always will be. Your donations help us create more lessons, 
-            build better tools, and reach more aspiring Python developers worldwide.
+            {t.intro}
           </motion.p>
         </div>
       </section>
@@ -116,9 +180,9 @@ export default function DonatePage() {
           className="bg-card border-2 border-dashed border-primary/30 rounded-2xl p-8 text-center mb-16"
         >
           <Smartphone className="w-10 h-10 text-primary mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-foreground mb-2">Pay via GPay 📱</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">{t.gpayTitle}</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Scan the QR code below with Google Pay or any UPI app to donate instantly.
+            {t.gpayDesc}
           </p>
           <div className="inline-block rounded-xl overflow-hidden border border-border shadow-lg mb-4">
             <img src={gpayQR} alt={`GPay QR Code for donating to PyMaster by ${siteConfig.author}`} className="w-64 h-auto" loading="lazy" />
@@ -131,7 +195,7 @@ export default function DonatePage() {
 
         {/* Donation Options */}
         <h2 className="text-2xl font-bold text-foreground text-center mb-8">
-          Choose How to Support 🎁
+          {t.chooseSupport}
         </h2>
         <div className="grid sm:grid-cols-3 gap-6 mb-16">
           {donationLinks.map((link, i) => (
@@ -148,7 +212,7 @@ export default function DonatePage() {
                 onClick={() => window.open(link.url, "_blank")}
               >
                 <link.icon className="w-4 h-4" />
-                Donate via {link.name}
+                {t.donateVia} {link.name}
                 <ExternalLink className="w-3 h-3" />
               </Button>
             </motion.div>
@@ -158,7 +222,7 @@ export default function DonatePage() {
         {/* Wall of Supporters */}
         <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-16">
           <h2 className="text-xl font-bold text-foreground text-center mb-6 flex items-center justify-center gap-2">
-            <Star className="w-5 h-5 text-python-yellow fill-python-yellow" /> Wall of Champions ⭐
+            <Star className="w-5 h-5 text-python-yellow fill-python-yellow" /> {t.champions}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {supporters.map((s, i) => (
@@ -174,7 +238,7 @@ export default function DonatePage() {
             ))}
           </div>
           <p className="text-center text-xs text-muted-foreground mt-4">
-            Your name could be here! 🌟 Donate to join our Wall of Champions.
+            {t.yourName}
           </p>
         </div>
 
@@ -182,10 +246,9 @@ export default function DonatePage() {
         <div className="text-center pb-12">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <div className="text-5xl mb-4">🙏</div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Thank You!</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t.thankYou}</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Every contribution, no matter how small, makes a huge difference. 
-              Together, we're building the best free Python learning platform.
+              {t.thanksDesc}
             </p>
           </motion.div>
         </div>

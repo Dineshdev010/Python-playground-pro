@@ -1,10 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { ChevronLeft, Wallet, User } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, Languages, Wallet, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProgress } from "@/contexts/ProgressContext";
 import { getStreakTitle } from "@/lib/progress";
 import { StreakFire } from "@/components/StreakFire";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { navItems } from "./navItems";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -17,8 +26,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const { progress } = useProgress();
   const { user } = useAuth();
+  const { language, setLanguage, languageOptions, t } = useLanguage();
   const profileName = localStorage.getItem("pymaster_name") || user?.displayName || user?.email?.split("@")[0] || "Guest";
   const profilePic = localStorage.getItem("pymaster_avatar") || "";
+  const languageLabelByValue = {
+    english: t("language.defaultEnglish"),
+    tamil: t("language.tamil"),
+    kannada: t("language.kannada"),
+    telugu: t("language.telugu"),
+    hindi: t("language.hindi"),
+  } as const;
+  const selectedLanguageLabel = languageLabelByValue[language] ?? t("language.defaultEnglish");
 
   if (!open) return null;
 
@@ -69,7 +87,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 }`}
               >
                 <span className="text-base">{item.emoji}</span>
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             );
           })}
@@ -102,6 +120,35 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <Wallet className="w-4 h-4 text-reward-gold" />
             <span className="text-foreground font-medium">${progress.wallet}</span>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-xs font-medium bg-secondary/50 text-foreground hover:bg-secondary transition-colors border border-border/60"
+                aria-label="Select language"
+                title={`${t("language.title")}: ${selectedLanguageLabel}`}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Languages className="w-3.5 h-3.5" />
+                  <span>{selectedLanguageLabel}</span>
+                </span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuLabel>{t("language.title")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {languageOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  className="cursor-pointer flex items-center justify-between"
+                  onClick={() => setLanguage(option.value)}
+                >
+                  <span>{languageLabelByValue[option.value]}</span>
+                  {language === option.value ? <Check className="w-4 h-4 text-primary" /> : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <p className="text-[9px] text-muted-foreground font-mono mt-1"># Python {">>"} Life 🐍</p>
         </div>
       </motion.aside>

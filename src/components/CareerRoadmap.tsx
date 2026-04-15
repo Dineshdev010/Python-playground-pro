@@ -7,6 +7,7 @@ import {
   CheckCircle2, X, Terminal as TerminalIcon, Cloud, Gamepad2, Cpu, Rocket, Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const careerPaths = [
   {
@@ -465,11 +466,20 @@ const roadmapThemeByPathId: Record<string, {
 };
 
 export function CareerRoadmap() {
+  const { language } = useLanguage();
   const [selected, setSelected] = useState<string | null>(null);
   const selectedPath = careerPaths.find((p) => p.id === selected);
   const activeTheme = (selectedPath ? roadmapThemeByPathId[selectedPath.id] : null) || roadmapThemeByPathId.default;
   const activeWallpaper = getRoadmapWallpaper(selectedPath?.id);
   const detailRef = useRef<HTMLDivElement>(null);
+  const text = {
+    english: { careerPaths: "Career Paths", roadmap: "Python Job Roadmap", tapDesc: "Tap any career path card to explore the skills, tools, and lessons you need", clickHint: "Click any card below to expand details", tapToExplore: "Tap to explore", detailsBelow: "Details below", keySkills: "Key Skills", tools: "Tools & Libraries", journey: "Learning Journey", projects: "Portfolio Projects", masterPath: "Master This Path" },
+    tamil: { careerPaths: "தொழில் பாதைகள்", roadmap: "Python வேலை சாலைவரைபடம்", tapDesc: "திறன்கள், கருவிகள், பாடங்களை காண எந்த கார்டையும் தட்டவும்", clickHint: "விவரங்களை திறக்க கீழே உள்ள கார்டை கிளிக் செய்யவும்", tapToExplore: "ஆராய தட்டவும்", detailsBelow: "கீழே விவரங்கள்", keySkills: "முக்கிய திறன்கள்", tools: "கருவிகள் & நூலகங்கள்", journey: "கற்றல் பயணம்", projects: "போர்ட்ஃபோலியோ திட்டங்கள்", masterPath: "இந்த பாதையை கற்றிடுங்கள்" },
+    kannada: { careerPaths: "ವೃತ್ತಿ ಮಾರ್ಗಗಳು", roadmap: "Python ಉದ್ಯೋಗ ರಸ್ತೆನಕ್ಷೆ", tapDesc: "ಕೌಶಲ್ಯ, ಸಾಧನಗಳು ಮತ್ತು ಪಾಠಗಳನ್ನು ನೋಡಲು ಯಾವುದೇ ಕಾರ್ಡ್ ಒತ್ತಿ", clickHint: "ವಿವರಗಳನ್ನು ವಿಸ್ತರಿಸಲು ಕೆಳಗಿನ ಕಾರ್ಡ್ ಕ್ಲಿಕ್ ಮಾಡಿ", tapToExplore: "ಅನ್ವೇಷಿಸಲು ಒತ್ತಿ", detailsBelow: "ಕೆಳಗೆ ವಿವರಗಳು", keySkills: "ಮುಖ್ಯ ಕೌಶಲ್ಯಗಳು", tools: "ಸಾಧನಗಳು & ಲೈಬ್ರರಿಗಳು", journey: "ಕಲಿಕೆಯ ಪಯಣ", projects: "ಪೋರ್ಟ್‌ಫೋಲಿಯೊ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳು", masterPath: "ಈ ಮಾರ್ಗವನ್ನು ಆಳವಾಗಿ ಕಲಿಯಿರಿ" },
+    telugu: { careerPaths: "కెరీర్ మార్గాలు", roadmap: "Python ఉద్యోగ రోడ్‌మ్యాప్", tapDesc: "నైపుణ్యాలు, టూల్స్, పాఠాలు చూడటానికి ఏ కార్డ్‌నైనా ట్యాప్ చేయండి", clickHint: "వివరాలు తెరవడానికి క్రింది కార్డ్ క్లిక్ చేయండి", tapToExplore: "అన్వేషించడానికి ట్యాప్ చేయండి", detailsBelow: "క్రింద వివరాలు", keySkills: "ముఖ్య నైపుణ్యాలు", tools: "టూల్స్ & లైబ్రరీలు", journey: "లెర్నింగ్ జర్నీ", projects: "పోర్ట్‌ఫోలియో ప్రాజెక్టులు", masterPath: "ఈ మార్గాన్ని నేర్చుకోండి" },
+    hindi: { careerPaths: "कैरियर पाथ", roadmap: "Python जॉब रोडमैप", tapDesc: "कौशल, टूल्स और लेसन देखने के लिए कोई भी कार्ड टैप करें", clickHint: "विवरण खोलने के लिए नीचे कार्ड क्लिक करें", tapToExplore: "जानने के लिए टैप करें", detailsBelow: "नीचे विवरण", keySkills: "मुख्य कौशल", tools: "टूल्स और लाइब्रेरी", journey: "लर्निंग जर्नी", projects: "पोर्टफोलियो प्रोजेक्ट्स", masterPath: "इस पाथ को मास्टर करें" },
+  } as const;
+  const t = text[language];
 
   const handleSelect = (id: string) => {
     const newSelected = selected === id ? null : id;
@@ -508,17 +518,17 @@ export function CareerRoadmap() {
           className="text-center mb-16"
         >
           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm mb-4 transition-colors duration-300 ${activeTheme.badgeClass}`}>
-            <Briefcase className="w-3.5 h-3.5" /> Career Paths
+            <Briefcase className="w-3.5 h-3.5" /> {t.careerPaths}
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
-            Python Job Roadmap
+            {t.roadmap}
           </h2>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            Tap any career path card to explore the skills, tools, and lessons you need
+            {t.tapDesc}
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2 flex items-center justify-center gap-1.5">
             <span className={`inline-block w-2 h-2 rounded-full animate-pulse ${activeTheme.pulseClass}`}></span>
-            Click any card below to expand details
+            {t.clickHint}
           </p>
         </motion.div>
 
@@ -598,7 +608,7 @@ export function CareerRoadmap() {
                 <div className={`mt-3 text-[10px] font-medium flex items-center gap-1 transition-opacity duration-200 ${
                   selected === path.id ? "opacity-0" : "opacity-50 group-hover:opacity-100"
                 } ${path.textColor}`}>
-                  <span>Tap to explore</span>
+                  <span>{t.tapToExplore}</span>
                   <ArrowRight className="w-2.5 h-2.5" />
                 </div>
               </motion.button>
@@ -627,7 +637,7 @@ export function CareerRoadmap() {
                   transition={{ repeat: 3, duration: 0.5, ease: "easeInOut" }}
                   className="flex flex-col items-center gap-0.5"
                 >
-                  <span className="text-xs text-muted-foreground">Details below</span>
+                  <span className="text-xs text-muted-foreground">{t.detailsBelow}</span>
                   <ChevronRight className="w-5 h-5 text-primary rotate-90" />
                 </motion.div>
               </div>
@@ -656,7 +666,7 @@ export function CareerRoadmap() {
                   {/* Skills & Tools */}
                   <div>
                     <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-primary" /> Key Skills
+                      <Zap className="w-4 h-4 text-primary" /> {t.keySkills}
                     </h4>
                     <div className="space-y-2 mb-6">
                       {selectedPath.skills.map((skill, j) => (
@@ -674,7 +684,7 @@ export function CareerRoadmap() {
                     </div>
 
                     <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Code className="w-4 h-4 text-primary" /> Tools & Libraries
+                      <Code className="w-4 h-4 text-primary" /> {t.tools}
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedPath.tools.map((tool) => (
@@ -688,7 +698,7 @@ export function CareerRoadmap() {
                   {/* Related Lessons */}
                   <div>
                     <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-primary" /> Learning Journey
+                      <BookOpen className="w-4 h-4 text-primary" /> {t.journey}
                     </h4>
                     <div className="space-y-2 mb-6 max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-border pr-2">
                       {selectedPath.lessons.map((lesson: { label: string; tier: string }, j: number) => (
@@ -717,7 +727,7 @@ export function CareerRoadmap() {
                     </div>
 
                     <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Rocket className="w-4 h-4 text-primary" /> Portfolio Projects
+                      <Rocket className="w-4 h-4 text-primary" /> {t.projects}
                     </h4>
                     <div className="space-y-1.5 mb-6">
                       {selectedPath.projects.map((proj, k) => (
@@ -736,7 +746,7 @@ export function CareerRoadmap() {
 
                     <Button asChild className={`w-full gap-2`}>
                       <Link to={selectedPath.id === 'linux' ? '/linux-learn' : `/career/${selectedPath.id}`}>
-                        Master This Path <ArrowRight className="w-4 h-4" />
+                        {t.masterPath} <ArrowRight className="w-4 h-4" />
                       </Link>
                     </Button>
                   </div>

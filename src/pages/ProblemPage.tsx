@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck, Clock3 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CompanyBadge } from "@/components/CompanyBadge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 function normalizeOutput(output: string) {
@@ -101,6 +102,7 @@ function formatCountdown(seconds: number) {
 export default function ProblemPage() {
   const { id } = useParams<{ id: string }>();
   const problem = problems.find(p => p.id === id);
+  const { language } = useLanguage();
   const { progress, solveProblem, addWallet } = useProgress();
   const isMobile = useIsMobile();
   const [code, setCode] = useState(problem?.starterCode || "");
@@ -177,6 +179,14 @@ export default function ProblemPage() {
   const serial = problemIndex + 1;
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
   const recommendedSubjects = getRecommendedSubjects(problem);
+  const text = {
+    english: { problems: "Problems", prev: "Prev", next: "Next", problemDescription: "Problem Description", examples: "📝 Examples", constraints: "⚠️ Constraints", reward: "reward", companiesAsk: "Companies that ask this question", learnFirst: "Learn these subjects first", learnFirstDesc: "These topics will make this problem much easier to understand and solve.", hideSolution: "Hide Solution", revealSolution: "👀 Reveal Solution ($70)", viewDescription: "View Problem Description", output: "📺 Output", stop: "Stop", run: "▶ Run", submit: "🚀 Submit", loadingCompiler: "Loading Compiler Engine...", loadingCompilerSmall: "Loading compiler engine...", runningInfoPrefix: "Runs in an isolated browser worker with a", runningInfoSuffix: "s safety timeout.", allPassed: "🎉 All tests passed!", streakUpdated: "🔥 Streak updated" },
+    tamil: { problems: "பிரச்சினைகள்", prev: "முந்தையது", next: "அடுத்தது", problemDescription: "பிரச்சினை விளக்கம்", examples: "📝 உதாரணங்கள்", constraints: "⚠️ வரம்புகள்", reward: "பரிசு", companiesAsk: "இந்த கேள்வியை கேட்கும் நிறுவனங்கள்", learnFirst: "முதலில் இவற்றை கற்பீர்", learnFirstDesc: "இந்த தலைப்புகள் இந்த பிரச்சினையை எளிதாக புரிந்து தீர்க்க உதவும்.", hideSolution: "தீர்வை மறை", revealSolution: "👀 தீர்வை காண் ($70)", viewDescription: "பிரச்சினை விளக்கத்தை காண்க", output: "📺 வெளியீடு", stop: "நிறுத்து", run: "▶ இயக்கு", submit: "🚀 சமர்ப்பி", loadingCompiler: "கம்பைலர் ஏற்றப்படுகிறது...", loadingCompilerSmall: "கம்பைலர் ஏற்றப்படுகிறது...", runningInfoPrefix: "இந்த குறியீடு தனிமைப்படுத்தப்பட்ட worker-இல் இயங்குகிறது,", runningInfoSuffix: "விநாடி பாதுகாப்பு நேரவரம்புடன்.", allPassed: "🎉 அனைத்து சோதனைகளும் வெற்றி!", streakUpdated: "🔥 தொடர் புதுப்பிக்கப்பட்டது" },
+    kannada: { problems: "ಪ್ರಶ್ನೆಗಳು", prev: "ಹಿಂದೆ", next: "ಮುಂದೆ", problemDescription: "ಪ್ರಶ್ನೆಯ ವಿವರಣೆ", examples: "📝 ಉದಾಹರಣೆಗಳು", constraints: "⚠️ ನಿಯಮಗಳು", reward: "ಬಹುಮಾನ", companiesAsk: "ಈ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳುವ ಕಂಪನಿಗಳು", learnFirst: "ಮೊದಲು ಈ ವಿಷಯಗಳನ್ನು ಕಲಿಯಿರಿ", learnFirstDesc: "ಈ ವಿಷಯಗಳು ಈ ಪ್ರಶ್ನೆಯನ್ನು ಸುಲಭವಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಸಹಾಯ ಮಾಡುತ್ತವೆ.", hideSolution: "ಉತ್ತರ ಮರೆಮಾಡು", revealSolution: "👀 ಉತ್ತರ ತೋರಿಸಿ ($70)", viewDescription: "ಪ್ರಶ್ನೆ ವಿವರಣೆ ನೋಡಿ", output: "📺 ಔಟ್‌ಪುಟ್", stop: "ನಿಲ್ಲಿಸಿ", run: "▶ ಚಾಲನೆ", submit: "🚀 ಸಲ್ಲಿಸಿ", loadingCompiler: "ಕಂಪೈಲರ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...", loadingCompilerSmall: "ಕಂಪೈಲರ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...", runningInfoPrefix: "ಈ ಕೋಡ್ ಪ್ರತ್ಯೇಕ worker ನಲ್ಲಿ ನಡೆಯುತ್ತದೆ,", runningInfoSuffix: "ಸೆಕೆಂಡ್ ಭದ್ರತಾ ಮಿತಿಯೊಂದಿಗೆ.", allPassed: "🎉 ಎಲ್ಲಾ ಪರೀಕ್ಷೆಗಳು ಉತ್ತೀರ್ಣ!", streakUpdated: "🔥 ಸ್ಟ್ರೀಕ್ ನವೀಕರಿಸಲಾಗಿದೆ" },
+    telugu: { problems: "సమస్యలు", prev: "మునుపటి", next: "తదుపరి", problemDescription: "సమస్య వివరణ", examples: "📝 ఉదాహరణలు", constraints: "⚠️ పరిమితులు", reward: "బహుమతి", companiesAsk: "ఈ ప్రశ్న అడిగే కంపెనీలు", learnFirst: "ముందు ఇవి నేర్చుకోండి", learnFirstDesc: "ఈ టాపిక్స్ ఈ సమస్యను సులభంగా అర్థం చేసుకుని పరిష్కరించేందుకు సహాయపడతాయి.", hideSolution: "పరిష్కారాన్ని దాచు", revealSolution: "👀 పరిష్కారం చూపు ($70)", viewDescription: "సమస్య వివరణ చూడండి", output: "📺 అవుట్‌పుట్", stop: "ఆపు", run: "▶ రన్", submit: "🚀 సమర్పించు", loadingCompiler: "కంపైలర్ లోడ్ అవుతోంది...", loadingCompilerSmall: "కంపైలర్ లోడ్ అవుతోంది...", runningInfoPrefix: "ఇది వేరు చేసిన worker లో నడుస్తుంది,", runningInfoSuffix: "సెకన్ల భద్రతా టైమ్ అవుట్‌తో.", allPassed: "🎉 అన్ని పరీక్షలు పాస్ అయ్యాయి!", streakUpdated: "🔥 స్ట్రీక్ నవీకరించబడింది" },
+    hindi: { problems: "समस्याएं", prev: "पिछला", next: "अगला", problemDescription: "समस्या विवरण", examples: "📝 उदाहरण", constraints: "⚠️ सीमाएं", reward: "इनाम", companiesAsk: "यह प्रश्न पूछने वाली कंपनियां", learnFirst: "पहले ये विषय सीखें", learnFirstDesc: "ये विषय इस समस्या को आसानी से समझने और हल करने में मदद करेंगे।", hideSolution: "समाधान छिपाएं", revealSolution: "👀 समाधान दिखाएं ($70)", viewDescription: "समस्या विवरण देखें", output: "📺 आउटपुट", stop: "रोकें", run: "▶ चलाएं", submit: "🚀 सबमिट", loadingCompiler: "कंपाइलर लोड हो रहा है...", loadingCompilerSmall: "कंपाइलर लोड हो रहा है...", runningInfoPrefix: "यह कोड अलग worker में चलता है,", runningInfoSuffix: "सेकंड सुरक्षा टाइमआउट के साथ।", allPassed: "🎉 सभी टेस्ट पास!", streakUpdated: "🔥 स्ट्रीक अपडेट हुई" },
+  } as const;
+  const t = text[language];
 
   const handleRun = async () => {
     setIsRunning(true);
@@ -291,7 +301,7 @@ export default function ProblemPage() {
       <div className="h-auto min-h-[3rem] bg-surface-1 border-b border-border flex flex-wrap items-center justify-between px-3 sm:px-4 py-2 gap-2 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button asChild variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0">
-            <Link to="/problems"><ArrowLeft className="w-3 h-3" /> <span className="hidden sm:inline">Problems</span></Link>
+            <Link to="/problems"><ArrowLeft className="w-3 h-3" /> <span className="hidden sm:inline">{t.problems}</span></Link>
           </Button>
           <span className="w-7 h-7 rounded-md bg-surface-2 border border-border flex items-center justify-center text-[10px] font-mono text-muted-foreground shrink-0">
             {serial}
@@ -311,12 +321,12 @@ export default function ProblemPage() {
         <div className="flex items-center gap-1 sm:gap-2">
           {prevProblem && (
             <Button asChild variant="ghost" size="sm" className="h-7 text-xs px-2">
-              <Link to={`/problems/${prevProblem.id}`}>← <span className="hidden sm:inline">Prev</span></Link>
+              <Link to={`/problems/${prevProblem.id}`}>← <span className="hidden sm:inline">{t.prev}</span></Link>
             </Button>
           )}
           {nextProblem && (
             <Button asChild variant="ghost" size="sm" className="h-7 text-xs px-2">
-              <Link to={`/problems/${nextProblem.id}`}><span className="hidden sm:inline">Next</span> →</Link>
+              <Link to={`/problems/${nextProblem.id}`}><span className="hidden sm:inline">{t.next}</span> →</Link>
             </Button>
           )}
         </div>
@@ -330,7 +340,7 @@ export default function ProblemPage() {
             onClick={() => setShowDescription(!showDescription)}
             className="md:hidden w-full flex items-center justify-between px-4 py-2 bg-surface-1 border-b border-border text-xs text-muted-foreground"
           >
-            📋 Problem Description
+            📋 {t.problemDescription}
             {showDescription ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
@@ -348,7 +358,7 @@ export default function ProblemPage() {
               ))}
             </div>
 
-            <h3 className="text-sm font-semibold text-foreground mb-3">📝 Examples</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{t.examples}</h3>
             {problem.examples.map((ex, i) => (
               <div key={i} className="bg-surface-1 border border-border rounded-lg p-3 sm:p-4 mb-3">
                 <div className="text-xs font-mono text-muted-foreground mb-1">Input: <span className="text-foreground break-all">{ex.input}</span></div>
@@ -357,7 +367,7 @@ export default function ProblemPage() {
               </div>
             ))}
 
-            <h3 className="text-sm font-semibold text-foreground mb-2 mt-4">⚠️ Constraints</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-2 mt-4">{t.constraints}</h3>
             <ul className="space-y-1 mb-6">
               {problem.constraints.map((c, i) => (
                 <li key={i} className="text-xs text-muted-foreground font-mono break-all">• {c}</li>
@@ -366,14 +376,14 @@ export default function ProblemPage() {
 
             <div className="flex items-center gap-2 mb-4">
               <Wallet className="w-4 h-4 text-reward-gold" />
-              <span className="text-sm text-reward-gold font-medium">💰 ${reward} reward</span>
+              <span className="text-sm text-reward-gold font-medium">💰 ${reward} {t.reward}</span>
             </div>
 
             {problem.companies?.length ? (
               <div className="mb-4 rounded-lg border border-border bg-surface-1 p-3 sm:p-4">
                 <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Building2 className="h-4 w-4 text-primary" />
-                  Companies that ask this question
+                  {t.companiesAsk}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {problem.companies.map((company) => (
@@ -387,10 +397,10 @@ export default function ProblemPage() {
               <div className="mb-4 rounded-lg border border-border bg-surface-1 p-3 sm:p-4">
                 <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <BookOpenCheck className="h-4 w-4 text-primary" />
-                  Learn these subjects first
+                  {t.learnFirst}
                 </div>
                 <p className="mb-3 text-xs leading-5 text-muted-foreground">
-                  These topics will make this problem much easier to understand and solve.
+                  {t.learnFirstDesc}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {recommendedSubjects.map((subject) => (
@@ -436,7 +446,7 @@ export default function ProblemPage() {
               }}
             >
               {showSolution ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              {showSolution ? "Hide Solution" : "👀 Reveal Solution ($70)"}
+              {showSolution ? t.hideSolution : t.revealSolution}
             </Button>
             {showSolution && (
               <div className="mt-4">
@@ -454,13 +464,13 @@ export default function ProblemPage() {
             onClick={() => setShowDescription(true)}
             className="md:hidden flex flex-col items-center justify-center gap-1 px-4 py-3 bg-surface-2 border-b border-border text-xs font-semibold text-foreground hover:bg-surface-3 transition-colors shrink-0"
           >
-            <ChevronDown className="w-4 h-4 text-primary" /> View Problem Description
+            <ChevronDown className="w-4 h-4 text-primary" /> {t.viewDescription}
           </button>
         )}
 
         {/* Right: Editor + Output */}
         <div className="flex-1 flex flex-col min-h-0">
-            <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-surface-0"><span className="text-sm font-semibold tracking-wider text-muted-foreground animate-pulse">Loading Compiler Engine...</span></div>}>
+            <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-surface-0"><span className="text-sm font-semibold tracking-wider text-muted-foreground animate-pulse">{t.loadingCompiler}</span></div>}>
               <Editor
                 key={id}
                 height="100%"
@@ -468,7 +478,7 @@ export default function ProblemPage() {
                 theme="vs-dark"
                 value={code}
                 onChange={(v) => setCode(v || "")}
-                loading={<div className="flex w-full h-full items-center justify-center"><span className="text-sm text-muted-foreground animate-pulse">Loading compiler engine...</span></div>}
+                loading={<div className="flex w-full h-full items-center justify-center"><span className="text-sm text-muted-foreground animate-pulse">{t.loadingCompilerSmall}</span></div>}
                 options={{
                   fontSize: isMobile ? 12 : 14,
                   fontFamily: "'JetBrains Mono', monospace",
@@ -484,22 +494,22 @@ export default function ProblemPage() {
 
           <div className="h-48 border-t border-border bg-surface-0 flex flex-col shrink-0">
             <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-border bg-surface-1">
-              <span className="text-[10px] sm:text-xs text-muted-foreground font-mono">📺 Output</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground font-mono">{t.output}</span>
               <div className="flex gap-2">
                 {isRunning ? (
                   <Button size="sm" variant="destructive" className="h-7 text-xs gap-1 px-2 sm:px-3" onClick={cancelActivePythonExecution}>
                     <Square className="w-3 h-3" />
-                    <span className="hidden sm:inline">Stop</span>
+                    <span className="hidden sm:inline">{t.stop}</span>
                   </Button>
                 ) : (
                   <>
                     <Button size="sm" variant="outline" className="h-7 text-xs gap-1 px-2 sm:px-3" onClick={handleRun}>
                       <Play className="w-3 h-3" />
-                      <span className="hidden sm:inline">▶ Run</span>
+                      <span className="hidden sm:inline">{t.run}</span>
                     </Button>
                     <Button size="sm" className="h-7 text-xs gap-1 px-2 sm:px-3" onClick={handleSubmit}>
                       <Send className="w-3 h-3" />
-                      <span className="hidden sm:inline">🚀 Submit</span>
+                      <span className="hidden sm:inline">{t.submit}</span>
                     </Button>
                   </>
                 )}
@@ -508,7 +518,7 @@ export default function ProblemPage() {
             <div className="flex-1 overflow-auto p-3 sm:p-4">
               {!output && (
                 <p className="text-[11px] text-muted-foreground mb-3">
-                  Runs in an isolated browser worker with a {timeoutSeconds}s safety timeout.
+                  {t.runningInfoPrefix} {timeoutSeconds}{t.runningInfoSuffix}
                 </p>
               )}
               {testResults && (
@@ -528,10 +538,10 @@ export default function ProblemPage() {
                 <div className="flex items-center gap-3 p-3 bg-streak-green/10 border border-streak-green/30 rounded-lg mb-3">
                   <CheckCircle2 className="w-5 h-5 text-streak-green shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">🎉 All tests passed!</p>
+                    <p className="text-sm font-medium text-foreground">{t.allPassed}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-reward-gold">💰 +${reward}</span>
-                      <span className="text-python-yellow">🔥 Streak updated</span>
+                      <span className="text-python-yellow">{t.streakUpdated}</span>
                     </p>
                   </div>
                 </div>

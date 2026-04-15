@@ -11,9 +11,11 @@ import { getRewardForDifficulty } from "@/lib/progress";
 import { Code, CheckCircle2, ChevronRight, Wallet, Search } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { CompanyBadge } from "@/components/CompanyBadge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ProblemsListPage() {
   const { progress } = useProgress();
+  const { language } = useLanguage();
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
@@ -46,6 +48,70 @@ export default function ProblemsListPage() {
     expert: problems.filter(p => p.difficulty === "expert").length,
   };
 
+  const text = {
+    english: {
+      title: "Coding Challenges",
+      solved: "solved",
+      searchPlaceholder: "Search problems...",
+      filterByCompany: "Filter by company",
+      allCompanies: "All companies",
+      resultFor: "result",
+      resultsFor: "results",
+      noProblems: "No problems found",
+      clearFilters: "Clear filters",
+      all: "All",
+    },
+    tamil: {
+      title: "கோடிங் சவால்கள்",
+      solved: "தீர்வு செய்யப்பட்டவை",
+      searchPlaceholder: "பிரச்சினைகளை தேடுங்கள்...",
+      filterByCompany: "நிறுவனம் மூலம் வடிகட்டு",
+      allCompanies: "அனைத்து நிறுவனங்கள்",
+      resultFor: "முடிவு",
+      resultsFor: "முடிவுகள்",
+      noProblems: "பிரச்சினைகள் கிடைக்கவில்லை",
+      clearFilters: "வடிகட்டலை நீக்கு",
+      all: "அனைத்தும்",
+    },
+    kannada: {
+      title: "ಕೋಡಿಂಗ್ ಸವಾಲುಗಳು",
+      solved: "ಪರಿಹರಿಸಲಾಗಿದೆ",
+      searchPlaceholder: "ಪ್ರಶ್ನೆಗಳನ್ನು ಹುಡುಕಿ...",
+      filterByCompany: "ಕಂಪನಿ ಪ್ರಕಾರ ಫಿಲ್ಟರ್",
+      allCompanies: "ಎಲ್ಲಾ ಕಂಪನಿಗಳು",
+      resultFor: "ಫಲಿತಾಂಶ",
+      resultsFor: "ಫಲಿತಾಂಶಗಳು",
+      noProblems: "ಯಾವ ಪ್ರಶ್ನೆಯೂ ಸಿಕ್ಕಿಲ್ಲ",
+      clearFilters: "ಫಿಲ್ಟರ್ ತೆರವುಗೊಳಿಸಿ",
+      all: "ಎಲ್ಲಾ",
+    },
+    telugu: {
+      title: "కోడింగ్ ఛాలెంజెస్",
+      solved: "పరిష్కరించినవి",
+      searchPlaceholder: "సమస్యలను వెతకండి...",
+      filterByCompany: "కంపెనీ ఆధారంగా ఫిల్టర్",
+      allCompanies: "అన్ని కంపెనీలు",
+      resultFor: "ఫలితం",
+      resultsFor: "ఫలితాలు",
+      noProblems: "సమస్యలు కనబడలేదు",
+      clearFilters: "ఫిల్టర్లు తొలగించు",
+      all: "అన్ని",
+    },
+    hindi: {
+      title: "कोडिंग चुनौतियां",
+      solved: "हल किए गए",
+      searchPlaceholder: "समस्याएं खोजें...",
+      filterByCompany: "कंपनी के अनुसार फ़िल्टर",
+      allCompanies: "सभी कंपनियां",
+      resultFor: "परिणाम",
+      resultsFor: "परिणाम",
+      noProblems: "कोई समस्या नहीं मिली",
+      clearFilters: "फ़िल्टर हटाएं",
+      all: "सभी",
+    },
+  } as const;
+  const t = text[language];
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <Helmet>
@@ -63,9 +129,9 @@ export default function ProblemsListPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Coding Challenges</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t.title}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {progress.solvedProblems.length}/{problems.length} solved
+            {progress.solvedProblems.length}/{problems.length} {t.solved}
           </p>
         </div>
         {/* Search */}
@@ -73,7 +139,7 @@ export default function ProblemsListPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search problems..."
+            placeholder={t.searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-2 bg-surface-1 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -93,7 +159,7 @@ export default function ProblemsListPage() {
                 : "bg-secondary text-muted-foreground hover:text-foreground"
             }`}
           >
-            {f === "all" ? "All" : f}
+            {f === "all" ? t.all : f}
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
               filter === f ? "bg-primary-foreground/20" : "bg-muted"
             }`}>
@@ -106,13 +172,13 @@ export default function ProblemsListPage() {
       {/* Results count */}
       {search && (
         <p className="text-xs text-muted-foreground mb-3">
-          {filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"
+          {filtered.length} {filtered.length !== 1 ? t.resultsFor : t.resultFor} for "{search}"
         </p>
       )}
 
       <div className="mb-6">
         <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          Filter by company
+          {t.filterByCompany}
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
           <button
@@ -123,7 +189,7 @@ export default function ProblemsListPage() {
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
-            All companies
+            {t.allCompanies}
           </button>
           {companyOptions.filter((company) => company !== "all").map((company) => (
             <button
@@ -196,9 +262,9 @@ export default function ProblemsListPage() {
       {filtered.length === 0 && (
         <div className="text-center py-12">
           <Code className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-muted-foreground text-sm">No problems found</p>
+          <p className="text-muted-foreground text-sm">{t.noProblems}</p>
           <button onClick={() => { setFilter("all"); setSearch(""); setCompanyFilter("all"); }} className="text-primary text-sm mt-2 hover:underline">
-            Clear filters
+            {t.clearFilters}
           </button>
         </div>
       )}
