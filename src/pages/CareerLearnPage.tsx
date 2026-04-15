@@ -4,9 +4,11 @@
 // AI/ML, etc.) with sequential lesson unlocking.
 // ============================================================
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { careerTracks } from "@/data/careerLessons";
 import { useProgress } from "@/contexts/ProgressContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ExerciseEditor } from "@/components/ExerciseEditor";
 import { SqlExerciseEditor } from "@/components/SqlExerciseEditor";
 import { GitTerminalEditor } from "@/components/GitTerminalEditor";
@@ -17,6 +19,28 @@ import { cancelActivePythonExecution, getPythonExecutionTimeoutMs } from "@/lib/
 import { BookOpen, CheckCircle2, ChevronRight, Lock, ArrowLeft, Terminal as TerminalIcon, Database, Play, RotateCcw, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+
+type LearnLanguage = "english" | "tamil" | "kannada" | "telugu" | "hindi";
+
+function getLocalizedCareerLesson(
+  lesson: (typeof careerTracks)[number]["lessons"][number] | undefined,
+  language: LearnLanguage,
+) {
+  if (!lesson) return undefined;
+  if (language === "english") return lesson;
+  const localized = lesson.translations?.[language];
+  if (!localized) return lesson;
+
+  return {
+    ...lesson,
+    title: localized.title ?? lesson.title,
+    description: localized.description ?? lesson.description,
+    category: localized.category ?? lesson.category,
+    content: localized.content ?? lesson.content,
+    codeExample: localized.codeExample ?? lesson.codeExample,
+  };
+}
 
 function buildLessonPattern(strokeHex: string) {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'><g fill='none' stroke='${strokeHex}' stroke-width='1'><circle cx='30' cy='30' r='20'/><circle cx='190' cy='50' r='16'/><path d='M0 110h220M110 0v220'/><path d='M20 200L80 140L140 200'/></g></svg>`;
@@ -52,6 +76,8 @@ function getLessonWallpaper(trackId: string, lessonTitle?: string, category?: st
 
 export default function CareerLearnPage() {
   const { trackId } = useParams<{ trackId: string }>();
+  const { language } = useLanguage();
+  const { user } = useAuth();
   const track = careerTracks.find(t => t.id === trackId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sqlPlayground, setSqlPlayground] = useState("");
@@ -59,6 +85,7 @@ export default function CareerLearnPage() {
   const [isSqlRunning, setIsSqlRunning] = useState(false);
   const [showDataset, setShowDataset] = useState(false);
   const { progress, resetLesson } = useProgress();
+  const navigate = useNavigate();
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
 
   // Derive track type flags unconditionally (before any early return)
@@ -74,7 +101,10 @@ export default function CareerLearnPage() {
     return Array.from(set);
   }, [isSqlTrack, track]);
 
-  const selectedLesson = track?.lessons.find(l => l.id === selectedId);
+  const selectedLesson = useMemo(() => {
+    const baseLesson = track?.lessons.find((l) => l.id === selectedId);
+    return getLocalizedCareerLesson(baseLesson, language);
+  }, [language, selectedId, track]);
   const lessonWallpaper = useMemo(
     () => getLessonWallpaper(track?.id ?? "", selectedLesson?.title, selectedLesson?.category),
     [selectedLesson?.category, selectedLesson?.title, track?.id],
@@ -107,6 +137,14 @@ export default function CareerLearnPage() {
       </div>
     );
   }
+
+  const ensureAuthForLessonIndex = (index: number): boolean => {
+    if (index === 0) return true; // first module free
+    if (user) return true;
+    toast.info("Sign in required", { description: "Create an account to continue beyond the first module." });
+    navigate("/auth");
+    return false;
+  };
 
   const isLessonUnlocked = (index: number): boolean => {
     if (index === 0) return true;
@@ -153,13 +191,18 @@ export default function CareerLearnPage() {
         </div>
         <nav className="p-2">
           {track.lessons.map((lesson, i) => {
+            const localizedLesson = getLocalizedCareerLesson(lesson, language) ?? lesson;
             const unlocked = isLessonUnlocked(i);
             const exercisesDone = getLessonProgress(lesson.id);
             const allDone = exercisesDone === 3;
             return (
               <button
                 key={lesson.id}
-                onClick={() => unlocked && setSelectedId(lesson.id)}
+                onClick={() => {
+                  if (!unlocked) return;
+                  if (!ensureAuthForLessonIndex(i)) return;
+                  setSelectedId(lesson.id);
+                }}
                 disabled={!unlocked}
                 className={`w-full text-left px-3 py-2.5 rounded-md text-sm flex items-center gap-2 transition-colors mb-0.5 ${
                   !unlocked ? "text-muted-foreground/40 cursor-not-allowed"
@@ -171,7 +214,7 @@ export default function CareerLearnPage() {
                   : allDone ? <CheckCircle2 className="w-4 h-4 text-streak-green shrink-0" />
                   : <span className="w-4 h-4 rounded-full border border-border text-[10px] flex items-center justify-center shrink-0">{exercisesDone > 0 ? exercisesDone : i + 1}</span>
                 }
-                <span className="truncate flex-1">{lesson.title}</span>
+                <span className="truncate flex-1">{localizedLesson.title}</span>
                 {unlocked && exercisesDone > 0 && !allDone && (
                   <span className="text-[10px] text-python-yellow">{exercisesDone}/3</span>
                 )}
@@ -426,6 +469,7 @@ export default function CareerLearnPage() {
             {(() => {
               const ci = track.lessons.findIndex(l => l.id === selectedLesson.id);
               const next = ci < track.lessons.length - 1 ? track.lessons[ci + 1] : null;
+              const localizedNext = getLocalizedCareerLesson(next ?? undefined, language);
               const canProceed = next && isLessonUnlocked(ci + 1);
               if (!next) return null;
               return (
@@ -435,10 +479,20 @@ export default function CareerLearnPage() {
                       {canProceed ? <CheckCircle2 className="w-5 h-5 text-streak-green" /> : <Lock className="w-5 h-5 text-muted-foreground" />}
                       <div>
                         <p className="text-sm font-medium text-foreground">{canProceed ? "Next Lesson Unlocked!" : "Complete beginner exercise to unlock"}</p>
-                        <p className="text-xs text-muted-foreground">{next.title}</p>
+                        <p className="text-xs text-muted-foreground">{localizedNext?.title ?? next.title}</p>
                       </div>
                     </div>
-                    <Button size="sm" disabled={!canProceed} onClick={() => setSelectedId(next.id)} className="gap-1">
+                    <Button
+                      size="sm"
+                      disabled={!canProceed}
+                      onClick={() => {
+                        if (!next) return;
+                        const nextIndex = track.lessons.findIndex((l) => l.id === next.id);
+                        if (nextIndex >= 0 && !ensureAuthForLessonIndex(nextIndex)) return;
+                        setSelectedId(next.id);
+                      }}
+                      className="gap-1"
+                    >
                       Next <ChevronRight className="w-3 h-3" />
                     </Button>
                   </div>
@@ -454,19 +508,24 @@ export default function CareerLearnPage() {
             {/* Mobile lesson list */}
             <div className="md:hidden w-full max-w-md space-y-2">
               {track.lessons.map((lesson, i) => {
+                const localizedLesson = getLocalizedCareerLesson(lesson, language) ?? lesson;
                 const unlocked = isLessonUnlocked(i);
                 return (
                   <button
                     key={lesson.id}
-                    onClick={() => unlocked && setSelectedId(lesson.id)}
+                    onClick={() => {
+                      if (!unlocked) return;
+                      if (!ensureAuthForLessonIndex(i)) return;
+                      setSelectedId(lesson.id);
+                    }}
                     disabled={!unlocked}
                     className={`w-full flex items-center justify-between px-4 py-3 bg-card border border-border rounded-lg transition-colors ${unlocked ? "hover:border-primary/40" : "opacity-40 cursor-not-allowed"}`}
                   >
                     <div className="flex items-center gap-3">
                       {unlocked ? <BookOpen className="w-4 h-4 text-primary" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
                       <div className="text-left">
-                        <div className="text-sm font-medium text-foreground">{lesson.title}</div>
-                        <div className="text-xs text-muted-foreground">{lesson.description}</div>
+                        <div className="text-sm font-medium text-foreground">{localizedLesson.title}</div>
+                        <div className="text-xs text-muted-foreground">{localizedLesson.description}</div>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />

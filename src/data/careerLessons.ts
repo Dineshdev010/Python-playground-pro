@@ -1,5 +1,8 @@
 import { type Exercise } from "./lessons";
 
+const CAREER_TRANSLATION_LANGS = ["tamil", "kannada", "telugu", "hindi"] as const;
+type CareerTranslationLang = (typeof CAREER_TRANSLATION_LANGS)[number];
+
 export interface CareerLesson {
   id: string;
   title: string;
@@ -7,6 +10,18 @@ export interface CareerLesson {
   category?: string;
   content: string;
   codeExample: string;
+  translations?: Partial<
+    Record<
+      CareerTranslationLang,
+      {
+        title?: string;
+        description?: string;
+        category?: string;
+        content?: string;
+        codeExample?: string;
+      }
+    >
+  >;
   exercises: {
     beginner: Exercise;
     intermediate: Exercise;
@@ -23,12 +38,53 @@ export interface CareerTrack {
   lessons: CareerLesson[];
 }
 
+function withFullCareerTranslations(lesson: CareerLesson): CareerLesson {
+  const translations: NonNullable<CareerLesson["translations"]> = { ...(lesson.translations ?? {}) };
+  for (const lang of CAREER_TRANSLATION_LANGS) {
+    const existing = translations[lang] ?? {};
+    translations[lang] = {
+      title: existing.title ?? lesson.title,
+      description: existing.description ?? lesson.description,
+      category: existing.category ?? lesson.category,
+      content: existing.content ?? lesson.content,
+      codeExample: existing.codeExample ?? lesson.codeExample,
+    };
+  }
+  return { ...lesson, translations };
+}
+
+function withFullTrackTranslations(track: CareerTrack): CareerTrack {
+  return { ...track, lessons: track.lessons.map(withFullCareerTranslations) };
+}
+
 function da(): CareerLesson[] {
   return [
     {
       id: "da-intro", title: "Introduction to Data Analysis", description: "What is data analysis and why Python is the best tool for it",
       content: "## What is Data Analysis?\n\nData analysis is the process of inspecting, cleaning, transforming, and modeling data to discover useful information.\n\n### Why Python for Data Analysis?\n- **Rich ecosystem** — Pandas, NumPy, Matplotlib, Seaborn\n- **Easy syntax** — Focus on logic, not boilerplate\n- **Community** — Millions of tutorials and StackOverflow answers\n- **Industry standard** — Used at Google, Netflix, NASA\n\n### The Data Analysis Workflow\n1. **Collect** data from files, APIs, or databases\n2. **Clean** — handle missing values, fix types\n3. **Explore** — summary statistics, distributions\n4. **Visualize** — charts, graphs, dashboards\n5. **Interpret** — draw conclusions, tell the story",
       codeExample: "# A taste of data analysis in Python\nimport pandas as pd\n\ndata = {\n    \"Name\": [\"Alice\", \"Bob\", \"Charlie\"],\n    \"Age\": [25, 30, 35],\n    \"Salary\": [50000, 60000, 70000]\n}\n\ndf = pd.DataFrame(data)\nprint(df)\nprint(\"Average salary:\", df['Salary'].mean())",
+      translations: {
+        tamil: {
+          title: "Data Analysis அறிமுகம்",
+          description: "Data analysis என்றால் என்ன, ஏன் Python சிறந்த கருவி என்பதை அறியுங்கள்",
+          content: "## Data Analysis என்றால் என்ன?\n\nData analysis என்பது தரவை ஆய்வு செய்து, சுத்தம் செய்து, மாற்றி, பயனுள்ள தகவலை கண்டுபிடிக்கும் செயல்முறை.\n\n### ஏன் Data Analysis க்கு Python?\n- **பெரிய ecosystem** — Pandas, NumPy, Matplotlib, Seaborn\n- **எளிய syntax** — boilerplate விட logic மீது கவனம்\n- **சமூக ஆதரவு** — ஆயிரக்கணக்கான tutorials மற்றும் உதவிகள்\n- **Industry standard** — முன்னணி நிறுவனங்களில் பயன்படுத்தப்படுகிறது\n\n### Data Analysis Workflow\n1. **Collect** — files, APIs, databases-ல் இருந்து data சேகரிக்கவும்\n2. **Clean** — missing values மற்றும் types சரி செய்யவும்\n3. **Explore** — summary stats மற்றும் patterns பார்க்கவும்\n4. **Visualize** — charts, graphs உருவாக்கவும்\n5. **Interpret** — முடிவுகளை எடுத்துரைக்கவும்",
+        },
+        kannada: {
+          title: "Data Analysis ಪರಿಚಯ",
+          description: "Data analysis ಎಂದರೇನು ಮತ್ತು ಅದಕ್ಕೆ Python ಯಾಕೆ ಉತ್ತಮ ಎಂಬುದನ್ನು ಕಲಿಯಿರಿ",
+          content: "## Data Analysis ಎಂದರೇನು?\n\nData analysis ಎಂದರೆ ಡೇಟಾವನ್ನು ಪರಿಶೀಲಿಸಿ, ಸ್ವಚ್ಛಗೊಳಿಸಿ, ಪರಿವರ್ತಿಸಿ, ಉಪಯುಕ್ತ ತಿಳಿವಳಿಕೆಯನ್ನು ಕಂಡುಹಿಡಿಯುವ ಪ್ರಕ್ರಿಯೆ.\n\n### Data Analysis ಗೆ Python ಯಾಕೆ?\n- **ದೊಡ್ಡ ecosystem** — Pandas, NumPy, Matplotlib, Seaborn\n- **ಸರಳ syntax** — boilerplate ಕ್ಕಿಂತ logic ಮೇಲೆ ಹೆಚ್ಚು ಗಮನ\n- **ಸಮುದಾಯ** — ಅನೇಕ tutorials ಮತ್ತು support\n- **Industry standard** — ದೊಡ್ಡ ಕಂಪನಿಗಳಲ್ಲಿ ವ್ಯಾಪಕ ಬಳಕೆ\n\n### Data Analysis Workflow\n1. **Collect** — files, APIs, databases ಇಂದ data ಸಂಗ್ರಹಿಸಿ\n2. **Clean** — missing values ಮತ್ತು types ಸರಿಪಡಿಸಿ\n3. **Explore** — summary statistics ಮತ್ತು patterns ನೋಡಿ\n4. **Visualize** — charts ಮತ್ತು graphs ಮಾಡಿ\n5. **Interpret** — ಸ್ಪಷ್ಟವಾದ ನಿರ್ಣಯಕ್ಕೆ ಬನ್ನಿ",
+        },
+        telugu: {
+          title: "Data Analysis పరిచయం",
+          description: "Data analysis అంటే ఏమిటి, దానికి Python ఎందుకు ఉత్తమమో తెలుసుకోండి",
+          content: "## Data Analysis అంటే ఏమిటి?\n\nData analysis అనేది డేటాను పరిశీలించడం, శుభ్రపరచడం, మార్చడం, ఉపయోగకరమైన సమాచారాన్ని కనుగొనడం అనే ప్రక్రియ.\n\n### Data Analysis కి Python ఎందుకు?\n- **Rich ecosystem** — Pandas, NumPy, Matplotlib, Seaborn\n- **Simple syntax** — boilerplate కంటే logic పై ఫోకస్\n- **Community support** — ఎన్నో tutorials మరియు సహాయం\n- **Industry standard** — ప్రముఖ సంస్థల్లో విస్తృతంగా ఉపయోగిస్తారు\n\n### Data Analysis Workflow\n1. **Collect** — files, APIs, databases నుండి data సేకరించండి\n2. **Clean** — missing values మరియు types సరిచేయండి\n3. **Explore** — summary statistics మరియు patterns చూడండి\n4. **Visualize** — charts, graphs రూపొందించండి\n5. **Interpret** — స్పష్టమైన నిర్ణయాలు తీసుకోండి",
+        },
+        hindi: {
+          title: "Data Analysis परिचय",
+          description: "Data analysis क्या है और इसके लिए Python क्यों सबसे अच्छा है",
+          content: "## Data Analysis क्या है?\n\nData analysis वह प्रक्रिया है जिसमें डेटा को जांचा, साफ किया, बदला और उपयोगी जानकारी निकाली जाती है।\n\n### Data Analysis के लिए Python क्यों?\n- **मजबूत ecosystem** — Pandas, NumPy, Matplotlib, Seaborn\n- **आसान syntax** — boilerplate से ज्यादा logic पर ध्यान\n- **बड़ी community** — बहुत सारे tutorials और support\n- **Industry standard** — बड़ी कंपनियों में व्यापक उपयोग\n\n### Data Analysis Workflow\n1. **Collect** — files, APIs, databases से data इकट्ठा करें\n2. **Clean** — missing values और types ठीक करें\n3. **Explore** — summary statistics और patterns देखें\n4. **Visualize** — charts और graphs बनाएं\n5. **Interpret** — स्पष्ट निष्कर्ष निकालें",
+        },
+      },
       exercises: {
         beginner: { prompt: "Create a list of 5 numbers and print their average using sum() and len().", starterCode: "numbers = [10, 20, 30, 40, 50]\n\n# Calculate and print the average\n", expectedOutput: "30.0" },
         intermediate: { prompt: "Given a dictionary of students and scores, print the student with the highest score.", starterCode: "scores = {\"Alice\": 85, \"Bob\": 92, \"Charlie\": 78}\n\n# Find and print the top student\n", expectedOutput: "Bob" },
@@ -39,6 +95,32 @@ function da(): CareerLesson[] {
       id: "da-lists-data", title: "Working with Data in Lists", description: "Use Python lists as your first data structure for analysis",
       content: "## Lists as Data Containers\n\nBefore learning Pandas, master Python's built-in list for data manipulation.\n\n### Key Operations\n- **Filtering** — Select items that match a condition\n- **Mapping** — Transform every item\n- **Aggregating** — Reduce to a single value (sum, avg, max)\n- **Sorting** — Order data by a criterion\n\n### List Comprehensions\nThe Pythonic way to filter and transform data in one line.",
       codeExample: "sales = [120, 340, 250, 410, 180, 520, 300]\nhigh_sales = [s for s in sales if s > 300]\nprint(\"High sales:\", high_sales)\nprint(\"Total:\", sum(sales))\nprint(\"Average:\", round(sum(sales)/len(sales), 1))",
+      translations: {
+        tamil: {
+          title: "Lists-ல் Data கையாளுதல்",
+          description: "Data analysis க்கு Python lists-ஐ முதற்கட்ட data structure ஆக பயன்படுத்துங்கள்",
+          content:
+            "## Lists as Data Containers\n\nPandas கற்றுக்கொள்ளும் முன், Python list மூலம் data-ஐ filter / transform செய்வது எப்படி என்று புரிந்துகொள்ளுங்கள்.\n\n### முக்கிய செயல்கள்\n- **Filtering** — condition match ஆன items-ஐ தேர்வு செய்ய\n- **Mapping** — ஒவ்வொரு item-ஐ மாற்ற\n- **Aggregating** — sum/avg/max போல் ஒரே value-ஆக குறைக்க\n- **Sorting** — ஒரு criteria மூலம் வரிசைப்படுத்த\n\n### List Comprehensions\nஒரே line-ல் filter + transform செய்ய Pythonic வழி.",
+        },
+        kannada: {
+          title: "Lists ನಲ್ಲಿ Data ಜೊತೆ ಕೆಲಸ",
+          description: "Data analysis ಗೆ Python lists ಅನ್ನು ಮೊದಲ data structure ಆಗಿ ಬಳಸಿ",
+          content:
+            "## Lists as Data Containers\n\nPandas ಕಲಿಯುವ ಮೊದಲು, Python list ಬಳಸಿ data ಅನ್ನು filter / transform ಮಾಡುವುದು ಕಲಿಯಿರಿ.\n\n### Key Operations\n- **Filtering** — condition ಗೆ ಹೊಂದುವ items ಆಯ್ಕೆ\n- **Mapping** — ಪ್ರತಿಯೊಂದು item ಅನ್ನು transform\n- **Aggregating** — sum/avg/max ಮೂಲಕ ಒಂದೇ value ಗೆ reduce\n- **Sorting** — criteria ಮೂಲಕ order\n\n### List Comprehensions\nಒಂದೇ line ನಲ್ಲಿ filter + transform ಮಾಡಲು Pythonic ವಿಧಾನ.",
+        },
+        telugu: {
+          title: "Lists లో Data తో పని చేయడం",
+          description: "Data analysis కోసం Python lists ను మొదటి data structure గా ఉపయోగించండి",
+          content:
+            "## Lists as Data Containers\n\nPandas నేర్చుకునే ముందు, Python list తో data ని filter / transform చేయడం నేర్చుకోండి.\n\n### Key Operations\n- **Filtering** — condition కి match అయ్యే items ఎంచుకోండి\n- **Mapping** — ప్రతి item ని transform చేయండి\n- **Aggregating** — sum/avg/max లా ఒకే value కి reduce చేయండి\n- **Sorting** — criteria ఆధారంగా order చేయండి\n\n### List Comprehensions\nఒకే line లో filter + transform చేసే Pythonic విధానం.",
+        },
+        hindi: {
+          title: "Lists में Data के साथ काम",
+          description: "Data analysis के लिए Python lists को पहला data structure बनाएं",
+          content:
+            "## Lists as Data Containers\n\nPandas सीखने से पहले, Python list से data को filter / transform करना सीखें.\n\n### Key Operations\n- **Filtering** — condition match करने वाले items चुनें\n- **Mapping** — हर item को transform करें\n- **Aggregating** — sum/avg/max से एक value में reduce\n- **Sorting** — criteria के हिसाब से order\n\n### List Comprehensions\nएक line में filter + transform करने का Pythonic तरीका.",
+        },
+      },
       exercises: {
         beginner: { prompt: "Given temps=[72, 68, 75, 80, 65, 78], print the maximum temperature.", starterCode: "temps = [72, 68, 75, 80, 65, 78]\n\n# Print max temperature\n", expectedOutput: "80" },
         intermediate: { prompt: "Filter the list to only include even numbers and print. nums=[1,2,3,4,5,6,7,8,9,10]", starterCode: "nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n\n# Filter even numbers and print\n", expectedOutput: "[2, 4, 6, 8, 10]" },
@@ -49,6 +131,32 @@ function da(): CareerLesson[] {
       id: "da-dictionaries", title: "Dictionaries for Structured Data", description: "Use dictionaries to represent records and datasets",
       content: "## Dictionaries = Mini Databases\n\nDictionaries store structured data as key-value pairs — like a row in a spreadsheet.\n\n### Why Dictionaries?\n- Named access: record[\"name\"] instead of record[0]\n- Self-documenting: keys describe the data\n- Flexible: different records can have different keys\n\n### Common Patterns\n- **List of dicts** = a table (each dict is a row)\n- **Dict of lists** = columnar data\n- **Nested dicts** = hierarchical data",
       codeExample: "employees = [\n    {\"name\": \"Alice\", \"dept\": \"Engineering\", \"salary\": 95000},\n    {\"name\": \"Bob\", \"dept\": \"Marketing\", \"salary\": 72000},\n    {\"name\": \"Charlie\", \"dept\": \"Engineering\", \"salary\": 88000},\n]\neng = [e for e in employees if e[\"dept\"] == \"Engineering\"]\nprint(\"Engineering team:\", len(eng), \"people\")\navg = sum(e[\"salary\"] for e in employees) / len(employees)\nprint(\"Average salary:\", int(avg))",
+      translations: {
+        tamil: {
+          title: "Structured Data க்கு Dictionaries",
+          description: "Records மற்றும் datasets-ஐ dictionaries மூலம் பிரதிநிதித்துவப்படுத்துங்கள்",
+          content:
+            "## Dictionaries = Mini Databases\n\nDictionary என்பது key-value pairs ஆக structured data-ஐ சேமிக்கும் — spreadsheet-ல் ஒரு row போல.\n\n### ஏன் Dictionaries?\n- பெயரால் access: `record[\"name\"]`\n- self-documenting: keys data-ஐ விளக்கும்\n- flexible: ஒவ்வொரு record-க்கும் வேறு keys இருக்கலாம்\n\n### பொதுவான patterns\n- **List of dicts** = table (ஒவ்வொரு dict ஒரு row)\n- **Dict of lists** = column-wise data\n- **Nested dicts** = hierarchy data",
+        },
+        kannada: {
+          title: "Structured Data ಗೆ Dictionaries",
+          description: "records ಮತ್ತು datasets ಅನ್ನು dictionaries ಮೂಲಕ ಪ್ರತಿನಿಧಿಸಿ",
+          content:
+            "## Dictionaries = Mini Databases\n\nDictionary key-value pairs ಮೂಲಕ structured data store ಮಾಡುತ್ತದೆ — spreadsheet row ಹಾಗೆ.\n\n### Dictionaries ಯಾಕೆ?\n- named access: `record[\"name\"]`\n- self-documenting: keys data ಅರ್ಥ ಹೇಳುತ್ತವೆ\n- flexible: records ಗೆ ಬೇರೆ keys ಇರಬಹುದು\n\n### Common patterns\n- **List of dicts** = table (ಪ್ರತಿ dict ಒಂದು row)\n- **Dict of lists** = columnar data\n- **Nested dicts** = hierarchical data",
+        },
+        telugu: {
+          title: "Structured Data కోసం Dictionaries",
+          description: "records మరియు datasets ను dictionaries తో represent చేయండి",
+          content:
+            "## Dictionaries = Mini Databases\n\nDictionary key-value pairs గా structured data ని store చేస్తుంది — spreadsheet row లా.\n\n### ఎందుకు Dictionaries?\n- named access: `record[\"name\"]`\n- self-documenting: keys data అర్థం చెబుతాయి\n- flexible: records కి వేర్వేరు keys ఉండొచ్చు\n\n### Common patterns\n- **List of dicts** = table (ప్రతి dict ఒక row)\n- **Dict of lists** = columnar data\n- **Nested dicts** = hierarchical data",
+        },
+        hindi: {
+          title: "Structured Data के लिए Dictionaries",
+          description: "records और datasets को dictionaries से represent करें",
+          content:
+            "## Dictionaries = Mini Databases\n\nDictionary key-value pairs में structured data store करता है — spreadsheet row की तरह.\n\n### Dictionaries क्यों?\n- named access: `record[\"name\"]`\n- self-documenting: keys data समझाती हैं\n- flexible: अलग-अलग records में अलग keys हो सकते हैं\n\n### Common patterns\n- **List of dicts** = table (हर dict एक row)\n- **Dict of lists** = columnar data\n- **Nested dicts** = hierarchical data",
+        },
+      },
       exercises: {
         beginner: { prompt: "Create a dict student with keys 'name','grade','gpa'. Print the name.", starterCode: "student = {\"name\": \"Alice\", \"grade\": \"A\", \"gpa\": 3.8}\n\n# Print the name\n", expectedOutput: "Alice" },
         intermediate: { prompt: "Given a list of products, print the name of the most expensive one.", starterCode: "products = [\n    {\"name\": \"Laptop\", \"price\": 999},\n    {\"name\": \"Phone\", \"price\": 699},\n    {\"name\": \"Tablet\", \"price\": 449}\n]\n\n# Print name of most expensive\n", expectedOutput: "Laptop" },
@@ -59,6 +167,32 @@ function da(): CareerLesson[] {
       id: "da-statistics", title: "Basic Statistics with Python", description: "Calculate mean, median, mode, and standard deviation",
       content: "## Statistics in Python\n\nStatistics helps understand data distribution and central tendencies.\n\n### Key Measures\n- **Mean** — Average value: sum/count\n- **Median** — Middle value when sorted\n- **Mode** — Most frequent value\n- **Range** — Max minus min\n- **Standard Deviation** — How spread out values are",
       codeExample: "scores = [85, 92, 78, 95, 88, 72, 90, 85, 88, 95]\nmean = sum(scores) / len(scores)\nsorted_s = sorted(scores)\nn = len(sorted_s)\nmedian = (sorted_s[n//2-1] + sorted_s[n//2]) / 2 if n % 2 == 0 else sorted_s[n//2]\nprint(\"Mean:\", mean)\nprint(\"Median:\", median)",
+      translations: {
+        tamil: {
+          title: "Basic Statistics (Python)",
+          description: "mean, median, mode, standard deviation கணக்கிடுங்கள்",
+          content:
+            "## Statistics in Python\n\nStatistics data distribution மற்றும் central tendency-ஐ புரிந்துகொள்ள உதவும்.\n\n### முக்கிய அளவுகள்\n- **Mean** — average: sum/count\n- **Median** — sorted ஆன பிறகு நடுப்பகுதி value\n- **Mode** — அதிகம் வரும் value\n- **Range** — max - min\n- **Standard Deviation** — values எவ்வளவு spread ஆகிறது",
+        },
+        kannada: {
+          title: "Basic Statistics (Python)",
+          description: "mean, median, mode, standard deviation ಲೆಕ್ಕಿಸಿ",
+          content:
+            "## Statistics in Python\n\nStatistics data distribution ಮತ್ತು central tendency ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.\n\n### Key Measures\n- **Mean** — average: sum/count\n- **Median** — sort ಮಾಡಿದ ನಂತರ middle value\n- **Mode** — ಹೆಚ್ಚು ಬಾರಿ ಬರುವ value\n- **Range** — max - min\n- **Standard Deviation** — values ಎಷ್ಟು spread ಆಗಿವೆ",
+        },
+        telugu: {
+          title: "Basic Statistics (Python)",
+          description: "mean, median, mode, standard deviation లెక్కించండి",
+          content:
+            "## Statistics in Python\n\nStatistics data distribution మరియు central tendency అర్థం చేసుకోవడానికి సహాయపడుతుంది.\n\n### Key Measures\n- **Mean** — average: sum/count\n- **Median** — sort చేసిన తర్వాత middle value\n- **Mode** — ఎక్కువసార్లు వచ్చే value\n- **Range** — max - min\n- **Standard Deviation** — values ఎంత spread అయ్యాయి",
+        },
+        hindi: {
+          title: "Basic Statistics (Python)",
+          description: "mean, median, mode, standard deviation निकालें",
+          content:
+            "## Statistics in Python\n\nStatistics data distribution और central tendency समझने में मदद करता है.\n\n### Key Measures\n- **Mean** — average: sum/count\n- **Median** — sort के बाद middle value\n- **Mode** — सबसे ज्यादा बार आने वाली value\n- **Range** — max - min\n- **Standard Deviation** — values कितनी spread हैं",
+        },
+      },
       exercises: {
         beginner: { prompt: "Given scores=[85, 90, 78, 92, 88], calculate and print the mean.", starterCode: "scores = [85, 90, 78, 92, 88]\n\n# Calculate and print mean\n", expectedOutput: "86.6" },
         intermediate: { prompt: "Find the median of nums=[3,1,4,1,5,9,2,6]. Sort first.", starterCode: "nums = [3, 1, 4, 1, 5, 9, 2, 6]\nsorted_nums = sorted(nums)\nn = len(sorted_nums)\nmedian = (sorted_nums[n//2 - 1] + sorted_nums[n//2]) / 2\nprint(median)\n", expectedOutput: "3.5" },
@@ -69,6 +203,32 @@ function da(): CareerLesson[] {
       id: "da-visualization", title: "Data Visualization Concepts", description: "Learn chart types and when to use them",
       content: "## Visualizing Data\n\nCharts transform numbers into visual stories.\n\n### Common Chart Types\n- **Bar Chart** — Compare categories\n- **Line Chart** — Show trends over time\n- **Scatter Plot** — Show relationships\n- **Histogram** — Show distribution\n- **Pie Chart** — Show proportions",
       codeExample: "categories = [\"Python\", \"JavaScript\", \"Java\", \"C++\"]\npopularity = [35, 30, 20, 15]\ntop_idx = popularity.index(max(popularity))\nprint(\"Most popular:\", categories[top_idx])\nprint(\"Share:\", str(popularity[top_idx]) + \"%\")",
+      translations: {
+        tamil: {
+          title: "Data Visualization Concepts",
+          description: "chart வகைகள் மற்றும் எப்போது பயன்படுத்த வேண்டும்",
+          content:
+            "## Visualizing Data\n\nCharts எண்களை visual stories ஆக மாற்றும்.\n\n### பொதுவான chart வகைகள்\n- **Bar Chart** — categories ஒப்பிட\n- **Line Chart** — time trends\n- **Scatter Plot** — relationship\n- **Histogram** — distribution\n- **Pie Chart** — proportions",
+        },
+        kannada: {
+          title: "Data Visualization Concepts",
+          description: "chart types ಮತ್ತು ಯಾವಾಗ ಬಳಸಬೇಕು",
+          content:
+            "## Visualizing Data\n\nCharts ಸಂಖ್ಯೆಗಳನ್ನು visual stories ಆಗಿ ಮಾಡುತ್ತವೆ.\n\n### Common chart types\n- **Bar Chart** — categories compare\n- **Line Chart** — time trends\n- **Scatter Plot** — relationships\n- **Histogram** — distribution\n- **Pie Chart** — proportions",
+        },
+        telugu: {
+          title: "Data Visualization Concepts",
+          description: "chart types మరియు ఎప్పుడు వాడాలి",
+          content:
+            "## Visualizing Data\n\nCharts సంఖ్యలను visual stories గా మార్చుతాయి.\n\n### Common chart types\n- **Bar Chart** — categories compare\n- **Line Chart** — time trends\n- **Scatter Plot** — relationships\n- **Histogram** — distribution\n- **Pie Chart** — proportions",
+        },
+        hindi: {
+          title: "Data Visualization Concepts",
+          description: "chart types और कब उपयोग करें",
+          content:
+            "## Visualizing Data\n\nCharts numbers को visual stories में बदलते हैं.\n\n### Common chart types\n- **Bar Chart** — categories compare\n- **Line Chart** — time trends\n- **Scatter Plot** — relationships\n- **Histogram** — distribution\n- **Pie Chart** — proportions",
+        },
+      },
       exercises: {
         beginner: { prompt: "Given categories and values, print which category has the highest value.", starterCode: "categories = [\"A\", \"B\", \"C\", \"D\"]\nvalues = [25, 40, 15, 30]\n\n# Print category with highest value\n", expectedOutput: "B" },
         intermediate: { prompt: "Calculate the percentage each category represents. Print the largest rounded to 1 decimal.", starterCode: "labels = [\"Python\", \"JS\", \"Java\"]\nusers = [350, 300, 150]\ntotal = sum(users)\npercentages = [(u/total)*100 for u in users]\nprint(round(max(percentages), 1))\n", expectedOutput: "43.8" },
@@ -79,6 +239,32 @@ function da(): CareerLesson[] {
       id: "da-pandas-intro", title: "Introduction to Pandas", description: "DataFrames, Series, and basic operations",
       content: "## Pandas: The Data Analysis Powerhouse\n\nPandas provides two main data structures:\n- **Series** — A single column of data\n- **DataFrame** — A table (like a spreadsheet)\n\n### Key Operations\n- df.head() — First 5 rows\n- df.describe() — Summary statistics\n- df.shape — (rows, columns)\n- df[\"column\"] — Select a column",
       codeExample: "cities = {\"City\": [\"NYC\", \"LA\", \"Chicago\"], \"Pop\": [8336817, 3979576, 2693976]}\nprint(\"Rows:\", len(cities[\"City\"]))\nprint(\"Columns:\", len(cities))\nmax_idx = cities[\"Pop\"].index(max(cities[\"Pop\"]))\nprint(\"Largest:\", cities[\"City\"][max_idx])",
+      translations: {
+        tamil: {
+          title: "Pandas அறிமுகம்",
+          description: "DataFrames, Series, மற்றும் அடிப்படை operations",
+          content:
+            "## Pandas: Data Analysis Powerhouse\n\nPandas இரண்டு முக்கிய data structures தருகிறது:\n- **Series** — ஒரே column\n- **DataFrame** — table (spreadsheet போல)\n\n### Key operations\n- `df.head()` — முதல் 5 rows\n- `df.describe()` — summary statistics\n- `df.shape` — (rows, columns)\n- `df[\"column\"]` — column select",
+        },
+        kannada: {
+          title: "Pandas ಪರಿಚಯ",
+          description: "DataFrames, Series, ಮತ್ತು basic operations",
+          content:
+            "## Pandas: Data Analysis Powerhouse\n\nPandas ಎರಡು ಮುಖ್ಯ data structures ಕೊಡುತ್ತದೆ:\n- **Series** — ಒಂದು column\n- **DataFrame** — table (spreadsheet ಹಾಗೆ)\n\n### Key operations\n- `df.head()` — ಮೊದಲ 5 rows\n- `df.describe()` — summary statistics\n- `df.shape` — (rows, columns)\n- `df[\"column\"]` — column select",
+        },
+        telugu: {
+          title: "Pandas పరిచయం",
+          description: "DataFrames, Series, మరియు basic operations",
+          content:
+            "## Pandas: Data Analysis Powerhouse\n\nPandas రెండు ప్రధాన data structures ఇస్తుంది:\n- **Series** — ఒక column\n- **DataFrame** — table (spreadsheet లా)\n\n### Key operations\n- `df.head()` — మొదటి 5 rows\n- `df.describe()` — summary statistics\n- `df.shape` — (rows, columns)\n- `df[\"column\"]` — column select",
+        },
+        hindi: {
+          title: "Pandas परिचय",
+          description: "DataFrames, Series और basic operations",
+          content:
+            "## Pandas: Data Analysis Powerhouse\n\nPandas दो main data structures देता है:\n- **Series** — एक column\n- **DataFrame** — table (spreadsheet जैसा)\n\n### Key operations\n- `df.head()` — पहली 5 rows\n- `df.describe()` — summary statistics\n- `df.shape` — (rows, columns)\n- `df[\"column\"]` — column select",
+        },
+      },
       exercises: {
         beginner: { prompt: "Create a dict with keys 'City' and 'Pop' with 3 cities. Print the dictionary.", starterCode: "data = {\"City\": [\"NYC\", \"LA\", \"Chicago\"], \"Pop\": [8336817, 3979576, 2693976]}\nprint(data)\n", expectedOutput: "{'City': ['NYC', 'LA', 'Chicago'], 'Pop': [8336817, 3979576, 2693976]}" },
         intermediate: { prompt: "From a dict of cities and populations, find and print the city with the largest population.", starterCode: "cities = {\"NYC\": 8336817, \"LA\": 3979576, \"Chicago\": 2693976}\n\n# Print city with max population\n", expectedOutput: "NYC" },
@@ -89,6 +275,32 @@ function da(): CareerLesson[] {
       id: "da-file-io", title: "Reading & Writing Data Files", description: "Work with CSV and text data",
       content: "## File I/O for Data Analysis\n\nReal data lives in files — CSV, JSON, TXT.\n\n### CSV Files\nCSV (Comma-Separated Values) is the most common data format.\n\n### Key Concepts\n- open() — opens a file\n- with statement — automatically closes the file\n- csv.reader — reads rows as lists",
       codeExample: "csv_data = \"Name,Age,City\\nAlice,25,NYC\\nBob,30,LA\\nCharlie,35,Chicago\"\nlines = csv_data.split(\"\\n\")\nheader = lines[0].split(\",\")\nrows = [line.split(\",\") for line in lines[1:]]\nfor row in rows:\n    print(row[0], \"is\", row[1], \"from\", row[2])",
+      translations: {
+        tamil: {
+          title: "Data Files வாசித்தல் & எழுதுதல்",
+          description: "CSV மற்றும் text data உடன் வேலை செய்யுங்கள்",
+          content:
+            "## File I/O for Data Analysis\n\nReal data பெரும்பாலும் files-ல் இருக்கும் — CSV, JSON, TXT.\n\n### CSV\nCSV என்பது பொதுவான data format.\n\n### Key concepts\n- `open()` — file திறக்க\n- `with` — auto close\n- `csv.reader` — rows-ஐ list ஆக வாசிக்க",
+        },
+        kannada: {
+          title: "Data Files ಓದು & ಬರೆಯುವುದು",
+          description: "CSV ಮತ್ತು text data ಜೊತೆ ಕೆಲಸ",
+          content:
+            "## File I/O for Data Analysis\n\nReal data ಸಾಮಾನ್ಯವಾಗಿ files ನಲ್ಲಿ ಇರುತ್ತದೆ — CSV, JSON, TXT.\n\n### CSV\nCSV ಬಹಳ ಸಾಮಾನ್ಯ format.\n\n### Key concepts\n- `open()` — file ತೆರೆಯಲು\n- `with` — auto close\n- `csv.reader` — rows ಅನ್ನು list ಆಗಿ ಓದಲು",
+        },
+        telugu: {
+          title: "Data Files చదవడం & రాయడం",
+          description: "CSV మరియు text data తో పని చేయండి",
+          content:
+            "## File I/O for Data Analysis\n\nReal data సాధారణంగా files లో ఉంటుంది — CSV, JSON, TXT.\n\n### CSV\nCSV చాలా common format.\n\n### Key concepts\n- `open()` — file open\n- `with` — auto close\n- `csv.reader` — rows ని list గా చదవడం",
+        },
+        hindi: {
+          title: "Data Files पढ़ना & लिखना",
+          description: "CSV और text data के साथ काम करें",
+          content:
+            "## File I/O for Data Analysis\n\nReal data अक्सर files में होता है — CSV, JSON, TXT.\n\n### CSV\nCSV सबसे common data format है.\n\n### Key concepts\n- `open()` — file खोलना\n- `with` — auto close\n- `csv.reader` — rows को list के रूप में पढ़ना",
+        },
+      },
       exercises: {
         beginner: { prompt: "Split a multi-line string into lines and print the count.", starterCode: "data = \"Name,Age\\nAlice,25\\nBob,30\\nCharlie,35\"\nlines = data.strip().split(\"\\n\")\nprint(len(lines))\n", expectedOutput: "4" },
         intermediate: { prompt: "Parse CSV: extract the Age column and print the sum.", starterCode: "data = \"Name,Age\\nAlice,25\\nBob,30\\nCharlie,35\"\nlines = data.strip().split(\"\\n\")\nrows = [line.split(\",\") for line in lines[1:]]\nage_sum = sum(int(row[1]) for row in rows)\nprint(age_sum)\n", expectedOutput: "90" },
@@ -99,6 +311,32 @@ function da(): CareerLesson[] {
       id: "da-pandas-mastery", title: "Pandas Mastery Patterns", description: "GroupBy, merge, pivot, and performance habits",
       content: "## Pandas Mastery\n\nOnce you know the basics, these patterns make you *fast* in real jobs.\n\n### Core patterns\n- **groupby + agg** — summarize by category\n- **merge / join** — combine datasets\n- **pivot_table** — reshape for reporting\n- **missing values** — fill, drop, flag\n- **types** — convert early (int, float, datetime)\n\n### Performance habits\n- Avoid row-by-row loops when possible\n- Prefer vectorized ops and boolean masks\n- Use `value_counts()` / `groupby()` for summaries\n\nYou do not need to memorize everything; you need to know the *patterns* and where to look.",
       codeExample: "# Pandas-like operations (conceptual, using Python)\nrows = [\n    {\"dept\": \"Eng\", \"salary\": 100},\n    {\"dept\": \"Eng\", \"salary\": 120},\n    {\"dept\": \"Sales\", \"salary\": 90},\n]\n\n# groupby dept -> avg salary\nsums = {}\ncounts = {}\nfor r in rows:\n    d = r[\"dept\"]\n    sums[d] = sums.get(d, 0) + r[\"salary\"]\n    counts[d] = counts.get(d, 0) + 1\n\navgs = {d: round(sums[d] / counts[d], 1) for d in sums}\nprint(avgs)\n",
+      translations: {
+        tamil: {
+          title: "Pandas Mastery Patterns",
+          description: "GroupBy, merge, pivot மற்றும் performance habits",
+          content:
+            "## Pandas Mastery\n\nBasics தெரிந்த பிறகு, இந்த patterns real job-ல் வேகமாக வேலை செய்ய உதவும்.\n\n### Core patterns\n- **groupby + agg** — summarize\n- **merge / join** — datasets இணைக்க\n- **pivot_table** — reshape\n- **missing values** — fill/drop/flag\n- **types** — early convert\n\n### Performance habits\n- row-by-row loops தவிர்க்க\n- vectorized ops + boolean masks பயன்படுத்த\n- `value_counts()` / `groupby()` மூலம் summaries\n\nஎல்லாம் மனப்பாடம் வேண்டாம்; patterns மற்றும் எங்கு பார்க்க வேண்டும் என்பதே முக்கியம்.",
+        },
+        kannada: {
+          title: "Pandas Mastery Patterns",
+          description: "GroupBy, merge, pivot ಮತ್ತು performance habits",
+          content:
+            "## Pandas Mastery\n\nBasics ಆದ ನಂತರ, ಈ patterns real job ನಲ್ಲಿ ನಿಮಗೆ ವೇಗ ಕೊಡುತ್ತವೆ.\n\n### Core patterns\n- **groupby + agg** — summarize\n- **merge / join** — datasets combine\n- **pivot_table** — reshape\n- **missing values** — fill/drop/flag\n- **types** — early convert\n\n### Performance habits\n- row-by-row loops ತಪ್ಪಿಸಿ\n- vectorized ops + boolean masks ಬಳಸಿ\n- `value_counts()` / `groupby()` summaries\n\nಎಲ್ಲವನ್ನೂ ನೆನಪಿಸಿಕೊಳ್ಳಬೇಕಿಲ್ಲ; patterns ಮತ್ತು ಎಲ್ಲಿ ನೋಡಬೇಕು ಎಂಬುದು ಮುಖ್ಯ.",
+        },
+        telugu: {
+          title: "Pandas Mastery Patterns",
+          description: "GroupBy, merge, pivot మరియు performance habits",
+          content:
+            "## Pandas Mastery\n\nBasics వచ్చిన తర్వాత, ఈ patterns real jobs లో వేగంగా పని చేయడానికి సహాయపడతాయి.\n\n### Core patterns\n- **groupby + agg** — summarize\n- **merge / join** — datasets కలపడం\n- **pivot_table** — reshape\n- **missing values** — fill/drop/flag\n- **types** — early convert\n\n### Performance habits\n- row-by-row loops తగ్గించండి\n- vectorized ops + boolean masks వాడండి\n- `value_counts()` / `groupby()` summaries\n\nఅన్నీ memorize అవసరం లేదు; patterns తెలుసుకుని ఎక్కడ చూడాలో తెలిసి ఉండాలి.",
+        },
+        hindi: {
+          title: "Pandas Mastery Patterns",
+          description: "GroupBy, merge, pivot और performance habits",
+          content:
+            "## Pandas Mastery\n\nBasics के बाद ये patterns real jobs में आपको तेज़ बनाते हैं.\n\n### Core patterns\n- **groupby + agg** — summarize\n- **merge / join** — datasets combine\n- **pivot_table** — reshape\n- **missing values** — fill/drop/flag\n- **types** — early convert\n\n### Performance habits\n- row-by-row loops से बचें\n- vectorized ops + boolean masks इस्तेमाल करें\n- `value_counts()` / `groupby()` summaries\n\nसब memorize नहीं करना; patterns और कहाँ देखना है यही ज़रूरी है.",
+        },
+      },
       exercises: {
         beginner: { prompt: "Group by category and print total for 'A'. data=[('A',10),('B',5),('A',7)]", starterCode: "data = [(\"A\", 10), (\"B\", 5), (\"A\", 7)]\ntotals = {}\nfor cat, val in data:\n    totals[cat] = totals.get(cat, 0) + val\nprint(totals[\"A\"]) \n", expectedOutput: "17" },
         intermediate: { prompt: "Left join two lists of dicts on id and print the joined name for id=2.", starterCode: "users = [{\"id\": 1, \"name\": \"A\"}, {\"id\": 2, \"name\": \"B\"}]\norders = [{\"id\": 2, \"total\": 50}]\norder_by_id = {o[\"id\"]: o for o in orders}\njoined = []\nfor u in users:\n    row = {**u, **order_by_id.get(u[\"id\"], {})}\n    joined.append(row)\nprint(joined[1][\"name\"]) \n", expectedOutput: "B" },
@@ -109,6 +347,32 @@ function da(): CareerLesson[] {
       id: "da-case-study", title: "Case Study: From Raw Data to Insights", description: "A portfolio-style mini project workflow",
       content: "## Case Study Workflow\n\nRecruiters love seeing end-to-end thinking.\n\n### A strong case study includes\n1. **Problem statement** — what you are trying to answer\n2. **Data cleaning** — handle missing and bad values\n3. **Exploration** — summary statistics and patterns\n4. **Insights** — 3 to 5 clear findings\n5. **Recommendation** — what to do next\n6. **Limitations** — what the data cannot prove\n\n### Output idea\n- A single clean notebook or markdown report\n- A few charts (even simple ones)\n- A short conclusion section\n\nYou are practicing *storytelling*, not just code.",
       codeExample: "# Mini case study: find top product by revenue\nsales = [\n    {\"product\": \"A\", \"price\": 10, \"qty\": 3},\n    {\"product\": \"B\", \"price\": 7, \"qty\": 6},\n    {\"product\": \"A\", \"price\": 10, \"qty\": 1},\n]\n\nrevenue = {}\nfor s in sales:\n    revenue[s[\"product\"]] = revenue.get(s[\"product\"], 0) + s[\"price\"] * s[\"qty\"]\n\ntop = max(revenue, key=revenue.get)\nprint(top, revenue[top])\n",
+      translations: {
+        tamil: {
+          title: "Case Study: Raw Data → Insights",
+          description: "Portfolio மாதிரி mini project workflow",
+          content:
+            "## Case Study Workflow\n\nRecruiters end-to-end thinking பார்க்க விரும்புவார்கள்.\n\n### ஒரு நல்ல case study-ல் இருக்க வேண்டியது\n1. **Problem statement** — நீங்கள் பதிலளிக்க வேண்டிய கேள்வி\n2. **Data cleaning** — missing/bad values சரி செய்ய\n3. **Exploration** — summary stats + patterns\n4. **Insights** — 3 முதல் 5 தெளிவான findings\n5. **Recommendation** — அடுத்தடுத்த செயல்\n6. **Limitations** — data என்ன prove செய்ய முடியாது\n\n### Output idea\n- ஒரு clean notebook அல்லது markdown report\n- சில charts\n- short conclusion\n\nநீங்கள் code மட்டும் அல்ல; *storytelling* பயிற்சி செய்கிறீர்கள்.",
+        },
+        kannada: {
+          title: "Case Study: Raw Data → Insights",
+          description: "Portfolio ರೀತಿಯ mini project workflow",
+          content:
+            "## Case Study Workflow\n\nRecruiters end-to-end thinking ನೋಡಲು ಇಷ್ಟಪಡುತ್ತಾರೆ.\n\n### ಒಳ್ಳೆಯ case study ನಲ್ಲಿ ಇರಬೇಕಾದವು\n1. **Problem statement** — ಉತ್ತರಿಸಬೇಕಾದ ಪ್ರಶ್ನೆ\n2. **Data cleaning** — missing/bad values ಸರಿಪಡಿಸಿ\n3. **Exploration** — summary stats + patterns\n4. **Insights** — 3 ರಿಂದ 5 ಸ್ಪಷ್ಟ findings\n5. **Recommendation** — ಮುಂದಿನ ಹೆಜ್ಜೆ\n6. **Limitations** — data ಏನು prove ಮಾಡಲ್ಲ\n\n### Output idea\n- clean notebook ಅಥವಾ markdown report\n- ಕೆಲವು charts\n- short conclusion\n\nಇದು code ಮಾತ್ರವಲ್ಲ; *storytelling* ಅಭ್ಯಾಸ.",
+        },
+        telugu: {
+          title: "Case Study: Raw Data → Insights",
+          description: "Portfolio లాంటి mini project workflow",
+          content:
+            "## Case Study Workflow\n\nRecruiters end-to-end thinking చూడాలని కోరుకుంటారు.\n\n### ఒక strong case study లో ఉండాల్సింది\n1. **Problem statement** — మీరు సమాధానం ఇవ్వాలనుకునే ప్రశ్న\n2. **Data cleaning** — missing/bad values హ్యాండిల్ చేయడం\n3. **Exploration** — summary stats + patterns\n4. **Insights** — 3 నుంచి 5 clear findings\n5. **Recommendation** — next steps\n6. **Limitations** — data ఏం prove చేయలేదో\n\n### Output idea\n- clean notebook లేదా markdown report\n- కొన్ని charts\n- short conclusion\n\nఇది code మాత్రమే కాదు; *storytelling* ప్రాక్టీస్.",
+        },
+        hindi: {
+          title: "Case Study: Raw Data → Insights",
+          description: "Portfolio जैसा mini project workflow",
+          content:
+            "## Case Study Workflow\n\nRecruiters end-to-end thinking देखना पसंद करते हैं.\n\n### एक strong case study में क्या हो\n1. **Problem statement** — आप क्या answer करना चाहते हैं\n2. **Data cleaning** — missing/bad values handle करें\n3. **Exploration** — summary stats + patterns\n4. **Insights** — 3 से 5 clear findings\n5. **Recommendation** — next steps\n6. **Limitations** — data क्या prove नहीं कर सकता\n\n### Output idea\n- clean notebook या markdown report\n- कुछ charts\n- short conclusion\n\nआप सिर्फ code नहीं; *storytelling* practice कर रहे हैं.",
+        },
+      },
       exercises: {
         beginner: { prompt: "Compute revenue for price=12, qty=4. Print it.", starterCode: "price = 12\nqty = 4\nprint(price * qty)\n", expectedOutput: "48" },
         intermediate: { prompt: "Find the max value in revenue={'A':40,'B':42,'C':10}. Print the key.", starterCode: "revenue = {\"A\": 40, \"B\": 42, \"C\": 10}\nprint(max(revenue, key=revenue.get))\n", expectedOutput: "B" },
@@ -124,6 +388,24 @@ function wd(): CareerLesson[] {
       id: "wd-intro", title: "Web Development with Python", description: "Overview of Python web frameworks",
       content: "## Python for the Web\n\nPython powers Instagram, Pinterest, Spotify.\n\n### Popular Frameworks\n- **Django** — Full-featured, batteries-included\n- **Flask** — Lightweight, flexible\n- **FastAPI** — Modern, async-first\n\n### How the Web Works\n1. Browser sends HTTP request\n2. Server processes it\n3. Server sends HTTP response\n4. Browser renders result",
       codeExample: "def handle_route(path):\n    routes = {\"/\": \"Home Page\", \"/about\": \"About Page\"}\n    return routes.get(path, \"404 Not Found\")\n\nprint(handle_route(\"/\"))\nprint(handle_route(\"/about\"))\nprint(handle_route(\"/xyz\"))",
+      translations: {
+        tamil: {
+          title: "Python மூலம் Web Development",
+          description: "Python web frameworks பற்றிய அறிமுகம்",
+        },
+        kannada: {
+          title: "Python ಬಳಸಿ Web Development",
+          description: "Python web frameworks ಪರಿಚಯ",
+        },
+        telugu: {
+          title: "Python తో Web Development",
+          description: "Python web frameworks అవలోకనం",
+        },
+        hindi: {
+          title: "Python के साथ Web Development",
+          description: "Python web frameworks का परिचय",
+        },
+      },
       exercises: {
         beginner: { prompt: "Create a dict representing an HTTP response with 'status' and 'body'. Print status.", starterCode: "response = {\"status\": 200, \"body\": \"OK\"}\nprint(response[\"status\"])\n", expectedOutput: "200" },
         intermediate: { prompt: "Write route(path) returning 'Home' for '/', 'About' for '/about', '404' else. Test '/'.", starterCode: "def route(path):\n    if path == \"/\":\n        return \"Home\"\n    elif path == \"/about\":\n        return \"About\"\n    else:\n        return \"404\"\n\nprint(route(\"/\"))\n", expectedOutput: "Home" },
@@ -229,6 +511,12 @@ function aiml(): CareerLesson[] {
       id: "ml-intro", title: "What is Machine Learning?", description: "Core concepts and types of ML",
       content: "## Machine Learning Overview\n\nML teaches computers to learn from data without explicit programming.\n\n### Types of ML\n- **Supervised** — Learn from labeled data\n- **Unsupervised** — Find patterns in unlabeled data\n- **Reinforcement** — Learn by trial and error\n\n### The ML Workflow\n1. Collect & prepare data\n2. Choose a model\n3. Train the model\n4. Evaluate performance\n5. Deploy & monitor",
       codeExample: "features = [[1500, 3], [2000, 4], [1200, 2]]\nprices = [300000, 450000, 200000]\ntotal_sqft = sum(f[0] for f in features)\navg_price_per_sqft = sum(prices) / total_sqft\nnew_house = 1800\nprint(\"Predicted:\", int(new_house * avg_price_per_sqft))",
+      translations: {
+        tamil: { title: "Machine Learning என்றால் என்ன?", description: "ML இன் அடிப்படை கருத்துகள் மற்றும் வகைகள்" },
+        kannada: { title: "Machine Learning ಎಂದರೇನು?", description: "ML ಮೂಲಭೂತ ಕಲ್ಪನೆಗಳು ಮತ್ತು ವಿಧಗಳು" },
+        telugu: { title: "Machine Learning అంటే ఏమిటి?", description: "ML యొక్క ప్రాథమిక కాన్సెప్ట్‌లు మరియు రకాలు" },
+        hindi: { title: "Machine Learning क्या है?", description: "ML के मुख्य concepts और प्रकार" },
+      },
       exercises: {
         beginner: { prompt: "Calculate the mean of [1500, 2000, 1200]. Print rounded to 1 decimal.", starterCode: "features = [1500, 2000, 1200]\nmean = sum(features) / len(features)\nprint(round(mean, 1))\n", expectedOutput: "1566.7" },
         intermediate: { prompt: "Calculate mean absolute error between predicted=[300,450,200] and actual=[310,440,210]. Print it.", starterCode: "predicted = [300, 450, 200]\nactual = [310, 440, 210]\nerrors = [abs(p - a) for p, a in zip(predicted, actual)]\nmae = sum(errors) / len(errors)\nprint(round(mae, 1))\n", expectedOutput: "10.0" },
@@ -324,6 +612,12 @@ function auto(): CareerLesson[] {
       id: "auto-intro", title: "Python Automation Basics", description: "Automate repetitive tasks",
       content: "## Why Automation?\n\nIf you do something more than twice, automate it.\n\n### What Can You Automate?\n- File organization & renaming\n- Data entry & form filling\n- Email sending & reporting\n- Web scraping & data collection\n- System monitoring\n\n### Python's Toolkit\n- os / shutil — File operations\n- requests — HTTP calls\n- BeautifulSoup — Web scraping\n- schedule — Task scheduling",
       codeExample: "files = [\"report_jan.csv\", \"report_feb.csv\", \"image.png\", \"report_mar.csv\"]\ncsv_files = [f for f in files if f.endswith(\".csv\")]\nprint(\"CSV files:\", csv_files)\nfor f in csv_files:\n    month = f.split(\"_\")[1].split(\".\")[0]\n    print(\" \", month, \"->\", f)",
+      translations: {
+        tamil: { title: "Python Automation அடிப்படைகள்", description: "மீண்டும் மீண்டும் செய்யும் பணிகளை தானியக்கமாக்குங்கள்" },
+        kannada: { title: "Python Automation ಮೂಲಭಾಗಗಳು", description: "ಪುನರಾವರ್ತಿತ ಕೆಲಸಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತಗೊಳಿಸಿ" },
+        telugu: { title: "Python Automation బేసిక్స్", description: "పునరావృత పనులను ఆటోమేట్ చేయండి" },
+        hindi: { title: "Python Automation Basics", description: "दोहराए जाने वाले कार्यों को ऑटोमेट करें" },
+      },
       exercises: {
         beginner: { prompt: "Filter image files (.png, .jpg) from a list. Print count.", starterCode: "files = [\"doc.pdf\", \"img.png\", \"data.csv\", \"pic.jpg\"]\nimages = [f for f in files if f.endswith((\".png\", \".jpg\"))]\nprint(len(images))\n", expectedOutput: "2" },
         intermediate: { prompt: "Add 'backup_' prefix to filenames. Print new list.", starterCode: "files = [\"data.csv\", \"config.json\"]\nrenamed = [\"backup_\" + f for f in files]\nprint(renamed)\n", expectedOutput: "['backup_data.csv', 'backup_config.json']" },
@@ -409,6 +703,12 @@ function de(): CareerLesson[] {
       id: "de-intro", title: "Data Engineering Fundamentals", description: "Pipelines, ETL, and data infrastructure",
       content: "## What is Data Engineering?\n\nData engineers build infrastructure that makes data usable.\n\n### Key Concepts\n- **ETL** — Extract, Transform, Load\n- **Data Pipeline** — Automated data flow\n- **Data Warehouse** — Centralized store\n- **Data Lake** — Raw data storage\n\n### ETL Process\n1. Extract — Pull from sources\n2. Transform — Clean, validate\n3. Load — Store in destination",
       codeExample: "def extract():\n    return [{\"name\": \"Alice\", \"age\": \"25\"}, {\"name\": \"Bob\", \"age\": \"thirty\"}]\n\ndef transform(data):\n    clean = []\n    for row in data:\n        try:\n            row[\"age\"] = int(row[\"age\"])\n            clean.append(row)\n        except ValueError:\n            print(\"Skipping:\", row[\"name\"])\n    return clean\n\ndef load(data):\n    for row in data:\n        print(\"Loaded:\", row[\"name\"])\n\nload(transform(extract()))",
+      translations: {
+        tamil: { title: "Data Engineering அடிப்படைகள்", description: "Pipelines, ETL மற்றும் data infrastructure அறிமுகம்" },
+        kannada: { title: "Data Engineering ಮೂಲಭಾಗಗಳು", description: "Pipelines, ETL ಮತ್ತು data infrastructure" },
+        telugu: { title: "Data Engineering ఫండమెంటల్స్", description: "Pipelines, ETL మరియు data infrastructure" },
+        hindi: { title: "Data Engineering Fundamentals", description: "Pipelines, ETL और data infrastructure" },
+      },
       exercises: {
         beginner: { prompt: "Remove None values from a list. Print clean list.", starterCode: "data = [1, None, 3, None, 5]\nclean = [x for x in data if x is not None]\nprint(clean)\n", expectedOutput: "[1, 3, 5]" },
         intermediate: { prompt: "Convert string numbers to int, skip invalid. Print valid count.", starterCode: "raw = [\"10\", \"20\", \"abc\", \"40\", \"xyz\"]\nvalid = []\nfor item in raw:\n    try:\n        valid.append(int(item))\n    except ValueError:\n        pass\nprint(len(valid))\n", expectedOutput: "3" },
@@ -484,6 +784,12 @@ function cs(): CareerLesson[] {
       id: "cs-intro", title: "Python for Cybersecurity", description: "Security fundamentals with Python",
       content: "## Cybersecurity with Python\n\nPython is widely used by security teams for **defense**, **automation**, and **incident response**.\n\n### First Rule (Important)\nOnly test systems you **own** or have **written permission** to test. Learning security is great, but \"hacking anything\" is illegal and harmful.\n\n### Applications\n- Security automation\n- Log analysis and detection\n- Forensics\n- Secure coding and hardening\n- Authorized security testing (with permission)\n\n### Key Libraries\n- hashlib — Hashing (MD5, SHA256)\n- hmac — Secure comparisons and signatures\n- secrets — Secure random tokens\n- cryptography — Encryption\n- socket — Network programming (safe diagnostics)\n- re/json/csv — Parsing security logs",
       codeExample: "import hashlib\npassword = \"SecurePass123\"\nhashed = hashlib.sha256(password.encode()).hexdigest()\nprint(\"SHA256:\", hashed[:20] + \"...\")\n\ndef verify(pwd, hash_val):\n    return hashlib.sha256(pwd.encode()).hexdigest() == hash_val\nprint(\"Valid:\", verify(\"SecurePass123\", hashed))\nprint(\"Invalid:\", verify(\"wrong\", hashed))",
+      translations: {
+        tamil: { title: "Cybersecurity க்கான Python", description: "Python மூலம் பாதுகாப்பின் அடிப்படைகளை கற்றுக்கொள்ளுங்கள்" },
+        kannada: { title: "Cybersecurity ಗೆ Python", description: "Python ಮೂಲಕ ಭದ್ರತಾ ಮೂಲಭಾಗಗಳನ್ನು ಕಲಿಯಿರಿ" },
+        telugu: { title: "Cybersecurity కోసం Python", description: "Python తో security fundamentals నేర్చుకోండి" },
+        hindi: { title: "Cybersecurity के लिए Python", description: "Python के साथ security fundamentals" },
+      },
       exercises: {
         beginner: { prompt: "Caesar cipher: shift 'abc' by 1. Print encrypted.", starterCode: "text = \"abc\"\nencrypted = \"\".join(chr(ord(c) + 1) for c in text)\nprint(encrypted)\n", expectedOutput: "bcd" },
         intermediate: { prompt: "Check password strength: 8+ chars, has digit, has uppercase. Test 'Secure1!'. Print True/False.", starterCode: "pwd = \"Secure1!\"\nis_strong = len(pwd) >= 8 and any(c.isdigit() for c in pwd) and any(c.isupper() for c in pwd)\nprint(is_strong)\n", expectedOutput: "True" },
@@ -569,6 +875,12 @@ function githubMastery(): CareerLesson[] {
       id: "git-intro", title: "Git: The Starting Line", description: "Introduction to tracking changes and collaboration",
       content: "## Why Version Control?\n\nAs a developer, you need to track changes, undo mistakes, and collaborate with others. Git is the world's most popular tool for this.\n\n### Key Concepts\n- **History** — Going back in time to any version of your project\n- **Branching** — Working on new features without breaking the main app\n- **Staging** — Preparing files for a commit\n- **Collaboration** — Sharing code via GitHub\n\n### Git's Areas\n1. **Working Directory** — Files you are editing now\n2. **Staging Area** — Files marked to be saved in the next snapshot\n3. **Local Repo** — Your local snapshots (commits)",
       codeExample: "$ mkdir my-project\n$ cd my-project\n$ git init\nInitialized empty Git repository in /my-project/.git/",
+      translations: {
+        tamil: { title: "Git: தொடக்க கட்டம்", description: "மாற்றங்களை கண்காணித்தல் மற்றும் கூட்டுப் பணியின் அறிமுகம்" },
+        kannada: { title: "Git: ಪ್ರಾರಂಭ ಹಂತ", description: "ಬದಲಾವಣೆಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡುವುದು ಮತ್ತು ಸಹಕಾರದ ಪರಿಚಯ" },
+        telugu: { title: "Git: ప్రారంభ స్థాయి", description: "మార్పులను ట్రాక్ చేయడం మరియు collaboration పరిచయం" },
+        hindi: { title: "Git: शुरुआत की रेखा", description: "changes tracking और collaboration का परिचय" },
+      },
       exercises: {
         beginner: { prompt: "Initialize a new git repository in the current directory.", starterCode: "", expectedOutput: "git init" },
         intermediate: { prompt: "Check the status of your git repository.", starterCode: "", expectedOutput: "git status" },
@@ -701,6 +1013,12 @@ function sqlLessons(): CareerLesson[] {
         "## SQL Foundations\n\nSQL is the language used to **query and analyze** data in relational databases.\n\n### What you will practice here\n- `SELECT` columns\n- `FROM` tables\n- `ORDER BY` for stable output\n- `LIMIT` to reduce rows\n\n### Practice database (built-in)\nYou will query a small practice dataset with tables like `customers`, `orders`, `order_items`, and `products`.",
       codeExample:
         "-- Explore customers\nSELECT id, name, city\nFROM customers\nORDER BY id\nLIMIT 5;",
+      translations: {
+        tamil: { title: "SQL அடித்தளம் (DQL)", description: "SELECT, FROM, ORDER BY, LIMIT — உங்கள் முதல் queries", category: "DQL (SELECT)" },
+        kannada: { title: "SQL Foundations (DQL)", description: "SELECT, FROM, ORDER BY, LIMIT — ನಿಮ್ಮ ಮೊದಲ queries", category: "DQL (SELECT)" },
+        telugu: { title: "SQL Foundations (DQL)", description: "SELECT, FROM, ORDER BY, LIMIT — మీ మొదటి queries", category: "DQL (SELECT)" },
+        hindi: { title: "SQL Foundations (DQL)", description: "SELECT, FROM, ORDER BY, LIMIT — आपकी पहली queries", category: "DQL (SELECT)" },
+      },
       exercises: {
         beginner: {
           prompt: "Select all customers (id, name) ordered by id.",
@@ -728,6 +1046,36 @@ function sqlLessons(): CareerLesson[] {
         "## Filtering & Sorting\n\n### Core clauses\n- `WHERE` filters rows\n- `AND` / `OR` combine conditions\n- `IN` checks membership\n- `BETWEEN` checks ranges\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: Always add an `ORDER BY` when you care about the exact row order (especially for exercises).",
       codeExample:
         "-- Customers in Mumbai\nSELECT name, city\nFROM customers\nWHERE city = 'Mumbai'\nORDER BY name;",
+      translations: {
+        tamil: {
+          title: "Filtering & Sorting",
+          description: "WHERE, AND/OR, LIKE, BETWEEN, IN, ORDER BY",
+          category: "Filtering & Sorting",
+          content:
+            "## Filtering & Sorting\n\n### முக்கிய clauses\n- `WHERE` rows-ஐ filter செய்கிறது\n- `AND` / `OR` conditions-ஐ இணைக்கிறது\n- `IN` membership சரிபார்க்கிறது\n- `BETWEEN` range சரிபார்க்கிறது\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: output order முக்கியமானால் எப்போதும் `ORDER BY` சேர்க்கவும் (exercises-க்கு இது மிக முக்கியம்).",
+        },
+        kannada: {
+          title: "Filtering & Sorting",
+          description: "WHERE, AND/OR, LIKE, BETWEEN, IN, ORDER BY",
+          category: "Filtering & Sorting",
+          content:
+            "## Filtering & Sorting\n\n### ಮುಖ್ಯ clauses\n- `WHERE` rows ಅನ್ನು filter ಮಾಡುತ್ತದೆ\n- `AND` / `OR` conditions ಅನ್ನು ಸೇರಿಸುತ್ತದೆ\n- `IN` membership ಪರಿಶೀಲಿಸುತ್ತದೆ\n- `BETWEEN` range ಪರಿಶೀಲಿಸುತ್ತದೆ\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: output order ಮುಖ್ಯವಾದರೆ ಯಾವಾಗಲೂ `ORDER BY` ಸೇರಿಸಿ (exercises ಗೆ ವಿಶೇಷವಾಗಿ).",
+        },
+        telugu: {
+          title: "Filtering & Sorting",
+          description: "WHERE, AND/OR, LIKE, BETWEEN, IN, ORDER BY",
+          category: "Filtering & Sorting",
+          content:
+            "## Filtering & Sorting\n\n### ముఖ్య clauses\n- `WHERE` rows ని filter చేస్తుంది\n- `AND` / `OR` conditions ని కలుపుతుంది\n- `IN` membership చెక్ చేస్తుంది\n- `BETWEEN` range చెక్ చేస్తుంది\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: output order ముఖ్యమైతే ఎప్పుడూ `ORDER BY` వాడండి (exercises కి చాలా ముఖ్యం).",
+        },
+        hindi: {
+          title: "Filtering & Sorting",
+          description: "WHERE, AND/OR, LIKE, BETWEEN, IN, ORDER BY",
+          category: "Filtering & Sorting",
+          content:
+            "## Filtering & Sorting\n\n### मुख्य clauses\n- `WHERE` rows को filter करता है\n- `AND` / `OR` conditions को जोड़ता है\n- `IN` membership check करता है\n- `BETWEEN` range check करता है\n- `LIKE` pattern matching (`%` wildcard)\n\nTip: output order ज़रूरी हो तो हमेशा `ORDER BY` लगाएँ (खासकर exercises में).",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "List customers from Mumbai (name, city) ordered by name.",
@@ -757,6 +1105,36 @@ function sqlLessons(): CareerLesson[] {
         "## Aggregations\n\n### Common functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nGroups rows so aggregates are calculated per group.\n\n### HAVING\nFilters *groups* (after aggregation).",
       codeExample:
         "-- Orders per status\nSELECT status, COUNT(*) AS count\nFROM orders\nGROUP BY status\nORDER BY status;",
+      translations: {
+        tamil: {
+          title: "Aggregations & GROUP BY",
+          description: "COUNT, SUM, AVG, GROUP BY, HAVING",
+          category: "Aggregations",
+          content:
+            "## Aggregations\n\n### பொதுவான functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nrows-ஐ குழுவாக்கி, ஒவ்வொரு group-க்கும் aggregate கணக்கிடுகிறது.\n\n### HAVING\naggregation பிறகு *groups*-ஐ filter செய்கிறது.",
+        },
+        kannada: {
+          title: "Aggregations & GROUP BY",
+          description: "COUNT, SUM, AVG, GROUP BY, HAVING",
+          category: "Aggregations",
+          content:
+            "## Aggregations\n\n### ಸಾಮಾನ್ಯ functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nrows ಗಳನ್ನು group ಮಾಡಿ, ಪ್ರತಿ group ಗೆ aggregate ಲೆಕ್ಕ ಹಾಕುತ್ತದೆ.\n\n### HAVING\naggregation ನಂತರ *groups* ಅನ್ನು filter ಮಾಡುತ್ತದೆ.",
+        },
+        telugu: {
+          title: "Aggregations & GROUP BY",
+          description: "COUNT, SUM, AVG, GROUP BY, HAVING",
+          category: "Aggregations",
+          content:
+            "## Aggregations\n\n### సాధారణ functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nrows ని group చేసి, ప్రతి group కి aggregates లెక్కిస్తుంది.\n\n### HAVING\naggregation తర్వాత *groups* ని filter చేస్తుంది.",
+        },
+        hindi: {
+          title: "Aggregations & GROUP BY",
+          description: "COUNT, SUM, AVG, GROUP BY, HAVING",
+          category: "Aggregations",
+          content:
+            "## Aggregations\n\n### Common functions\n- `COUNT(*)`\n- `SUM(x)`\n- `AVG(x)`\n- `MIN(x)`, `MAX(x)`\n\n### GROUP BY\nrows को group करके हर group के लिए aggregate निकालता है.\n\n### HAVING\naggregation के बाद *groups* को filter करता है.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Count orders by status (status, count) ordered by status.",
@@ -787,6 +1165,36 @@ function sqlLessons(): CareerLesson[] {
         "## JOINs\n\n### The big idea\nA JOIN combines rows from tables using a matching key.\n\n### Most used JOINs\n- `INNER JOIN`: only matching rows\n- `LEFT JOIN`: keep all left rows (even if no match)\n\nTip: When totals can be missing, use `COALESCE(x, 0)` to turn NULL into 0.",
       codeExample:
         "-- Orders with customer names\nSELECT o.id AS order_id, c.name, o.status\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nORDER BY o.id;",
+      translations: {
+        tamil: {
+          title: "JOINs",
+          description: "INNER JOIN, LEFT JOIN, multiple tables join",
+          category: "Joins",
+          content:
+            "## JOINs\n\n### முக்கிய idea\nmatching key மூலம் பல tables-லிருந்த rows-ஐ JOIN இணைக்கிறது.\n\n### அதிகம் பயன்படுத்தப்படும் JOINs\n- `INNER JOIN`: match ஆன rows மட்டும்\n- `LEFT JOIN`: left table-ன் rows அனைத்தும் (match இல்லையெனிலும்)\n\nTip: totals இல்லாமல் NULL வரலாம்; `COALESCE(x, 0)` மூலம் NULL → 0 ஆக மாற்றலாம்.",
+        },
+        kannada: {
+          title: "JOINs",
+          description: "INNER JOIN, LEFT JOIN, multiple tables join",
+          category: "Joins",
+          content:
+            "## JOINs\n\n### ಮುಖ್ಯ idea\nmatching key ಬಳಸಿ tables ಗಳ rows ಅನ್ನು JOIN ಸೇರಿಸುತ್ತದೆ.\n\n### ಹೆಚ್ಚು ಬಳಸುವ JOINs\n- `INNER JOIN`: match ಆದ rows ಮಾತ್ರ\n- `LEFT JOIN`: left table ನ ಎಲ್ಲಾ rows (match ಇಲ್ಲದಿದ್ದರೂ)\n\nTip: totals ನಲ್ಲಿ NULL ಬರಬಹುದು; `COALESCE(x, 0)` ಬಳಸಿ NULL → 0 ಮಾಡಿ.",
+        },
+        telugu: {
+          title: "JOINs",
+          description: "INNER JOIN, LEFT JOIN, multiple tables join",
+          category: "Joins",
+          content:
+            "## JOINs\n\n### ముఖ్య idea\nmatching key ద్వారా tables లోని rows ని JOIN కలుపుతుంది.\n\n### ఎక్కువగా వాడే JOINs\n- `INNER JOIN`: match అయ్యే rows మాత్రమే\n- `LEFT JOIN`: left table లోని అన్ని rows (match లేకపోయినా)\n\nTip: totals లో NULL రావచ్చు; `COALESCE(x, 0)` తో NULL → 0 చేయండి.",
+        },
+        hindi: {
+          title: "JOINs",
+          description: "INNER JOIN, LEFT JOIN, joining multiple tables",
+          category: "Joins",
+          content:
+            "## JOINs\n\n### मुख्य idea\nmatching key की मदद से JOIN अलग-अलग tables के rows को जोड़ता है.\n\n### सबसे ज़्यादा उपयोग होने वाले JOINs\n- `INNER JOIN`: सिर्फ matching rows\n- `LEFT JOIN`: left table के सभी rows (match न हो तब भी)\n\nTip: totals में NULL आ सकता है; `COALESCE(x, 0)` से NULL → 0 करें.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "List all orders with customer name (order_id, name, status) ordered by order_id.",
@@ -817,6 +1225,36 @@ function sqlLessons(): CareerLesson[] {
         "## Subqueries\n\nSubqueries let you use one query inside another.\n\n### Common patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- Subquery in `FROM` (derived table)\n\nTip: Prefer `EXISTS` when you only need to check presence (not values).",
       codeExample:
         "-- Customers with any cancelled order\nSELECT name\nFROM customers\nWHERE id IN (\n  SELECT customer_id FROM orders WHERE status = 'cancelled'\n)\nORDER BY name;",
+      translations: {
+        tamil: {
+          title: "Subqueries",
+          description: "IN, EXISTS, scalar subqueries, derived tables",
+          category: "Subqueries",
+          content:
+            "## Subqueries\n\nஒரு query-க்குள் இன்னொரு query-ஐ பயன்படுத்த subquery உதவுகிறது.\n\n### பொதுவான patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- `FROM`-ல் subquery (derived table)\n\nTip: values வேண்டாம், presence மட்டும் வேண்டும் என்றால் `EXISTS` நல்லது.",
+        },
+        kannada: {
+          title: "Subqueries",
+          description: "IN, EXISTS, scalar subqueries, derived tables",
+          category: "Subqueries",
+          content:
+            "## Subqueries\n\nಒಂದು query ಒಳಗೆ ಇನ್ನೊಂದು query ಬಳಸಲು subquery ಸಹಾಯ ಮಾಡುತ್ತದೆ.\n\n### ಸಾಮಾನ್ಯ patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- `FROM` ನಲ್ಲಿ subquery (derived table)\n\nTip: values ಬೇಕಿಲ್ಲ, presence ಮಾತ್ರ ಬೇಕಾದರೆ `EXISTS` ಉತ್ತಮ.",
+        },
+        telugu: {
+          title: "Subqueries",
+          description: "IN, EXISTS, scalar subqueries, derived tables",
+          category: "Subqueries",
+          content:
+            "## Subqueries\n\nఒక query లో మరో query ని ఉపయోగించడానికి subquery సహాయపడుతుంది.\n\n### సాధారణ patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- `FROM` లో subquery (derived table)\n\nTip: values అవసరం లేకుండా presence మాత్రమే చెక్ చేయాలంటే `EXISTS` బెటర్.",
+        },
+        hindi: {
+          title: "Subqueries",
+          description: "IN, EXISTS, scalar subqueries, derived tables",
+          category: "Subqueries",
+          content:
+            "## Subqueries\n\nSubquery आपको एक query के अंदर दूसरी query इस्तेमाल करने देता है.\n\n### Common patterns\n- `WHERE x IN (SELECT ...)`\n- `WHERE EXISTS (SELECT ...)`\n- `FROM` में subquery (derived table)\n\nTip: सिर्फ presence check करना हो तो `EXISTS` बेहतर है (values नहीं चाहिए).",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Find customers who have a cancelled order (name).",
@@ -847,6 +1285,36 @@ function sqlLessons(): CareerLesson[] {
         "## Common Table Expressions (CTEs)\n\nCTEs make complex queries easier to read by giving names to intermediate results.\n\n### Benefits\n- Break logic into steps\n- Reuse computed sets\n- Safer than repeating subqueries",
       codeExample:
         "-- Monthly revenue for completed orders\nWITH order_revenue AS (\n  SELECT o.id, substr(o.order_date, 1, 7) AS month, SUM(p.price * oi.quantity) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN products p ON p.id = oi.product_id\n  WHERE o.status = 'completed'\n  GROUP BY o.id, month\n)\nSELECT month, SUM(revenue) AS revenue\nFROM order_revenue\nGROUP BY month\nORDER BY month;",
+      translations: {
+        tamil: {
+          title: "CTEs (WITH)",
+          description: "WITH மூலம் readable multi-step queries",
+          category: "CTEs",
+          content:
+            "## Common Table Expressions (CTEs)\n\nintermediate results-க்கு பெயர் கொடுத்து complex queries-ஐ வாசிக்க எளிதாக்குகிறது.\n\n### பயன்கள்\n- logic-ஐ steps ஆக பிரிக்கலாம்\n- computed set-ஐ மீண்டும் பயன்படுத்தலாம்\n- repeated subqueries-ஐ விட பாதுகாப்பானது",
+        },
+        kannada: {
+          title: "CTEs (WITH)",
+          description: "WITH ಬಳಸಿ readable multi-step queries",
+          category: "CTEs",
+          content:
+            "## Common Table Expressions (CTEs)\n\nintermediate results ಗೆ ಹೆಸರು ಕೊಟ್ಟು complex queries ಓದಲು ಸುಲಭವಾಗುತ್ತದೆ.\n\n### ಲಾಭಗಳು\n- logic ಅನ್ನು steps ಆಗಿ ವಿಭಜಿಸಿ\n- computed set ಅನ್ನು ಮರುಬಳಕೆ ಮಾಡಿ\n- subqueries ಪುನರಾವರ್ತನೆಗಿಂತ ಸುರಕ್ಷಿತ",
+        },
+        telugu: {
+          title: "CTEs (WITH)",
+          description: "WITH తో readable multi-step queries",
+          category: "CTEs",
+          content:
+            "## Common Table Expressions (CTEs)\n\nintermediate results కు పేర్లు ఇవ్వడం ద్వారా complex queries చదవడానికి సులభం అవుతాయి.\n\n### ప్రయోజనాలు\n- logic ను steps గా విడగొట్టండి\n- computed set ను మళ్లీ ఉపయోగించండి\n- repeated subqueries కంటే safer",
+        },
+        hindi: {
+          title: "CTEs (WITH)",
+          description: "WITH के साथ readable multi-step queries",
+          category: "CTEs",
+          content:
+            "## Common Table Expressions (CTEs)\n\nIntermediate results को नाम देकर complex queries को पढ़ना आसान बनाते हैं.\n\n### फायदे\n- logic को steps में तोड़ें\n- computed set को reuse करें\n- repeated subqueries की तुलना में safer",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Using a CTE, compute completed order revenue (order_id, revenue) ordered by order_id.",
@@ -877,6 +1345,36 @@ function sqlLessons(): CareerLesson[] {
         "## Window Functions\n\nWindow functions compute values across a set of rows **without collapsing** them like GROUP BY.\n\n### Examples\n- Ranking within a category\n- Running totals\n- Moving averages\n\nSyntax pattern:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
       codeExample:
         "-- Rank products by price within category\nSELECT category, name, price,\n       RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank\nFROM products\nORDER BY category, name;",
+      translations: {
+        tamil: {
+          title: "Window Functions",
+          description: "RANK, DENSE_RANK, OVER(), running totals",
+          category: "Window Functions",
+          content:
+            "## Window Functions\n\nGROUP BY போல rows-ஐ collapse செய்யாமல், rows set முழுவதிலும் values கணக்கிட உதவும்.\n\n### உதாரணங்கள்\n- category-க்குள் ranking\n- running totals\n- moving averages\n\nSyntax:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
+        },
+        kannada: {
+          title: "Window Functions",
+          description: "RANK, DENSE_RANK, OVER(), running totals",
+          category: "Window Functions",
+          content:
+            "## Window Functions\n\nGROUP BY ಹಾಗೆ rows ಅನ್ನು collapse ಮಾಡದೆ, rows set ಮೇಲೆ values ಲೆಕ್ಕ ಹಾಕುತ್ತದೆ.\n\n### ಉದಾಹರಣೆಗಳು\n- category ಒಳಗೆ ranking\n- running totals\n- moving averages\n\nSyntax:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
+        },
+        telugu: {
+          title: "Window Functions",
+          description: "RANK, DENSE_RANK, OVER(), running totals",
+          category: "Window Functions",
+          content:
+            "## Window Functions\n\nGROUP BY లా rows ని collapse చేయకుండా, rows set పై values లెక్కిస్తుంది.\n\n### Examples\n- category లో ranking\n- running totals\n- moving averages\n\nSyntax:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
+        },
+        hindi: {
+          title: "Window Functions",
+          description: "RANK, DENSE_RANK, OVER(), running totals",
+          category: "Window Functions",
+          content:
+            "## Window Functions\n\nGROUP BY की तरह rows को collapse किए बिना, rows के set पर values compute करते हैं.\n\n### Examples\n- category के अंदर ranking\n- running totals\n- moving averages\n\nSyntax:\n`func(...) OVER (PARTITION BY ... ORDER BY ...)`",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Rank products by price within each category (category, name, price, price_rank) ordered by category, name.",
@@ -908,6 +1406,36 @@ function sqlLessons(): CareerLesson[] {
         "## DDL (Data Definition Language)\n\nDDL changes the database structure.\n\n### Common commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nIn the practice editor, you can run multiple statements in one execution (separated by `;`).",
       codeExample:
         "CREATE TABLE temp_notes(\n  id INTEGER,\n  note TEXT\n);\n\nSELECT name\nFROM sqlite_master\nWHERE type='table' AND name='temp_notes';",
+      translations: {
+        tamil: {
+          title: "DDL (CREATE / ALTER / DROP)",
+          description: "Tables, constraints, schema வரையறுக்க",
+          category: "DDL",
+          content:
+            "## DDL (Data Definition Language)\n\nDDL database structure-ஐ மாற்றுகிறது.\n\n### பொதுவான commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nPractice editor-ல் `;` மூலம் பிரித்து பல statements ஒன்றாக run செய்யலாம்.",
+        },
+        kannada: {
+          title: "DDL (CREATE / ALTER / DROP)",
+          description: "Tables, constraints, schema ನಿರ್ವಚನೆ",
+          category: "DDL",
+          content:
+            "## DDL (Data Definition Language)\n\nDDL database structure ಅನ್ನು ಬದಲಾಯಿಸುತ್ತದೆ.\n\n### ಸಾಮಾನ್ಯ commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nPractice editor ನಲ್ಲಿ `;` ಮೂಲಕ ಬೇರ್ಪಡಿಸಿ ಹಲವು statements ಒಂದೇ run ನಲ್ಲಿ ಚಾಲನೆ ಮಾಡಬಹುದು.",
+        },
+        telugu: {
+          title: "DDL (CREATE / ALTER / DROP)",
+          description: "Tables, constraints, schema నిర్వచించండి",
+          category: "DDL",
+          content:
+            "## DDL (Data Definition Language)\n\nDDL database structure ని మార్చుతుంది.\n\n### Common commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nPractice editor లో `;` తో వేరు చేసి multiple statements ను ఒకే run లో నడపవచ్చు.",
+        },
+        hindi: {
+          title: "DDL (CREATE / ALTER / DROP)",
+          description: "Tables, constraints और schema define करें",
+          category: "DDL",
+          content:
+            "## DDL (Data Definition Language)\n\nDDL database की structure बदलता है.\n\n### Common commands\n- `CREATE TABLE`\n- `ALTER TABLE`\n- `DROP TABLE`\n\nPractice editor में `;` से अलग करके multiple statements एक execution में चला सकते हैं.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Create table temp_notes(id INTEGER, note TEXT) then select its name from sqlite_master.",
@@ -938,6 +1466,36 @@ function sqlLessons(): CareerLesson[] {
         "## DML (Data Manipulation Language)\n\nDML changes row data.\n\n### Commands\n- `INSERT` add rows\n- `UPDATE` change rows (always use a WHERE unless you intend to update all)\n- `DELETE` remove rows\n\nTip: For practice, you can run changes and immediately verify with a SELECT.",
       codeExample:
         "-- Insert a new customer and verify\nINSERT INTO customers(id, name, city, signup_date)\nVALUES (6, 'Farah', 'Delhi', '2026-04-01');\n\nSELECT name, city\nFROM customers\nWHERE id = 6;",
+      translations: {
+        tamil: {
+          title: "DML (INSERT / UPDATE / DELETE)",
+          description: "conditions உடன் rows-ஐ பாதுகாப்பாக மாற்ற",
+          category: "DML",
+          content:
+            "## DML (Data Manipulation Language)\n\nDML row data-ஐ மாற்றுகிறது.\n\n### Commands\n- `INSERT` புதிய rows சேர்க்க\n- `UPDATE` rows மாற்ற (அனைத்தையும் update செய்ய நினைக்கவில்லை என்றால் `WHERE` அவசியம்)\n- `DELETE` rows நீக்க\n\nTip: மாற்றம் செய்த பிறகு உடனே `SELECT` மூலம் verify செய்யலாம்.",
+        },
+        kannada: {
+          title: "DML (INSERT / UPDATE / DELETE)",
+          description: "conditions ಜೊತೆಗೆ rows ಅನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಬದಲಿಸಿ",
+          category: "DML",
+          content:
+            "## DML (Data Manipulation Language)\n\nDML row data ಅನ್ನು ಬದಲಾಯಿಸುತ್ತದೆ.\n\n### Commands\n- `INSERT` ಹೊಸ rows ಸೇರಿಸಿ\n- `UPDATE` rows ಬದಲಿಸಿ (ಎಲ್ಲವನ್ನೂ update ಮಾಡಲು ಉದ್ದೇಶಿಸದಿದ್ದರೆ `WHERE` ಬಳಸಿ)\n- `DELETE` rows ಅಳಿಸಿ\n\nTip: ಬದಲಾವಣೆಗಳ ನಂತರ ತಕ್ಷಣ `SELECT` ಮೂಲಕ ಪರಿಶೀಲಿಸಿ.",
+        },
+        telugu: {
+          title: "DML (INSERT / UPDATE / DELETE)",
+          description: "conditions తో rows ని safe గా మార్చండి",
+          category: "DML",
+          content:
+            "## DML (Data Manipulation Language)\n\nDML row data ని మార్చుతుంది.\n\n### Commands\n- `INSERT` కొత్త rows జోడించండి\n- `UPDATE` rows మార్చండి (అన్ని update చేయాలనుకోకపోతే తప్పకుండా `WHERE` వాడండి)\n- `DELETE` rows తొలగించండి\n\nTip: changes చేసిన వెంటనే `SELECT` తో verify చేయండి.",
+        },
+        hindi: {
+          title: "DML (INSERT / UPDATE / DELETE)",
+          description: "conditions के साथ rows को safely modify करें",
+          category: "DML",
+          content:
+            "## DML (Data Manipulation Language)\n\nDML row data बदलता है.\n\n### Commands\n- `INSERT` rows जोड़ता है\n- `UPDATE` rows बदलता है (अगर सभी rows update नहीं करने हैं तो `WHERE` ज़रूर लगाएँ)\n- `DELETE` rows हटाता है\n\nTip: practice में changes के बाद तुरंत `SELECT` से verify करें.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Insert a customer (id=6, Farah, Delhi) then select (name, city) for id=6.",
@@ -968,6 +1526,36 @@ function sqlLessons(): CareerLesson[] {
         "## Transactions\n\nTransactions let you group changes so they either all happen or none happen.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` save changes\n- `ROLLBACK` undo changes\n\nThis is essential for correctness in real systems (payments, inventory, etc.).",
       codeExample:
         "BEGIN;\nUPDATE products SET price = 15 WHERE name = 'Pen';\nCOMMIT;\nSELECT price FROM products WHERE name = 'Pen';",
+      translations: {
+        tamil: {
+          title: "Transactions (TCL)",
+          description: "BEGIN, COMMIT, ROLLBACK மூலம் safe changes",
+          category: "Transactions (TCL)",
+          content:
+            "## Transactions\n\nபல changes-ஐ ஒரே group ஆக நடத்த transactions உதவும் — அனைத்தும் நடக்கும் அல்லது ஒன்றும் நடக்காது.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` changes சேமிக்க\n- `ROLLBACK` changes திரும்பப்பெற\n\nPayments, inventory போன்ற real systems-ல் correctness-க்கு இது மிக அவசியம்.",
+        },
+        kannada: {
+          title: "Transactions (TCL)",
+          description: "BEGIN, COMMIT, ROLLBACK ಬಳಸಿ safe changes",
+          category: "Transactions (TCL)",
+          content:
+            "## Transactions\n\nಬಹು changes ಅನ್ನು ಒಂದೇ group ಆಗಿ ಮಾಡಬಹುದು — ಎಲ್ಲವೂ ಆಗಬೇಕು ಅಥವಾ ಯಾವುದೂ ಆಗಬಾರದು.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` changes ಉಳಿಸಿ\n- `ROLLBACK` changes ಹಿಂತೆಗೆದು\n\nPayments, inventory ಮುಂತಾದ real systems ನಲ್ಲಿ correctness ಗೆ ಇದು ಅಗತ್ಯ.",
+        },
+        telugu: {
+          title: "Transactions (TCL)",
+          description: "BEGIN, COMMIT, ROLLBACK తో safe changes",
+          category: "Transactions (TCL)",
+          content:
+            "## Transactions\n\nచేంజెస్ ని ఒక గ్రూప్‌గా చేసి — అన్నీ జరగాలి లేదా ఏదీ జరగకూడదు అనేలా transactions సహాయపడతాయి.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` changes save చేయండి\n- `ROLLBACK` changes undo చేయండి\n\nPayments, inventory వంటి real systems లో correctness కి ఇది చాలా అవసరం.",
+        },
+        hindi: {
+          title: "Transactions (TCL)",
+          description: "BEGIN, COMMIT, ROLLBACK से safe changes",
+          category: "Transactions (TCL)",
+          content:
+            "## Transactions\n\nTransactions changes को group करते हैं ताकि या तो सभी changes हों या एक भी नहीं.\n\n### Commands\n- `BEGIN` / `BEGIN TRANSACTION`\n- `COMMIT` changes save करता है\n- `ROLLBACK` changes undo करता है\n\nPayments, inventory जैसे real systems में correctness के लिए यह ज़रूरी है.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "BEGIN; insert a customer (id=6); ROLLBACK; then count customers (count).",
@@ -998,6 +1586,36 @@ function sqlLessons(): CareerLesson[] {
         "## Indexes\n\nIndexes speed up lookups by creating an additional data structure.\n\n### Key idea\nIndexes can improve read performance but may slow down writes.\n\nIn SQLite, you can inspect indexes via `sqlite_master`.",
       codeExample:
         "CREATE INDEX idx_orders_customer ON orders(customer_id);\n\nSELECT name\nFROM sqlite_master\nWHERE type='index' AND tbl_name='orders'\nORDER BY name;",
+      translations: {
+        tamil: {
+          title: "Indexes & Performance Basics",
+          description: "indexes என்ன செய்கிறது, எப்போது பயன்படுத்த வேண்டும்",
+          category: "Indexes",
+          content:
+            "## Indexes\n\nIndexes ஒரு கூடுதல் data structure உருவாக்கி lookups-ஐ வேகப்படுத்தும்.\n\n### முக்கிய idea\nReads வேகமாகும்; ஆனால் writes சில நேரம் மெதுவாகலாம்.\n\nSQLite-ல் `sqlite_master` மூலம் indexes-ஐ பார்க்கலாம்.",
+        },
+        kannada: {
+          title: "Indexes & Performance Basics",
+          description: "indexes ಏನು ಮಾಡುತ್ತವೆ ಮತ್ತು ಯಾವಾಗ ಬಳಸಿ",
+          category: "Indexes",
+          content:
+            "## Indexes\n\nIndexes ಹೆಚ್ಚುವರಿ data structure ರಚಿಸಿ lookups ಅನ್ನು ವೇಗಗೊಳಿಸುತ್ತವೆ.\n\n### ಮುಖ್ಯ idea\nReads ವೇಗವಾಗುತ್ತವೆ; writes ಸ್ವಲ್ಪ ನಿಧಾನವಾಗಬಹುದು.\n\nSQLite ನಲ್ಲಿ `sqlite_master` ಮೂಲಕ indexes ನೋಡಬಹುದು.",
+        },
+        telugu: {
+          title: "Indexes & Performance Basics",
+          description: "indexes ఏమి చేస్తాయి, ఎప్పుడు వాడాలి",
+          category: "Indexes",
+          content:
+            "## Indexes\n\nIndexes అదనపు data structure సృష్టించి lookups ని వేగంగా చేస్తాయి.\n\n### Key idea\nReads వేగంగా; కానీ writes కొద్దిగా నెమ్మదిగా కావచ్చు.\n\nSQLite లో `sqlite_master` తో indexes చూడచ్చు.",
+        },
+        hindi: {
+          title: "Indexes & Performance Basics",
+          description: "indexes क्या करते हैं और कब use करें",
+          category: "Indexes",
+          content:
+            "## Indexes\n\nIndexes एक extra data structure बनाकर lookups को तेज़ करते हैं.\n\n### Key idea\nReads तेज़ होते हैं, लेकिन writes धीमे हो सकते हैं.\n\nSQLite में `sqlite_master` से indexes inspect कर सकते हैं.",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Create index idx_orders_customer on orders(customer_id) then list index names for orders (name).",
@@ -1028,6 +1646,36 @@ function sqlLessons(): CareerLesson[] {
         "## Views\n\nA view is a saved query that acts like a virtual table.\n\n### Why views?\n- Reuse common joins\n- Simplify reporting queries\n- Keep application queries cleaner",
       codeExample:
         "CREATE VIEW v_completed_orders AS\nSELECT o.id AS order_id, c.name, o.order_date\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nWHERE o.status = 'completed';\n\nSELECT order_id, name\nFROM v_completed_orders\nORDER BY order_id\nLIMIT 2;",
+      translations: {
+        tamil: {
+          title: "Views",
+          description: "மீண்டும் பயன்படுத்த saved queries",
+          category: "Views",
+          content:
+            "## Views\n\nView என்பது saved query — இது virtual table போல செயல்படும்.\n\n### ஏன் views?\n- பொதுவான joins-ஐ மீண்டும் பயன்படுத்த\n- reporting queries-ஐ எளிமைப்படுத்த\n- application queries-ஐ சுத்தமாக வைத்திருக்க",
+        },
+        kannada: {
+          title: "Views",
+          description: "ಮರುಬಳಕೆಗೆ saved queries",
+          category: "Views",
+          content:
+            "## Views\n\nView ಒಂದು saved query — ಇದು virtual table처럼 ವರ್ತಿಸುತ್ತದೆ.\n\n### Views ಯಾಕೆ?\n- ಸಾಮಾನ್ಯ joins ಅನ್ನು ಮರುಬಳಕೆ ಮಾಡಿ\n- reporting queries ಸರಳಗೊಳಿಸಿ\n- application queries ಕ್ಲೀನ್ ಆಗಿರಲಿ",
+        },
+        telugu: {
+          title: "Views",
+          description: "reuse కోసం saved queries",
+          category: "Views",
+          content:
+            "## Views\n\nView అనేది saved query — ఇది virtual table లా పనిచేస్తుంది.\n\n### Views ఎందుకు?\n- common joins ని reuse చేయండి\n- reporting queries ని సింపుల్ చేయండి\n- application queries ని clean గా ఉంచండి",
+        },
+        hindi: {
+          title: "Views",
+          description: "reuse और simplicity के लिए saved queries",
+          category: "Views",
+          content:
+            "## Views\n\nView एक saved query है जो virtual table की तरह काम करता है.\n\n### Views क्यों?\n- common joins reuse करें\n- reporting queries आसान बनाएं\n- application queries को clean रखें",
+        },
+      },
       exercises: {
         beginner: {
           prompt: "Create view v_completed_orders (orders + customers for completed) then select first 2 rows (order_id, name) ordered by order_id.",
@@ -1071,6 +1719,32 @@ Linux is the backbone of modern computing. It powers everything from Android pho
 In most dev jobs, your code will run on a Linux server. Understanding Linux is non-negotiable for professional developers.`,
       codeExample: `$ uname -a
 Linux pymaster-vm 5.15.0-91-generic`,
+      translations: {
+        tamil: {
+          title: "1. Linux அறிமுகம்",
+          description: "Kernel vs OS, Distros மற்றும் Open Source",
+          content:
+            "## Linux-க்கு வரவேற்கிறோம்\n\nLinux என்பது modern computing-ன் backbone. Android முதல் supercomputers வரை, cloud servers வரை Linux இயங்குகிறது.\n\n### முக்கிய கருத்துகள்\n- **Kernel**: hardware-ஐ பேசும் OS-ன் core\n- **Distros**: Ubuntu, Debian போன்ற Linux versions\n- **Open Source**: source code-ஐ பார்க்க/மாற்ற/விநியோகிக்க முடியும்\n\n### ஏன் Linux கற்க வேண்டும்?\nபெரும்பாலான dev jobs-ல் உங்கள் code Linux server-ல் ஓடும். Linux தெரிந்திருக்க வேண்டும்.",
+        },
+        kannada: {
+          title: "1. Linux ಪರಿಚಯ",
+          description: "Kernel vs OS, Distros, ಮತ್ತು Open Source",
+          content:
+            "## Linux ಗೆ ಸ್ವಾಗತ\n\nLinux modern computing ನ backbone. Android ನಿಂದ supercomputers ಮತ್ತು cloud servers ತನಕ Linux ಚಾಲಿತ.\n\n### ಮುಖ್ಯ ಕಲ್ಪನೆಗಳು\n- **Kernel**: hardware ಜೊತೆ ಮಾತನಾಡುವ OS ನ core\n- **Distros**: Ubuntu, Debian ಮುಂತಾದ Linux versions\n- **Open Source**: source code ನೋಡಲು/ಬದಲಿಸಲು/ಹಂಚಲು ಸಾಧ್ಯ\n\n### Linux ಯಾಕೆ ಕಲಿಯಬೇಕು?\nಬಹುತೇಕ dev jobs ನಲ್ಲಿ ನಿಮ್ಮ code Linux server ನಲ್ಲಿ ಓಡುತ್ತದೆ. Linux ತಿಳಿದಿರಬೇಕು.",
+        },
+        telugu: {
+          title: "1. Linux పరిచయం",
+          description: "Kernel vs OS, Distros, మరియు Open Source",
+          content:
+            "## Linux కి స్వాగతం\n\nLinux modern computing కి backbone. Android నుండి supercomputers, cloud servers వరకు Linux పనిచేస్తుంది.\n\n### ముఖ్య కాన్సెప్ట్స్\n- **Kernel**: hardware తో మాట్లాడే OS core\n- **Distros**: Ubuntu, Debian వంటి Linux versions\n- **Open Source**: source code చూడ/మార్చ/పంచుకోవచ్చు\n\n### ఎందుకు Linux నేర్చుకోవాలి?\nచాలా dev jobs లో మీ code Linux server లోనే రన్ అవుతుంది. Linux తెలిసి ఉండాలి.",
+        },
+        hindi: {
+          title: "1. Linux परिचय",
+          description: "Kernel vs OS, Distros और Open Source",
+          content:
+            "## Linux में आपका स्वागत है\n\nLinux modern computing की backbone है। Android से लेकर supercomputers और cloud servers तक Linux चलता है।\n\n### Key concepts\n- **Kernel**: OS का core जो hardware से बात करता है\n- **Distros**: Ubuntu, Debian जैसे Linux versions\n- **Open Source**: source code देख/बदल/वितरित कर सकते हैं\n\n### Linux क्यों सीखें?\nज्यादातर dev jobs में आपका code Linux server पर चलता है। Linux जानना ज़रूरी है।",
+        },
+      },
       exercises: {
         beginner: { prompt: "Check your Linux kernel version using uname.", starterCode: "", expectedOutput: "uname -a" },
         intermediate: { prompt: "Display the short OS name.", starterCode: "", expectedOutput: "uname" },
@@ -1092,6 +1766,32 @@ You don't need to delete Windows to use Linux. Here are the 3 best ways to start
 ### First Command: Updating
 Once installed, your first step is always to update the software list.`,
       codeExample: "$ sudo apt update",
+      translations: {
+        tamil: {
+          title: "2. Installation & Setup",
+          description: "VM, Dual Boot, மற்றும் WSL",
+          content:
+            "## Linux பெறுவது\n\nWindows-ஐ delete செய்ய வேண்டாம். ஆரம்பிக்க 3 நல்ல வழிகள்:\n\n1. **WSL**: Windows-உள்ளே Linux terminal.\n2. **Virtual Machine (VM)**: VirtualBox மூலம் Linux-ஐ window-ல் ஓட்ட.\n3. **Dual Boot**: தனி partition-ல் Linux.\n\n### முதல் command\nInstall ஆனதும் முதலில் package list update செய்யுங்கள்.",
+        },
+        kannada: {
+          title: "2. Installation & Setup",
+          description: "VM, Dual Boot, ಮತ್ತು WSL",
+          content:
+            "## Linux ಪಡೆಯುವುದು\n\nWindows ಅಳಿಸುವ ಅಗತ್ಯವಿಲ್ಲ. ಆರಂಭಿಸಲು 3 ಉತ್ತಮ ಮಾರ್ಗಗಳು:\n\n1. **WSL**: Windows ಒಳಗೆ Linux terminal.\n2. **Virtual Machine (VM)**: VirtualBox ಮೂಲಕ Linux ಅನ್ನು window ನಲ್ಲಿ ಓಡಿಸಿ.\n3. **Dual Boot**: ಬೇರೆ partition ನಲ್ಲಿ Linux.\n\n### ಮೊದಲ command\nInstall ಆದ ನಂತರ ಮೊದಲು package list update ಮಾಡಿ.",
+        },
+        telugu: {
+          title: "2. Installation & Setup",
+          description: "VM, Dual Boot, మరియు WSL",
+          content:
+            "## Linux ఇన్‌స్టాల్ చేయడం\n\nWindows ని తొలగించాల్సిన అవసరం లేదు. మొదలుపెట్టడానికి 3 బెస్ట్ మార్గాలు:\n\n1. **WSL**: Windows లోనే Linux terminal.\n2. **Virtual Machine (VM)**: VirtualBox తో Linux ని window లో రన్ చేయండి.\n3. **Dual Boot**: వేరే partition లో Linux.\n\n### First command\nInstall తర్వాత ముందుగా package list update చేయండి.",
+        },
+        hindi: {
+          title: "2. Installation & Setup",
+          description: "VM, Dual Boot और WSL",
+          content:
+            "## Linux कैसे शुरू करें\n\nWindows हटाने की ज़रूरत नहीं। शुरू करने के 3 तरीके:\n\n1. **WSL**: Windows के अंदर Linux terminal.\n2. **Virtual Machine (VM)**: VirtualBox में Linux चलाएँ.\n3. **Dual Boot**: अलग partition में Linux.\n\n### First command\nInstall के बाद सबसे पहले package list update करें.",
+        },
+      },
       exercises: {
         beginner: { prompt: "Update your package list using sudo and apt.", starterCode: "", expectedOutput: "sudo apt update" },
         intermediate: { prompt: "Upgrade all your installed software packages.", starterCode: "", expectedOutput: "sudo apt upgrade" },
@@ -1118,6 +1818,32 @@ Linux remembers everything you type.`,
   1  ls
   2  cd Documents
   3  python3 app.py`,
+      translations: {
+        tamil: {
+          title: "3. Shell & Terminal",
+          description: "Bash, shortcuts, மற்றும் history",
+          content:
+            "## Command Line\n\n**Shell** (பொதுவாக `bash`) என்பது command-ஐ interpret செய்யும் program. **Terminal** என்பது நீங்கள் type செய்யும் window.\n\n### Shortcuts\n- `Tab` auto-complete\n- `Ctrl + C` process stop\n- `Ctrl + L` clear screen\n- Arrow keys history\n\n### History\nLinux நீங்கள் type செய்த commands-ஐ நினைவில் வைத்திருக்கும்.",
+        },
+        kannada: {
+          title: "3. Shell & Terminal",
+          description: "Bash, shortcuts, ಮತ್ತು history",
+          content:
+            "## Command Line\n\n**Shell** (ಸಾಮಾನ್ಯವಾಗಿ `bash`) command ಅನ್ನು interpret ಮಾಡುತ್ತದೆ. **Terminal** ನೀವು type ಮಾಡುವ window.\n\n### Shortcuts\n- `Tab` auto-complete\n- `Ctrl + C` process stop\n- `Ctrl + L` clear\n- Arrow keys history\n\n### History\nLinux ನೀವು type ಮಾಡಿದ commands ಅನ್ನು ನೆನಪಿಟ್ಟುಕೊಳ್ಳುತ್ತದೆ.",
+        },
+        telugu: {
+          title: "3. Shell & Terminal",
+          description: "Bash, shortcuts, మరియు history",
+          content:
+            "## Command Line\n\n**Shell** (సాధారణంగా `bash`) command ని interpret చేస్తుంది. **Terminal** మీరు type చేసే window.\n\n### Shortcuts\n- `Tab` auto-complete\n- `Ctrl + C` process stop\n- `Ctrl + L` clear\n- Arrow keys history\n\n### History\nLinux మీరు టైప్ చేసిన commands ని గుర్తుంచుకుంటుంది.",
+        },
+        hindi: {
+          title: "3. Shell & Terminal",
+          description: "Bash, shortcuts और history",
+          content:
+            "## Command Line\n\n**Shell** (आमतौर पर `bash`) command interpret करता है। **Terminal** वह window है जहाँ आप type करते हैं।\n\n### Shortcuts\n- `Tab` auto-complete\n- `Ctrl + C` process stop\n- `Ctrl + L` clear\n- Arrow keys history\n\n### History\nLinux आपके typed commands याद रखता है।",
+        },
+      },
       exercises: {
         beginner: { prompt: "Clear the terminal screen using a command.", starterCode: "", expectedOutput: "clear" },
         intermediate: { prompt: "Show your command history.", starterCode: "", expectedOutput: "history" },
@@ -1139,6 +1865,32 @@ Unlike Windows, Linux has no 'C:' drive. Everything starts at the **Root** (\`/\
 - \`/var/log\`: Where the system stores logs.
 - \`/tmp\`: Temporary files (wiped on reboot).`,
       codeExample: `$ ls /etc`,
+      translations: {
+        tamil: {
+          title: "4. Filesystem Hierarchy",
+          description: "Tree: / vs C:\\",
+          content:
+            "## Linux Tree\n\nWindows போல `C:` drive இல்லை. எல்லாமே **Root** (`/`) இருந்து தொடங்கும்.\n\n### முக்கிய folders\n- `/bin` core commands\n- `/etc` config files\n- `/home` user files\n- `/var/log` logs\n- `/tmp` temp files\n\nஇந்த structure தெரிந்தால் server-ல் வேலை செய்ய எளிதாகும்.",
+        },
+        kannada: {
+          title: "4. Filesystem Hierarchy",
+          description: "Tree: / vs C:\\",
+          content:
+            "## Linux Tree\n\nWindows ನಂತೆ `C:` drive ಇಲ್ಲ. ಎಲ್ಲವೂ **Root** (`/`) ಇಂದ ಶುರು.\n\n### ಮುಖ್ಯ folders\n- `/bin` core commands\n- `/etc` config files\n- `/home` user files\n- `/var/log` logs\n- `/tmp` temp files\n\nಈ structure ತಿಳಿದರೆ server ನಲ್ಲಿ ಕೆಲಸ ಸುಲಭ.",
+        },
+        telugu: {
+          title: "4. Filesystem Hierarchy",
+          description: "Tree: / vs C:\\",
+          content:
+            "## Linux Tree\n\nWindows లా `C:` drive లేదు. అన్నీ **Root** (`/`) నుంచే ప్రారంభం.\n\n### ముఖ్య folders\n- `/bin` core commands\n- `/etc` config files\n- `/home` user files\n- `/var/log` logs\n- `/tmp` temp files\n\nఈ structure తెలుసుకుంటే server పని సులభం.",
+        },
+        hindi: {
+          title: "4. Filesystem Hierarchy",
+          description: "Tree: / vs C:\\",
+          content:
+            "## Linux Tree\n\nWindows की तरह `C:` drive नहीं होता। सब कुछ **Root** (`/`) से शुरू होता है।\n\n### मुख्य folders\n- `/bin` core commands\n- `/etc` config files\n- `/home` user files\n- `/var/log` logs\n- `/tmp` temp files\n\nयह structure समझना server work के लिए ज़रूरी है।",
+        },
+      },
       exercises: {
         beginner: { prompt: "List the contents of the root directory /", starterCode: "", expectedOutput: "ls /" },
         intermediate: { prompt: "List content of the configuration folder etc.", starterCode: "", expectedOutput: "ls /etc" },
@@ -1163,6 +1915,32 @@ Unlike Windows, Linux has no 'C:' drive. Everything starts at the **Root** (\`/\
 /home/learner
 $ cd Documents
 $ cd ..`,
+      translations: {
+        tamil: {
+          title: "5. Navigation Mastery",
+          description: "Absolute vs Relative paths",
+          content:
+            "## Moving Around\n\n- `pwd` — நீங்கள் எங்கே இருக்கிறீர்கள்\n- `cd` — directory மாற்ற\n- `~` — home shortcut\n- `..` — ஒரு level மேலே\n\n### Absolute vs Relative\n- **Absolute**: `/` இருந்து தொடங்கும்\n- **Relative**: current folder-இல் இருந்து தொடங்கும்",
+        },
+        kannada: {
+          title: "5. Navigation Mastery",
+          description: "Absolute vs Relative paths",
+          content:
+            "## Moving Around\n\n- `pwd` — ನೀವು ಎಲ್ಲಿದ್ದೀರೋ\n- `cd` — directory ಬದಲಿಸಿ\n- `~` — home shortcut\n- `..` — ಒಂದು level ಮೇಲಕ್ಕೆ\n\n### Absolute vs Relative\n- **Absolute**: `/` ಇಂದ\n- **Relative**: current folder ಇಂದ",
+        },
+        telugu: {
+          title: "5. Navigation Mastery",
+          description: "Absolute vs Relative paths",
+          content:
+            "## Moving Around\n\n- `pwd` — మీరు ఎక్కడ ఉన్నారు\n- `cd` — directory మార్చండి\n- `~` — home shortcut\n- `..` — ఒక level పైకి\n\n### Absolute vs Relative\n- **Absolute**: `/` నుండి\n- **Relative**: current folder నుండి",
+        },
+        hindi: {
+          title: "5. Navigation Mastery",
+          description: "Absolute vs Relative paths",
+          content:
+            "## Moving Around\n\n- `pwd` — आप कहाँ हैं\n- `cd` — directory बदलें\n- `~` — home shortcut\n- `..` — एक level ऊपर\n\n### Absolute vs Relative\n- **Absolute**: `/` से शुरू\n- **Relative**: current folder से शुरू",
+        },
+      },
       exercises: {
         beginner: { prompt: "Check which directory you are currently in.", starterCode: "", expectedOutput: "pwd" },
         intermediate: { prompt: "Go to your home directory using the ~ shortcut.", starterCode: "", expectedOutput: "cd ~" },
@@ -1186,6 +1964,32 @@ To delete a folder and everything inside it, use \`rm -rf\` (Be careful!).`,
       codeExample: `$ mkdir project
 $ touch project/main.py
 $ cp project/main.py backup.py`,
+      translations: {
+        tamil: {
+          title: "6. File Management",
+          description: "Create, Copy, Move, Delete",
+          content:
+            "## Files & Folders\n\n- `touch` file உருவாக்க\n- `mkdir` folder உருவாக்க\n- `cp` copy\n- `mv` move/rename\n- `rm` delete\n\n⚠️ `rm -rf` folder+உள்ளடக்கம் அனைத்தும் delete. கவனமாக.",
+        },
+        kannada: {
+          title: "6. File Management",
+          description: "Create, Copy, Move, Delete",
+          content:
+            "## Files & Folders\n\n- `touch` file create\n- `mkdir` folder create\n- `cp` copy\n- `mv` move/rename\n- `rm` delete\n\n⚠️ `rm -rf` folder ಮತ್ತು ಒಳಗಿನ ಎಲ್ಲವೂ delete. ಜಾಗ್ರತೆ.",
+        },
+        telugu: {
+          title: "6. File Management",
+          description: "Create, Copy, Move, Delete",
+          content:
+            "## Files & Folders\n\n- `touch` file create\n- `mkdir` folder create\n- `cp` copy\n- `mv` move/rename\n- `rm` delete\n\n⚠️ `rm -rf` folder + అంతా delete. జాగ్రత్త.",
+        },
+        hindi: {
+          title: "6. File Management",
+          description: "Create, Copy, Move, Delete",
+          content:
+            "## Files & Folders\n\n- `touch` file बनाए\n- `mkdir` folder बनाए\n- `cp` copy\n- `mv` move/rename\n- `rm` delete\n\n⚠️ `rm -rf` folder और अंदर सब delete कर देता है — सावधान।",
+        },
+      },
       exercises: {
         beginner: { prompt: "Create a new file called README.md", starterCode: "", expectedOutput: "touch README.md" },
         intermediate: { prompt: "Create a directory called 'assets'.", starterCode: "", expectedOutput: "mkdir assets" },
@@ -1206,6 +2010,32 @@ You don't always need to open an editor to see what's in a file.
 - \`tail\`: See the last 10 lines (Great for checking logs!).`,
       codeExample: `$ cat .bashrc
 $ tail -n 20 /var/log/syslog`,
+      translations: {
+        tamil: {
+          title: "7. Viewing & Reading",
+          description: "cat, less, head, tail",
+          content:
+            "## Reading Files\n\n- `cat` முழு file print (small files)\n- `less` scroll view (`q` quit)\n- `head` முதல் lines\n- `tail` கடைசி lines / logs\n- `tail -f` real-time logs",
+        },
+        kannada: {
+          title: "7. Viewing & Reading",
+          description: "cat, less, head, tail",
+          content:
+            "## Reading Files\n\n- `cat` ಸಂಪೂರ್ಣ file print (small)\n- `less` scroll view (`q` quit)\n- `head` ಮೊದಲ lines\n- `tail` ಕೊನೆಯ lines / logs\n- `tail -f` real-time logs",
+        },
+        telugu: {
+          title: "7. Viewing & Reading",
+          description: "cat, less, head, tail",
+          content:
+            "## Reading Files\n\n- `cat` మొత్తం file print (small)\n- `less` scroll view (`q` quit)\n- `head` మొదటి lines\n- `tail` చివరి lines / logs\n- `tail -f` real-time logs",
+        },
+        hindi: {
+          title: "7. Viewing & Reading",
+          description: "cat, less, head, tail",
+          content:
+            "## Reading Files\n\n- `cat` पूरा file print (small)\n- `less` scroll view (`q` quit)\n- `head` शुरुआती lines\n- `tail` आख़िरी lines / logs\n- `tail -f` real-time logs",
+        },
+      },
       exercises: {
         beginner: { prompt: "Print the contents of README.md to the terminal.", starterCode: "", expectedOutput: "cat README.md" },
         intermediate: { prompt: "View the first 5 lines of a file named 'data.txt'.", starterCode: "", expectedOutput: "head -n 5 data.txt" },
@@ -1227,6 +2057,32 @@ If you are on a remote server, you won't have VS Code. You must know these:
 If you get stuck, hit \`Esc\` then type \`:q!\` to quit without saving.`,
       codeExample: `$ nano config.txt
 $ vim app.py`,
+      translations: {
+        tamil: {
+          title: "8. Nano & Vim basics",
+          description: "Terminal-ல் files edit",
+          content:
+            "## Terminal Editors\n\nRemote server-ல் VS Code இருக்காது; இந்த editors தெரிந்திருக்க வேண்டும்.\n\n- **Nano**: எளிது (`^O` save, `^X` exit)\n- **Vim**: modes உள்ளது (`i` type, `Esc`, `:wq` save+quit)\n\nVim-ல் சிக்கினால்: `Esc` → `:q!`",
+        },
+        kannada: {
+          title: "8. Nano & Vim basics",
+          description: "Terminal ನಲ್ಲಿ files edit",
+          content:
+            "## Terminal Editors\n\nRemote server ನಲ್ಲಿ VS Code ಇರದೇ ಇರಬಹುದು; ಈ editors ತಿಳಿದಿರಬೇಕು.\n\n- **Nano**: ಸುಲಭ (`^O` save, `^X` exit)\n- **Vim**: modes (`i` type, `Esc`, `:wq` save+quit)\n\nVim ನಲ್ಲಿ stuck ಆದರೆ: `Esc` → `:q!`",
+        },
+        telugu: {
+          title: "8. Nano & Vim basics",
+          description: "Terminal లో files edit",
+          content:
+            "## Terminal Editors\n\nRemote server లో VS Code ఉండకపోవచ్చు; ఈ editors తెలుసుకోండి.\n\n- **Nano**: సులువు (`^O` save, `^X` exit)\n- **Vim**: modes (`i` type, `Esc`, `:wq` save+quit)\n\nVim లో stuck అయితే: `Esc` → `:q!`",
+        },
+        hindi: {
+          title: "8. Nano & Vim basics",
+          description: "Terminal में files edit करना",
+          content:
+            "## Terminal Editors\n\nRemote server पर VS Code नहीं होता; ये editors जानना ज़रूरी है।\n\n- **Nano**: आसान (`^O` save, `^X` exit)\n- **Vim**: modes (`i` type, `Esc`, `:wq` save+quit)\n\nVim में फँस जाएँ: `Esc` → `:q!`",
+        },
+      },
       exercises: {
         beginner: { prompt: "Open a file named 'app.py' with the nano editor.", starterCode: "", expectedOutput: "nano app.py" },
         intermediate: { prompt: "Open the same file with vim.", starterCode: "", expectedOutput: "vim app.py" },
@@ -1248,6 +2104,32 @@ Linux is built to handle many users at once.
 - \`groupadd\`: Create a team (group).`,
       codeExample: `$ id
 uid=1000(learner) gid=1000(learner)`,
+      translations: {
+        tamil: {
+          title: "9. Users & Groups",
+          description: "/etc/passwd மற்றும் management",
+          content:
+            "## Multi-user System\n\nLinux பல users-ஐ handle செய்ய வடிவமைக்கப்பட்டது.\n\n- `whoami` — நான் யார்\n- `id` — user + groups info\n- `/etc/passwd` — user accounts list\n- `adduser` — புதிய user\n- `groupadd` — புதிய group",
+        },
+        kannada: {
+          title: "9. Users & Groups",
+          description: "/etc/passwd ಮತ್ತು management",
+          content:
+            "## Multi-user System\n\nLinux ಹಲವು users ಅನ್ನು handle ಮಾಡಲು ಮಾಡಲಾಗಿದೆ.\n\n- `whoami` — ನಾನು ಯಾರು\n- `id` — user + groups info\n- `/etc/passwd` — user accounts list\n- `adduser` — ಹೊಸ user\n- `groupadd` — ಹೊಸ group",
+        },
+        telugu: {
+          title: "9. Users & Groups",
+          description: "/etc/passwd మరియు management",
+          content:
+            "## Multi-user System\n\nLinux అనేక users ని handle చేయడానికి రూపొందించబడింది.\n\n- `whoami` — నేను ఎవరు\n- `id` — user + groups info\n- `/etc/passwd` — user accounts list\n- `adduser` — కొత్త user\n- `groupadd` — కొత్త group",
+        },
+        hindi: {
+          title: "9. Users & Groups",
+          description: "/etc/passwd और management",
+          content:
+            "## Multi-user System\n\nLinux कई users को handle करने के लिए बनाया गया है।\n\n- `whoami` — मैं कौन\n- `id` — user + groups info\n- `/etc/passwd` — user accounts list\n- `adduser` — नया user\n- `groupadd` — नया group",
+        },
+      },
       exercises: {
         beginner: { prompt: "Display your user ID and groups.", starterCode: "", expectedOutput: "id" },
         intermediate: { prompt: "Add a new user named 'guest'.", starterCode: "", expectedOutput: "sudo adduser guest" },
@@ -1760,6 +2642,12 @@ function cloudMlops(): CareerLesson[] {
       id: "cloud-intro", title: "Introduction to Cloud Computing", description: "Learn about AWS, GCP, and the serverless revolution",
       content: "## Cloud Basics\n\nThe cloud is just someone else's computer, but with specialized tools for scaling and reliability.\n\n### Major Providers\n- **AWS** — The industry leader\n- **Google Cloud (GCP)** — Best for ML and data\n- **Azure** — Enterprise standard\n\n### Core Services\n- **Compute** — EC2, Lambda, Cloud Run\n- **Storage** — S3, Cloud storage\n- **Networking** — VPCs, Load Balancers",
       codeExample: "# Check if running in a cloud environment\nimport os\n\ndef check_cloud():\n    if os.environ.get(\"AWS_EXECUTION_ENV\"):\n        return \"AWS Lambda\"\n    if os.environ.get(\"K_SERVICE\"):\n        return \"Google Cloud Run\"\n    return \"Local Environment\"\n\nprint(\"Environment:\", check_cloud())",
+      translations: {
+        tamil: { title: "Cloud Computing அறிமுகம்", description: "AWS, GCP மற்றும் serverless முறையை கற்றுக்கொள்ளுங்கள்" },
+        kannada: { title: "Cloud Computing ಪರಿಚಯ", description: "AWS, GCP ಮತ್ತು serverless ಕ್ರಾಂತಿಯ ಪರಿಚಯ" },
+        telugu: { title: "Cloud Computing పరిచయం", description: "AWS, GCP మరియు serverless విప్లవం గురించి నేర్చుకోండి" },
+        hindi: { title: "Cloud Computing परिचय", description: "AWS, GCP और serverless क्रांति के बारे में सीखें" },
+      },
       exercises: {
         beginner: { prompt: "Return 'Cloud' if env_var exists, else 'Local'. Print for True.", starterCode: "env_exists = True\nprint(\"Cloud\" if env_exists else \"Local\")\n", expectedOutput: "Cloud" },
         intermediate: { prompt: "Calculate cost: 0.05 per hour. Print for 24 hours.", starterCode: "hours = 24\nrate = 0.05\nprint(hours * rate)\n", expectedOutput: "1.2" },
@@ -1855,6 +2743,12 @@ function gameDev(): CareerLesson[] {
       id: "game-loop", title: "The Game Loop", description: "Understand how games update and render in real-time",
       content: "## The Heart of Every Game\n\nA game is just a loop that runs 60 times per second.\n\n### 3 Steps per Frame\n1. **Process Input** — Did the player press 'Space'?\n2. **Update** — Move the player, check for gravity\n3. **Render** — Draw everything to the screen\n\n### Frame Rate (FPS)\nIf your loop takes too long, your game lags. The goal is ~16ms per frame.",
       codeExample: "# A simplified game loop concept\nimport time\n\nrunning = True\nframe = 0\n\ndef update():\n    global frame\n    frame += 1\n\n# Run for 3 'frames'\nfor _ in range(3):\n    update()\n    print(f\"Frame {frame}: Updated state\")\n    time.sleep(0.01) # Simulate logic time",
+      translations: {
+        tamil: { title: "Game Loop", description: "game real-time இல் update மற்றும் render ஆகும் முறையை புரிந்து கொள்ளுங்கள்" },
+        kannada: { title: "Game Loop", description: "game real-time ನಲ್ಲಿ update/render ಆಗುವ ವಿಧಾನ ತಿಳಿದುಕೊಳ್ಳಿ" },
+        telugu: { title: "Game Loop", description: "gameలు real-time లో ఎలా update/render అవుతాయో అర్థం చేసుకోండి" },
+        hindi: { title: "Game Loop", description: "गेम real-time में कैसे update और render होता है समझें" },
+      },
       exercises: {
         beginner: { prompt: "Calculate time for 60 FPS in milliseconds. Print rounded to 1 decimal.", starterCode: "fps = 60\nms_per_frame = 1000 / fps\nprint(round(ms_per_frame, 1))\n", expectedOutput: "16.7" },
         intermediate: { prompt: "Write a loop that updates 'pos' by 'vel' 10 times. pos=0, vel=5. Print final pos.", starterCode: "pos = 0\nvel = 5\nfor _ in range(10):\n    pos += vel\nprint(pos)\n", expectedOutput: "50" },
@@ -1950,6 +2844,12 @@ function iotRobotics(): CareerLesson[] {
       id: "iot-intro", title: "Hardware Basics", description: "Pixels to Pins: Introduction to MicroPython",
       content: "## Coding the Physical World\n\nWith Python, you can control LEDs, read temperature sensors, and move robotic arms.\n\n### MicroPython & CircuitPython\nThese are lightweight versions of Python designed to run on tiny computers (microcontrollers) like the ESP32 or Raspberry Pi Pico.\n\n### GPIO (General Purpose Input/Output)\nThese pins on the board are your connection to the world.\n- **Output**: Sending power to an LED\n- **Input**: Reading if a button is pushed",
       codeExample: "# Pseudo-code micro-controller logic\n# import machine\n# led = machine.Pin(2, machine.Pin.OUT)\n\ndef set_led(state):\n    print(\"LED is now\", \"ON\" if state else \"OFF\")\n\nset_led(True)\nset_led(False)",
+      translations: {
+        tamil: { title: "Hardware அடிப்படைகள்", description: "Pixels முதல் Pins வரை: MicroPython அறிமுகம்" },
+        kannada: { title: "Hardware ಮೂಲಭಾಗಗಳು", description: "Pixels to Pins: MicroPython ಪರಿಚಯ" },
+        telugu: { title: "Hardware బేసిక్స్", description: "Pixels నుండి Pins వరకు: MicroPython పరిచయం" },
+        hindi: { title: "Hardware Basics", description: "Pixels to Pins: MicroPython का परिचय" },
+      },
       exercises: {
         beginner: { prompt: "Print 'HIGH' if pin value is 1, else 'LOW'.", starterCode: "val = 1\nprint(\"HIGH\" if val == 1 else \"LOW\")\n", expectedOutput: "HIGH" },
         intermediate: { prompt: "Convert 1023 (10-bit max) to a percentage (0-100). Print it.", starterCode: "val = 1023\npercent = (val / 1023) * 100\nprint(percent)\n", expectedOutput: "100.0" },
@@ -2060,4 +2960,4 @@ export const careerTracks: CareerTrack[] = [
   { id: "cloud-mlops", title: "Cloud & MLOps", description: "Deploy and scale Python in the cloud", color: "primary", lessons: cloudMlops() },
   { id: "game-dev", title: "Game Development", description: "Build 2D and 3D games with Python", color: "destructive", lessons: gameDev() },
   { id: "iot-robotics", title: "IoT & Robotics", description: "Hardware and embedded Python", color: "reward-gold", lessons: iotRobotics() },
-];
+].map(withFullTrackTranslations);

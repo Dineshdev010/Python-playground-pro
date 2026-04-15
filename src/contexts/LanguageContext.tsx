@@ -249,7 +249,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo<LanguageContextValue>(() => {
-    const t = (key: TranslationKey) => translations[language][key] ?? translations.english[key] ?? key;
+    // Keep global UI text fixed in English.
+    // Selected language is used by LearnPage content only.
+    const t = (key: TranslationKey) => translations.english[key] ?? key;
     return {
       language,
       setLanguage,

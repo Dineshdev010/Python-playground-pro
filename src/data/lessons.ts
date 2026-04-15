@@ -13,6 +13,18 @@ export interface Lesson {
   description: string;
   content: string;
   codeExample: string;
+  translations?: Partial<
+    Record<
+      "tamil" | "kannada" | "telugu" | "hindi",
+      {
+        title?: string;
+        description?: string;
+        content?: string;
+        codeExample?: string;
+        category?: string;
+      }
+    >
+  >;
   exercises: {
     beginner: Exercise;
     intermediate: Exercise;
@@ -31,6 +43,32 @@ export const lessons: Lesson[] = [
     description: "Learn the basics of Python programming language",
     content: `## What is Python?\n\nPython is a high-level, interpreted programming language known for its simplicity and readability. Created by Guido van Rossum in 1991.\n\n### Key Features\n- **Easy to learn** — Clean syntax close to natural language\n- **Versatile** — Web dev, data science, AI, automation\n- **Large ecosystem** — Thousands of packages on PyPI\n- **Cross-platform** — Runs on Windows, macOS, Linux\n\n### Your First Python Program\n\nThe classic "Hello, World!" program:`,
     codeExample: `# Your first Python program\nprint("Hello, World!")\n\n# Python is dynamically typed\nname = "PyMaster"\nprint(f"Welcome to {name}!")\n\n# Comments start with #\n# This is a single-line comment\n\nif True:\n    print("Indentation matters in Python!")`,
+    translations: {
+      tamil: {
+        title: "Python அடிப்படைகள்",
+        category: "தொடக்கநிலை",
+        description: "Python நிரலாக்க மொழியின் அடிப்படைகளை கற்றுக்கொள்ளுங்கள்",
+        content: `## Python என்றால் என்ன?\n\nPython என்பது எளிமை மற்றும் வாசிப்புத்திறனால் பிரபலமான ஒரு உயர் நிலை, interpreter அடிப்படையிலான நிரலாக்க மொழி. இதை Guido van Rossum 1991-ல் உருவாக்கினார்.\n\n### முக்கிய அம்சங்கள்\n- **கற்க எளிது** — இயல்பான மொழியைப் போல சுத்தமான syntax\n- **பல்துறை** — Web development, Data science, AI, Automation\n- **பெரிய சூழல்** — PyPI-ல் ஆயிரக்கணக்கான packages\n- **அனைத்து தளங்களிலும் இயங்கும்** — Windows, macOS, Linux\n\n### உங்கள் முதல் Python நிரல்\n\nபழமையான "Hello, World!" நிரல்:`,
+      },
+      kannada: {
+        title: "Python ಮೂಲಭಾಗಗಳು",
+        category: "ಆರಂಭಿಕ",
+        description: "Python ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಭಾಷೆಯ ಮೂಲಭಾಗಗಳನ್ನು ಕಲಿಯಿರಿ",
+        content: `## Python ಎಂದರೇನು?\n\nPython ಸರಳತೆ ಮತ್ತು ಓದಲು ಸುಲಭವಾದ ರೂಪಕ್ಕಾಗಿ ಪ್ರಸಿದ್ಧವಾದ high-level, interpreted ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಭಾಷೆ. Guido van Rossum ಅವರು 1991ರಲ್ಲಿ ರಚಿಸಿದರು.\n\n### ಮುಖ್ಯ ವೈಶಿಷ್ಟ್ಯಗಳು\n- **ಕಲಿಯಲು ಸುಲಭ** — ನೈಸರ್ಗಿಕ ಭಾಷೆಯಂತಿರುವ ಸರಳ syntax\n- **ಬಹುಮುಖ** — Web development, Data science, AI, Automation\n- **ದೊಡ್ಡ ಪರಿಸರ ವ್ಯವಸ್ಥೆ** — PyPIಯಲ್ಲಿ ಸಾವಿರಾರು packages\n- **Cross-platform** — Windows, macOS, Linuxನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ\n\n### ನಿಮ್ಮ ಮೊದಲ Python ಪ್ರೋಗ್ರಾಂ\n\nಪ್ರಸಿದ್ಧ "Hello, World!" ಪ್ರೋಗ್ರಾಂ:`,
+      },
+      telugu: {
+        title: "Python మూలాలు",
+        category: "ప్రారంభ స్థాయి",
+        description: "Python ప్రోగ్రామింగ్ భాష యొక్క ప్రాథమికాలను నేర్చుకోండి",
+        content: `## Python అంటే ఏమిటి?\n\nPython అనేది సరళత మరియు చదవడానికి సులభత కోసం ప్రసిద్ధి చెందిన high-level, interpreted ప్రోగ్రామింగ్ భాష. దీనిని Guido van Rossum 1991లో రూపొందించారు.\n\n### ముఖ్య లక్షణాలు\n- **నేర్చుకోవడం సులభం** — సహజ భాషలా కనిపించే క్లియర్ syntax\n- **బహుముఖ ఉపయోగం** — Web development, Data science, AI, Automation\n- **విపుల ecosystem** — PyPIలో వేలాది packages\n- **Cross-platform** — Windows, macOS, Linuxలో పనిచేస్తుంది\n\n### మీ మొదటి Python ప్రోగ్రామ్\n\nసాధారణ "Hello, World!" ప్రోగ్రామ్:`,
+      },
+      hindi: {
+        title: "Python की मूल बातें",
+        category: "शुरुआती",
+        description: "Python प्रोग्रामिंग भाषा की बुनियादी बातें सीखें",
+        content: `## Python क्या है?\n\nPython एक high-level, interpreted प्रोग्रामिंग भाषा है जो अपनी सादगी और readability के लिए जानी जाती है। इसे Guido van Rossum ने 1991 में बनाया।\n\n### मुख्य विशेषताएं\n- **सीखना आसान** — प्राकृतिक भाषा जैसा साफ syntax\n- **बहुउपयोगी** — Web development, Data science, AI, Automation\n- **बड़ा ecosystem** — PyPI पर हजारों packages\n- **Cross-platform** — Windows, macOS, Linux पर चलता है\n\n### आपका पहला Python प्रोग्राम\n\nक्लासिक "Hello, World!" प्रोग्राम:`,
+      },
+    },
     exercises: {
       beginner: {
         prompt: "Print 'Hello, World!' and 'Welcome to PyMaster!' on separate lines.",
@@ -58,6 +96,28 @@ export const lessons: Lesson[] = [
     description: "Understanding Python's type system and variable assignment",
     content: `## Variables in Python\n\nA variable is a named container for a value. Think of it like a labeled box: the label is the variable name and the value is what you store inside.\n\nExample:\n- \`name = "Asha"\`\n- \`age = 21\`\n\nPython is dynamically typed, so you do not write the type while creating the variable. Python automatically understands it from the value.\n\n### Data Types You Must Know\n- **int** — Whole numbers, example: \`42\`\n- **float** — Decimal numbers, example: \`3.14\`\n- **str** — Text data, example: \`"hello"\`\n- **bool** — Logical values: \`True\` or \`False\`\n- **NoneType** — No value yet, written as \`None\`\n\n### How To Use Each Type\n- Use **int** for counting items, age, score, rank, and indexes.\n- Use **float** for measurements, percentages, and prices with decimals.\n- Use **str** for names, messages, labels, and any text input.\n- Use **bool** for checks and decisions, like \`is_logged_in\` or \`is_valid\`.\n- Use **None** when a value is optional or not available yet.\n\n### Type Conversion (Important)\nSometimes values come in as text and you need to convert them:\n- \`int("42")\` gives \`42\`\n- \`float("3.5")\` gives \`3.5\`\n- \`str(123)\` gives \`"123"\`\n- \`bool(0)\` gives \`False\`, \`bool(1)\` gives \`True\`\n\n### Common Beginner Mistakes\n- Trying to add text and number directly: \`"Age: " + 21\` (error)\n- Forgetting quotes for strings\n- Assuming \`"42"\` and \`42\` are the same type\n- Comparing with wrong type, like \`"10" > 2\`\n\n### Quick Practice Idea\nCreate one variable of each type, print the value, and print \`type(variable)\` so you can see the real type.`,
     codeExample: `# Variables and data types\nage = 25              # int\npi = 3.14159          # float\nname = "Python"       # str\nis_fun = True         # bool\n\nprint(type(age))      # <class 'int'>\nprint(f"{name} is {age} years old")`,
+    translations: {
+      tamil: {
+        title: "மாறிகள் & தரவு வகைகள்",
+        category: "தொடக்கநிலை",
+        description: "Python இன் type system மற்றும் variable assignment ஐ புரிந்துகொள்ளுங்கள்",
+      },
+      kannada: {
+        title: "ಚರಗಳು ಮತ್ತು ಡೇಟಾ ಪ್ರಕಾರಗಳು",
+        category: "ಆರಂಭಿಕ",
+        description: "Python type system ಮತ್ತು variable assignment ಅರ್ಥಮಾಡಿಕೊಳ್ಳಿ",
+      },
+      telugu: {
+        title: "వేరియబుల్స్ & డేటా టైప్స్",
+        category: "ప్రారంభ స్థాయి",
+        description: "Python type system మరియు variable assignment ను అర్థం చేసుకోండి",
+      },
+      hindi: {
+        title: "वेरिएबल्स और डेटा टाइप्स",
+        category: "शुरुआती",
+        description: "Python के type system और variable assignment को समझें",
+      },
+    },
     exercises: {
       beginner: {
         prompt: "Create variables: name='Python', version=3, is_awesome=True. Print each on a new line.",
@@ -83,6 +143,28 @@ export const lessons: Lesson[] = [
     description: "Master string manipulation and formatting",
     content: `## Strings in Python\n\nStrings are sequences of characters. They are immutable.\n\n### Common Methods\n- \`.upper()\`, \`.lower()\`, \`.title()\`\n- \`.strip()\`, \`.split()\`, \`.join()\`\n- \`.find()\`, \`.replace()\`, \`.count()\`\n- \`.startswith()\`, \`.endswith()\`\n\n### Slicing\n\`s[start:stop:step]\``,
     codeExample: `text = "Hello, Python World!"\nprint(text.upper())\nprint(text.lower())\nprint(text[7:13])     # Python\nprint(text[::-1])     # Reverse\nprint(" ".join(["Python", "is", "awesome"]))`,
+    translations: {
+      tamil: {
+        title: "Strings & String Methods",
+        category: "தொடக்கநிலை",
+        description: "String manipulation மற்றும் formatting திறன்களை கற்றுக்கொள்ளுங்கள்",
+      },
+      kannada: {
+        title: "Strings ಮತ್ತು String Methods",
+        category: "ಆರಂಭಿಕ",
+        description: "String manipulation ಮತ್ತು formatting ಅನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ",
+      },
+      telugu: {
+        title: "Strings & String Methods",
+        category: "ప్రారంభ స్థాయి",
+        description: "String manipulation మరియు formatting నేర్చుకోండి",
+      },
+      hindi: {
+        title: "Strings और String Methods",
+        category: "शुरुआती",
+        description: "String manipulation और formatting में महारत हासिल करें",
+      },
+    },
     exercises: {
       beginner: {
         prompt: "Given text='hello world', print it in uppercase.",

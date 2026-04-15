@@ -304,6 +304,28 @@ type DataTypeUsageItem = {
   example: string;
 };
 
+function getLocalizedLesson(
+  lesson: (typeof lessons)[number] | undefined,
+  language: "english" | "tamil" | "kannada" | "telugu" | "hindi",
+) {
+  if (!lesson) return undefined;
+  if (language === "english") return lesson;
+
+  const localized = lesson.translations?.[language];
+  if (!localized) return lesson;
+
+  return {
+    ...lesson,
+    title: localized.title ?? lesson.title,
+    description: localized.description ?? lesson.description,
+    content: localized.content ?? lesson.content,
+    codeExample: localized.codeExample ?? lesson.codeExample,
+    category: localized.category ?? lesson.category,
+  };
+}
+
+type LearnLanguage = "english" | "tamil" | "kannada" | "telugu" | "hindi";
+
 function extractGlossaryTerms(content: string) {
   const terms = new Set<string>();
   const re = /`([^`]+)`/g;
@@ -316,7 +338,155 @@ function extractGlossaryTerms(content: string) {
   return Array.from(terms).slice(0, 10);
 }
 
-function getLessonClarityGuide(title: string): LessonClarityGuide {
+function getLessonClarityGuide(lessonId: string, title: string, language: LearnLanguage): LessonClarityGuide {
+  if (language !== "english") {
+    if (lessonId === "fundamentals") {
+      if (language === "tamil") {
+        return {
+          summary: "Python ஒரு எளிய மற்றும் சக்திவாய்ந்த நிரலாக்க மொழி. இதை அடிப்படையாக கற்றால் மற்ற தலைப்புகள் எளிதாகும்.",
+          analogy: "முதலில் எழுத்துக்கள் கற்றால் தான் வாக்கியம் எழுத முடியும்; அதுபோல Python அடிப்படைகள் முதலில் தேவை.",
+          steps: [
+            "print() மூலம் எளிய output எழுதவும்.",
+            "variable உருவாக்கி value சேமிக்கவும்.",
+            "if மற்றும் indentation எப்படி வேலை செய்கிறது பார்க்கவும்.",
+            "குறுகிய code-ஐ ஓட்டி output சரிபார்க்கவும்.",
+          ],
+          whereToUse: [
+            "முதல் automation scripts எழுத",
+            "coding interview தயாரிப்புக்கு",
+            "real project தொடங்கும் முன் அடித்தளம் அமைக்க",
+          ],
+          commonMistakes: [
+            "indentation தவறு செய்வது",
+            "string-க்கு quotes மறப்பது",
+            "code ஓட்டாமல் theory மட்டும் படிப்பது",
+          ],
+          quickCheck: "`print('Hello')` ஓட்டும் போது என்ன output வரும்? ஏன்?",
+        };
+      }
+      if (language === "kannada") {
+        return {
+          summary: "Python ಒಂದು ಸರಳ ಮತ್ತು ಶಕ್ತಿಶಾಲಿ ಭಾಷೆ. ಇದರ ಮೂಲಭಾಗ ತಿಳಿದರೆ ಮುಂದಿನ ವಿಷಯಗಳು ಸುಲಭವಾಗುತ್ತವೆ.",
+          analogy: "ಅಕ್ಷರಗಳನ್ನು ಕಲಿತ ಮೇಲೆ ವಾಕ್ಯ ಬರೆಯುವಂತೆ, Python ಮೂಲಭಾಗ ಮೊದಲಿಗೆ ಬೇಕಾಗುತ್ತದೆ.",
+          steps: [
+            "print() ಬಳಸಿ ಸರಳ output ಬರೆಯಿರಿ.",
+            "variable ರಚಿಸಿ value ಇಡಿ.",
+            "if ಮತ್ತು indentation ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತವೆ ನೋಡಿ.",
+            "ಸಣ್ಣ code ಓಡಿಸಿ output ಪರಿಶೀಲಿಸಿ.",
+          ],
+          whereToUse: [
+            "ಮೊದಲ automation script ಬರೆಯಲು",
+            "coding interview ತಯಾರಿಗಾಗಿ",
+            "project ಶುರು ಮಾಡುವ ಮುನ್ನ foundation ಕಟ್ಟಲು",
+          ],
+          commonMistakes: [
+            "indentation ತಪ್ಪು",
+            "string quotes ಮರೆತುವುದು",
+            "code ಓಡಿಸದೇ theory ಮಾತ್ರ ಓದುವುದು",
+          ],
+          quickCheck: "`print('Hello')` ಓಡಿಸಿದಾಗ ಏನು output ಬರುತ್ತದೆ?",
+        };
+      }
+      if (language === "telugu") {
+        return {
+          summary: "Python సులభమైన మరియు శక్తివంతమైన భాష. దీని బేసిక్స్ బలంగా ఉంటే మిగతా టాపిక్స్ సులభమవుతాయి.",
+          analogy: "అక్షరాలు నేర్చుకున్న తర్వాతే వాక్యాలు రాయగలం; అలాగే Pythonలో బేసిక్స్ ముందుగా కావాలి.",
+          steps: [
+            "print() తో సాధారణ output రాయండి.",
+            "variable సృష్టించి value ఇవ్వండి.",
+            "if మరియు indentation ఎలా పనిచేస్తాయో చూడండి.",
+            "చిన్న code run చేసి output తనిఖీ చేయండి.",
+          ],
+          whereToUse: [
+            "మొదటి automation scripts కోసం",
+            "coding interview సిద్ధతలో",
+            "project మొదలుపెట్టే ముందు foundation కోసం",
+          ],
+          commonMistakes: [
+            "indentation తప్పులు",
+            "string quotes మర్చిపోవడం",
+            "code run చేయకుండా theory మాత్రమే చదవడం",
+          ],
+          quickCheck: "`print('Hello')` రన్ చేస్తే output ఏమిటి?",
+        };
+      }
+      if (language === "hindi") {
+        return {
+          summary: "Python एक सरल और शक्तिशाली भाषा है। इसकी बुनियाद मजबूत होगी तो आगे के टॉपिक्स आसान होंगे।",
+          analogy: "जैसे अक्षर सीखकर ही वाक्य लिखते हैं, वैसे ही Python में पहले fundamentals जरूरी हैं।",
+          steps: [
+            "print() से सरल output लिखें।",
+            "variable बनाकर value रखें।",
+            "if और indentation का व्यवहार देखें।",
+            "छोटा code चलाकर output जांचें।",
+          ],
+          whereToUse: [
+            "पहले automation scripts लिखने में",
+            "coding interview तैयारी में",
+            "project शुरू करने से पहले foundation बनाने में",
+          ],
+          commonMistakes: [
+            "indentation गलती करना",
+            "string के quotes भूलना",
+            "code चलाए बिना सिर्फ theory पढ़ना",
+          ],
+          quickCheck: "`print('Hello')` चलाने पर output क्या आएगा?",
+        };
+      }
+    }
+
+    return {
+      summary:
+        language === "tamil"
+          ? "இந்த பாடம் ஒரு முக்கிய Python கருத்தை எளிமையாக கற்பிக்கிறது."
+          : language === "kannada"
+            ? "ಈ ಪಾಠವು ಒಂದು ಮುಖ್ಯ Python ಕಲ್ಪನೆಯನ್ನು ಸರಳವಾಗಿ ಕಲಿಸುತ್ತದೆ."
+            : language === "telugu"
+              ? "ఈ పాఠం ఒక ముఖ్యమైన Python కాన్సెప్ట్‌ను సులభంగా నేర్పిస్తుంది."
+              : "यह पाठ एक महत्वपूर्ण Python concept को सरल तरीके से समझाता है।",
+      analogy:
+        language === "tamil"
+          ? "கருத்தை புரிந்து, உதாரணம் ஓட்டி, சிறிய task-ல் பயன்படுத்துவது சிறந்த வழி."
+          : language === "kannada"
+            ? "ಕಲ್ಪನೆಯನ್ನು ಅರ್ಥಮಾಡಿ, ಉದಾಹರಣೆ ಓಡಿಸಿ, ಸಣ್ಣ task ನಲ್ಲಿ ಬಳಸಿ."
+            : language === "telugu"
+              ? "కాన్సెప్ట్ అర్థం చేసుకుని, ఉదాహరణ రన్ చేసి, చిన్న taskలో ఉపయోగించండి."
+              : "Concept समझें, example चलाएं, फिर छोटे task में लागू करें।",
+      steps:
+        language === "tamil"
+          ? ["கருத்தை வாசிக்கவும்", "உதாரணம் ஓட்டவும்", "ஒரு value மாற்றி பார்க்கவும்", "பயிற்சியில் பயன்படுத்தவும்"]
+          : language === "kannada"
+            ? ["ಕಲ್ಪನೆ ಓದಿ", "ಉದಾಹರಣೆ ಓಡಿಸಿ", "ಒಂದು value ಬದಲಿಸಿ ನೋಡಿ", "ಅಭ್ಯಾಸದಲ್ಲಿ ಬಳಸಿ"]
+            : language === "telugu"
+              ? ["కాన్సెప్ట్ చదవండి", "ఉదాహరణ run చేయండి", "ఒక value మార్చి చూడండి", "వ్యాయామంలో ప్రయోగించండి"]
+              : ["Concept पढ़ें", "Example चलाएं", "एक value बदलकर देखें", "Exercise में लागू करें"],
+      whereToUse:
+        language === "tamil"
+          ? ["Coding practice", "Interview preparation", "Real project logic"]
+          : language === "kannada"
+            ? ["Coding ಅಭ್ಯಾಸ", "Interview ತಯಾರಿ", "Real project logic"]
+            : language === "telugu"
+              ? ["Coding practice", "Interview preparation", "Real project logic"]
+              : ["Coding practice", "Interview preparation", "Real project logic"],
+      commonMistakes:
+        language === "tamil"
+          ? ["code ஓட்டாமல் விடுதல்", "அடிப்படை படிகளை தவிர்த்தல்", "output சரிபார்க்காமல் போதல்"]
+          : language === "kannada"
+            ? ["code ಓಡಿಸದೇ ಬಿಡುವುದು", "ಮೂಲ ಹಂತಗಳನ್ನು ಬಿಟ್ಟುಹೋಗುವುದು", "output ಪರಿಶೀಲಿಸದೇ ಇರುವುದು"]
+            : language === "telugu"
+              ? ["code run చేయకుండా వదిలేయడం", "basic steps skip చేయడం", "output check చేయకపోవడం"]
+              : ["code चलाए बिना आगे बढ़ना", "basic steps skip करना", "output check न करना"],
+      quickCheck:
+        language === "tamil"
+          ? "இந்த தலைப்பை 2 வரிகளில் விளக்க முடியுமா?"
+          : language === "kannada"
+            ? "ಈ ವಿಷಯವನ್ನು 2 ಸಾಲುಗಳಲ್ಲಿ ವಿವರಿಸಬಹುದೇ?"
+            : language === "telugu"
+              ? "ఈ టాపిక్‌ను 2 లైన్లలో వివరించగలరా?"
+              : "क्या आप इस topic को 2 लाइनों में समझा सकते हैं?",
+    };
+  }
+
   const lower = title.toLowerCase();
 
   if (lower.includes("variable") || lower.includes("data type")) {
@@ -643,7 +813,107 @@ function getDataTypeUsageGuide(lessonId: string): DataTypeUsageItem[] {
   ];
 }
 
-function getLessonNarrative(title: string): LessonNarrative {
+function getLessonNarrative(lessonId: string, title: string, language: LearnLanguage): LessonNarrative {
+  if (language !== "english") {
+    if (lessonId === "fundamentals") {
+      if (language === "tamil") {
+        return {
+          explanation:
+            "இந்த பாடம் Python உலகுக்கான நுழைவாயில். syntax, print, variables, indentation போன்ற அடிப்படைகள் பின்னர் வரும் எல்லா பாடங்களுக்கும் foundation ஆகும்.",
+          practicalUse: [
+            "சிறிய scripts எழுத ஆரம்பிக்க",
+            "Programming logic-ஐ நிதானமாகப் புரிந்துகொள்ள",
+            "அடுத்த பாடங்களுக்கு நம்பிக்கையுடன் செல்ல",
+          ],
+          implementationFlow: [
+            "ஒரு simple print program எழுதவும்",
+            "variable உருவாக்கி value அச்சிடவும்",
+            "if block-ல் indentation முயற்சிக்கவும்",
+            "output சரியாக வரும்வரை சிறிய மாற்றங்கள் செய்யவும்",
+          ],
+        };
+      }
+      if (language === "kannada") {
+        return {
+          explanation:
+            "ಈ ಪಾಠ Python ಗೆ ಪ್ರವೇಶದ್ವಾರ. syntax, print, variables, indentation ಮುಂತಾದ ಮೂಲಭಾಗಗಳು ಮುಂದಿನ ಪಾಠಗಳಿಗೆ foundation ಆಗುತ್ತವೆ.",
+          practicalUse: [
+            "ಸಣ್ಣ scripts ಬರೆಯಲು ಆರಂಭಿಸಲು",
+            "Programming logic ಅನ್ನು ಸುಲಭವಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು",
+            "ಮುಂದಿನ ಪಾಠಗಳಿಗೆ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಹೋಗಲು",
+          ],
+          implementationFlow: [
+            "ಸರಳ print program ಬರೆಯಿರಿ",
+            "variable ರಚಿಸಿ value print ಮಾಡಿ",
+            "if block ನಲ್ಲಿ indentation ಪ್ರಯತ್ನಿಸಿ",
+            "output ಸರಿಯಾಗುವವರೆಗೆ ಸಣ್ಣ ಬದಲಾವಣೆ ಮಾಡಿ",
+          ],
+        };
+      }
+      if (language === "telugu") {
+        return {
+          explanation:
+            "ఈ పాఠం Pythonకి ఎంట్రీ పాయింట్. syntax, print, variables, indentation వంటి బేసిక్స్ మిగతా అన్ని పాఠాలకు foundation అవుతాయి.",
+          practicalUse: [
+            "చిన్న scripts రాయడం ప్రారంభించడానికి",
+            "Programming logic ను స్పష్టంగా అర్థం చేసుకోవడానికి",
+            "తదుపరి పాఠాలకు ధైర్యంగా వెళ్లడానికి",
+          ],
+          implementationFlow: [
+            "ఒక simple print program రాయండి",
+            "variable సృష్టించి value print చేయండి",
+            "if block లో indentation ప్రాక్టీస్ చేయండి",
+            "output సరిగా వచ్చే వరకు చిన్న మార్పులు చేయండి",
+          ],
+        };
+      }
+      if (language === "hindi") {
+        return {
+          explanation:
+            "यह पाठ Python की शुरुआत है। syntax, print, variables और indentation जैसी fundamentals आगे के सभी lessons की foundation बनती हैं।",
+          practicalUse: [
+            "छोटे scripts लिखना शुरू करने में",
+            "Programming logic समझने में",
+            "आगे के lessons के लिए confidence बनाने में",
+          ],
+          implementationFlow: [
+            "एक simple print program लिखें",
+            "variable बनाकर value print करें",
+            "if block में indentation का अभ्यास करें",
+            "output सही आने तक छोटे बदलाव करें",
+          ],
+        };
+      }
+    }
+
+    return {
+      explanation:
+        language === "tamil"
+          ? "இந்த பாடம் ஒரு நடைமுறை Python கருத்தை அறிமுகப்படுத்துகிறது. கருத்தை புரிந்து, உதாரணத்தை ஓட்டி, அதையே பயிற்சியில் பயன்படுத்துங்கள்."
+          : language === "kannada"
+            ? "ಈ ಪಾಠವು ಒಂದು practically ಉಪಯೋಗವಾಗುವ Python ಕಲ್ಪನೆಯನ್ನು ಪರಿಚಯಿಸುತ್ತದೆ. ಕಲ್ಪನೆಯನ್ನು ಅರ್ಥಮಾಡಿ, ಉದಾಹರಣೆ ಓಡಿಸಿ, ಅಭ್ಯಾಸದಲ್ಲಿ ಬಳಸಿ."
+            : language === "telugu"
+              ? "ఈ పాఠం ఒక ప్రాక్టికల్ Python కాన్సెప్ట్‌ను పరిచయం చేస్తుంది. కాన్సెప్ట్ అర్థం చేసుకుని, ఉదాహరణ రన్ చేసి, వ్యాయామాల్లో ఉపయోగించండి."
+              : "यह पाठ एक practical Python concept सिखाता है। Concept समझकर example चलाएं और उसी pattern को exercises में लागू करें।",
+      practicalUse:
+        language === "tamil"
+          ? ["Coding challenges", "Project features", "Automation tasks"]
+          : language === "kannada"
+            ? ["Coding challenges", "Project features", "Automation tasks"]
+            : language === "telugu"
+              ? ["Coding challenges", "Project features", "Automation tasks"]
+              : ["Coding challenges", "Project features", "Automation tasks"],
+      implementationFlow:
+        language === "tamil"
+          ? ["கருத்தை படிக்கவும்", "உதாரணம் ஓட்டவும்", "ஒரு மாற்றம் செய்து output பார்க்கவும்", "exercise-ல் பயன்படுத்தவும்"]
+          : language === "kannada"
+            ? ["ಕಲ್ಪನೆ ಓದಿ", "ಉದಾಹರಣೆ ಓಡಿಸಿ", "ಒಂದು ಬದಲಾವಣೆ ಮಾಡಿ output ನೋಡಿ", "exercise ನಲ್ಲಿ ಬಳಸಿ"]
+            : language === "telugu"
+              ? ["కాన్సెప్ట్ చదవండి", "ఉదాహరణ run చేయండి", "ఒక మార్పు చేసి output చూడండి", "exercise లో ప్రయోగించండి"]
+              : ["Concept पढ़ें", "Example चलाएं", "एक बदलाव कर output देखें", "Exercise में लागू करें"],
+    };
+  }
+
   const lower = title.toLowerCase();
 
   if (lower.includes("variable") || lower.includes("data type")) {
@@ -955,9 +1225,14 @@ export default function LearnPage() {
     telugu: { lessonsTitle: "Python పాఠాలు", completed: "పూర్తయ్యాయి", unlockInfo: "స్పాన్సర్ సందేశం చూడండి లేదా $100 చెల్లించి అన్‌లాక్ చేయండి", takeQuiz: "200 Python క్విజ్ చేయండి", allLessons: "అన్ని పాఠాలు", resetLesson: "పాఠాన్ని రీసెట్ చేయి", reset: "రీసెట్", inThisLesson: "ఈ పాఠంలో", keyTerms: "ఈ పాఠంలోని ముఖ్య పదాలు", exercises: "వ్యాయామాలు", complete3: "తదుపరి అధ్యాయం కోసం 3 పూర్తి చేయండి", nextUnlocked: "తదుపరి అధ్యాయం అన్‌లాక్ అయింది!", lockedText: "లాక్ — 3 వ్యాయామాలు పూర్తి చేయండి లేదా ad చూడండి లేదా $100 చెల్లించండి", sponsor: "స్పాన్సర్ సందేశం", next: "తదుపరి", selectLesson: "ఒక పాఠం ఎంచుకోండి", selectLessonDesc: "సైడ్‌బార్ నుండి టాపిక్ ఎంచుకుని లెర్నింగ్ ప్రారంభించండి.", startQuiz: "క్విజ్ ప్రారంభించండి", beginnerMastery: "PyMaster బిగినర్ మాస్టరీ" },
     hindi: { lessonsTitle: "Python पाठ", completed: "पूरा", unlockInfo: "स्पॉन्सर संदेश देखें या $100 देकर अनलॉक करें", takeQuiz: "200 Python क्विज़ दें", allLessons: "सभी पाठ", resetLesson: "पाठ रीसेट करें", reset: "रीसेट", inThisLesson: "इस पाठ में", keyTerms: "इस पाठ के मुख्य शब्द", exercises: "अभ्यास", complete3: "अगला चैप्टर खोलने के लिए सभी 3 पूरे करें", nextUnlocked: "अगला चैप्टर अनलॉक!", lockedText: "लॉक — 3 अभ्यास पूरे करें, विज्ञापन देखें, या $100 दें", sponsor: "स्पॉन्सर संदेश", next: "अगला", selectLesson: "एक पाठ चुनें", selectLessonDesc: "सीखना शुरू करने के लिए साइडबार से विषय चुनें।", startQuiz: "क्विज़ शुरू करें", beginnerMastery: "PyMaster शुरुआती महारत" },
   } as const;
-  const t = text[language];
+  // Keep Learn page UI labels fixed; only lesson content is language-dependent.
+  const t = text.english;
+  const tt = (key: string, fallback: string) => (t as Record<string, string>)[key] ?? fallback;
 
-  const selectedLesson = lessons.find(l => l.id === selectedId);
+  const selectedLesson = useMemo(() => {
+    const baseLesson = lessons.find((l) => l.id === selectedId);
+    return getLocalizedLesson(baseLesson, language);
+  }, [selectedId, language]);
   const canonical = "https://pymaster.pro/learn";
   const pageTitle = selectedLesson
     ? `${selectedLesson.title} Lesson | Learn Python on PyMaster`
@@ -1101,7 +1376,9 @@ export default function LearnPage() {
   const handleAdComplete = () => {
     if (showAdForLesson) {
       unlockLesson(showAdForLesson, 0);
-      toast.success("Chapter unlocked! 🔓", { description: "Thanks for viewing the sponsor message." });
+      toast.success(tt("chapterUnlocked", "Chapter unlocked! 🔓"), {
+        description: tt("sponsorThanks", "Thanks for viewing the sponsor message."),
+      });
       setSelectedId(showAdForLesson);
       setShowAdForLesson(null);
     }
@@ -1110,17 +1387,23 @@ export default function LearnPage() {
   const handleWalletUnlock = (lessonId: string) => {
     const unlocked = unlockLesson(lessonId);
     if (!unlocked) {
-      toast.error("Not enough cash", { description: "You need $100 in your wallet to unlock this lesson instantly." });
+      toast.error(tt("notEnoughCash", "Not enough cash"), {
+        description: tt("walletNeed100", "You need $100 in your wallet to unlock this lesson instantly."),
+      });
       return;
     }
 
-    toast.success("Chapter unlocked! 🔓", { description: "You spent $100 to unlock this lesson." });
+    toast.success(tt("chapterUnlocked", "Chapter unlocked! 🔓"), {
+      description: tt("walletSpent100", "You spent $100 to unlock this lesson."),
+    });
     setSelectedId(lessonId);
   };
 
   const handleSelectLesson = (lessonId: string, index: number, unlocked: boolean) => {
     if (index > 0 && !user) {
-      toast.info("Sign in required", { description: "Create an account to continue learning beyond Lesson 1." });
+      toast.info(tt("signInRequired", "Sign in required"), {
+        description: tt("signInLessonInfo", "Create an account to continue learning beyond Lesson 1."),
+      });
       navigate("/auth");
       return;
     }
@@ -1138,16 +1421,16 @@ export default function LearnPage() {
     [selectedLesson],
   );
   const selectedLessonClarityGuide = useMemo(
-    () => (selectedLesson ? getLessonClarityGuide(selectedLesson.title) : null),
-    [selectedLesson],
+    () => (selectedLesson ? getLessonClarityGuide(selectedLesson.id, selectedLesson.title, language) : null),
+    [selectedLesson, language],
   );
   const selectedLessonDataTypeGuide = useMemo(
     () => (selectedLesson ? getDataTypeUsageGuide(selectedLesson.id) : []),
     [selectedLesson],
   );
   const selectedLessonNarrative = useMemo(
-    () => (selectedLesson ? getLessonNarrative(selectedLesson.title) : null),
-    [selectedLesson],
+    () => (selectedLesson ? getLessonNarrative(selectedLesson.id, selectedLesson.title, language) : null),
+    [selectedLesson, language],
   );
   const selectedLessonQuickExamples = useMemo(
     () => (selectedLesson ? getLessonQuickExamples(selectedLesson.title) : []),
@@ -1203,8 +1486,8 @@ export default function LearnPage() {
       onClose={() => setShowAdForLesson(null)}
       onComplete={handleAdComplete}
       sponsorLink={SPONSOR_DESTINATIONS.lessonUnlock}
-      completionTitle="Lesson unlocked"
-      completionDescription="Thanks for viewing the sponsor message."
+      completionTitle={tt("lessonUnlocked", "Lesson unlocked")}
+      completionDescription={tt("sponsorThanks", "Thanks for viewing the sponsor message.")}
     />
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)] md:flex-row">
       {/* Sidebar */}
@@ -1232,6 +1515,7 @@ export default function LearnPage() {
                   {categoryTone[cat].heading}
                 </div>
                 {catLessons.map((lesson) => {
+                  const localizedLesson = getLocalizedLesson(lesson, language) ?? lesson;
                   const globalIndex = lessons.indexOf(lesson);
                   const unlocked = isLessonUnlocked(globalIndex);
                   const exercisesDone = getLessonProgress(lesson.id);
@@ -1258,7 +1542,7 @@ export default function LearnPage() {
                             {globalIndex + 1}
                           </span>
                         )}
-                        <span className="truncate flex-1">{lesson.title}</span>
+                        <span className="truncate flex-1">{localizedLesson.title}</span>
                         {!unlocked && (
                           <span className="text-[10px] text-primary flex items-center gap-0.5"><Play className="w-3 h-3" />Sponsor / $100</span>
                         )}
@@ -1307,7 +1591,7 @@ export default function LearnPage() {
               </span>
               {getLessonProgress(selectedLesson.id) === 3 && (
                 <span className="px-2 py-0.5 rounded-full bg-streak-green/10 text-streak-green border border-streak-green/20">
-                  ✓ All exercises complete
+                  {tt("allExercisesComplete", "✓ All exercises complete")}
                 </span>
               )}
             </div>
@@ -1319,7 +1603,7 @@ export default function LearnPage() {
                   size="sm" 
                   className="h-8 text-[10px] sm:text-xs gap-1.5 opacity-60 hover:opacity-100 shrink-0 hover:border-destructive/30 hover:text-destructive hover:bg-destructive/10" 
                   onClick={() => {
-                    if (window.confirm("Reset progress for this lesson? You will need to complete these exercises again.")) {
+                    if (window.confirm(tt("resetLessonConfirm", "Reset progress for this lesson? You will need to complete these exercises again."))) {
                       resetLesson(selectedLesson.id);
                     }
                   }}
@@ -1334,7 +1618,7 @@ export default function LearnPage() {
 
             {selectedLessonClarityGuide && (
               <div className="mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Crystal Clear Learning Mode</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">{tt("clearLearningMode", "Crystal Clear Learning Mode")}</h2>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p><span className="font-semibold text-foreground">Simple summary:</span> {selectedLessonClarityGuide.summary}</p>
                   <p><span className="font-semibold text-foreground">Easy analogy:</span> {selectedLessonClarityGuide.analogy}</p>
@@ -1404,7 +1688,7 @@ export default function LearnPage() {
 
             {selectedLessonDataTypeGuide.length > 0 && (
               <div className="mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">How To Use Each Data Type</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">{tt("howToUseDataTypes", "How To Use Each Data Type")}</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {selectedLessonDataTypeGuide.map((item) => (
                     <div key={item.name} className="rounded-xl border border-border bg-background/80 p-3">
@@ -1426,7 +1710,7 @@ export default function LearnPage() {
 
             {selectedLessonNarrative && (
               <div className="mb-6 rounded-2xl border border-border bg-card/70 p-4 sm:p-5">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Full Lesson Explanation</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">{tt("fullLessonExplanation", "Full Lesson Explanation")}</h2>
                 <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed mb-3">
                   {selectedLessonNarrative.explanation}
                 </p>
@@ -1457,7 +1741,7 @@ export default function LearnPage() {
 
             {selectedLessonQuickExamples.length > 0 && (
               <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Quick Runnable Examples</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">{tt("quickRunnableExamples", "Quick Runnable Examples")}</h2>
                 <div className="grid gap-3">
                   {selectedLessonQuickExamples.map((example, index) => (
                     <div key={`${example.label}-${index}`} className="rounded-xl border border-border bg-background/80 p-3">
@@ -1465,7 +1749,7 @@ export default function LearnPage() {
                         <div className="text-sm font-semibold text-foreground">{example.label}</div>
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs gap-1">
                           <Link to={`/compiler?code=${encodeURIComponent(example.code)}`}>
-                            <Terminal className="w-3 h-3" /> Try in Compiler
+                            <Terminal className="w-3 h-3" /> {tt("tryInCompiler", "Try in Compiler")}
                           </Link>
                         </Button>
                       </div>
@@ -1480,7 +1764,7 @@ export default function LearnPage() {
 
             {selectedLessonUsagePlaybook && (
               <div className="mb-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">How To Use This In Real Code</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">{tt("useInRealCode", "How To Use This In Real Code")}</h2>
                 <div className="mb-3">
                   <div className="font-semibold text-foreground mb-1">When to use</div>
                   <ul className="space-y-1.5">
@@ -1505,10 +1789,10 @@ export default function LearnPage() {
                 </div>
                 <div className="rounded-xl border border-border bg-background/80 p-3">
                   <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="text-sm font-semibold text-foreground">Starter pattern</div>
+                    <div className="text-sm font-semibold text-foreground">{tt("starterPattern", "Starter pattern")}</div>
                     <Button asChild size="sm" variant="outline" className="h-7 text-xs gap-1">
                       <Link to={`/compiler?code=${encodeURIComponent(selectedLessonUsagePlaybook.starterPattern)}`}>
-                        <Terminal className="w-3 h-3" /> Try in Compiler
+                        <Terminal className="w-3 h-3" /> {tt("tryInCompiler", "Try in Compiler")}
                       </Link>
                     </Button>
                   </div>
@@ -1543,10 +1827,10 @@ export default function LearnPage() {
                           {guide.example && (
                             <div className="mt-2 rounded-md border border-border bg-background/80 p-2">
                               <div className="mb-1 flex items-center justify-between gap-2">
-                                <p className="text-[11px] sm:text-xs font-medium text-foreground">Try this code</p>
+                                <p className="text-[11px] sm:text-xs font-medium text-foreground">{tt("tryThisCode", "Try this code")}</p>
                                 <Button asChild size="sm" variant="outline" className="h-6 text-[10px] sm:text-xs px-2 gap-1">
                                   <Link to={`/compiler?code=${encodeURIComponent(guide.example)}`}>
-                                    <Terminal className="w-3 h-3" /> Run
+                                    <Terminal className="w-3 h-3" /> {tt("run", "Run")}
                                   </Link>
                                 </Button>
                               </div>
@@ -1577,10 +1861,10 @@ export default function LearnPage() {
                           {guide.example && (
                             <div className="mt-2 rounded-md border border-border bg-background/80 p-2">
                               <div className="mb-1 flex items-center justify-between gap-2">
-                                <p className="text-[11px] sm:text-xs font-medium text-foreground">Try this code</p>
+                                <p className="text-[11px] sm:text-xs font-medium text-foreground">{tt("tryThisCode", "Try this code")}</p>
                                 <Button asChild size="sm" variant="outline" className="h-6 text-[10px] sm:text-xs px-2 gap-1">
                                   <Link to={`/compiler?code=${encodeURIComponent(guide.example)}`}>
-                                    <Terminal className="w-3 h-3" /> Run
+                                    <Terminal className="w-3 h-3" /> {tt("run", "Run")}
                                   </Link>
                                 </Button>
                               </div>
@@ -1611,7 +1895,7 @@ export default function LearnPage() {
                 </div>
                 <Button asChild size="sm" variant="outline" className="h-7 text-xs gap-1">
                   <Link to={`/compiler?code=${encodeURIComponent(selectedLesson.codeExample)}`}>
-                    <Terminal className="w-3 h-3" /> Try in Compiler
+                    <Terminal className="w-3 h-3" /> {tt("tryInCompiler", "Try in Compiler")}
                   </Link>
                 </Button>
               </div>
@@ -1680,7 +1964,7 @@ export default function LearnPage() {
                         <p className="text-sm font-medium text-foreground">
                           {canProceed ? t.nextUnlocked : t.lockedText}
                         </p>
-                        <p className="text-xs text-muted-foreground">{nextLesson.title}</p>
+                        <p className="text-xs text-muted-foreground">{getLocalizedLesson(nextLesson, language)?.title ?? nextLesson.title}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -1700,7 +1984,7 @@ export default function LearnPage() {
                             onClick={() => handleWalletUnlock(nextLesson.id)}
                             className="gap-1 text-reward-gold border-reward-gold/30 hover:bg-reward-gold/10"
                           >
-                            Pay $100
+                            {tt("pay100", "Pay $100")}
                           </Button>
                         </>
                       )}
@@ -1729,7 +2013,7 @@ export default function LearnPage() {
                 <div>
                   <div className="text-base font-semibold text-foreground">200 Python Quiz</div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Practice all core Python topics with 100 MCQ questions and instant explanations.
+                    {tt("quizBlockDesc", "Practice all core Python topics with 100 MCQ questions and instant explanations.")}
                   </p>
                 </div>
                 <Button asChild>
@@ -1756,7 +2040,10 @@ export default function LearnPage() {
             <div className="w-full max-w-5xl mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-left">
               <div className="text-base font-semibold text-foreground mb-3">{t.beginnerMastery}</div>
               <p className="text-sm text-muted-foreground mb-4">
-                If someone completes the beginner track carefully, these are the core skills they should understand clearly before moving ahead.
+                {tt(
+                  "beginnerMasteryDesc",
+                  "If someone completes the beginner track carefully, these are the core skills they should understand clearly before moving ahead.",
+                )}
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {beginnerMastery.map((item) => (
@@ -1776,6 +2063,7 @@ export default function LearnPage() {
                   </h3>
                   <div className="space-y-2">
                     {getLessonsByCategory(cat).map(lesson => {
+                      const localizedLesson = getLocalizedLesson(lesson, language) ?? lesson;
                       const globalIndex = lessons.indexOf(lesson);
                       const unlocked = isLessonUnlocked(globalIndex);
                       const exercisesDone = getLessonProgress(lesson.id);
@@ -1798,8 +2086,8 @@ export default function LearnPage() {
                                 <BookOpen className="w-4 h-4 text-primary" />
                               )}
                               <div className="text-left">
-                                <div className="text-sm font-medium text-foreground">{lesson.title}</div>
-                                <div className="text-xs text-muted-foreground">{lesson.category}</div>
+                                <div className="text-sm font-medium text-foreground">{localizedLesson.title}</div>
+                                <div className="text-xs text-muted-foreground">{localizedLesson.category}</div>
                               </div>
                             </div>
                             {!unlocked ? (

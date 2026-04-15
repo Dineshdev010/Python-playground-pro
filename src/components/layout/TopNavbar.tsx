@@ -164,13 +164,13 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
   }, [profileMenuOpen]);
 
   const languageLabelByValue = {
-    english: t("language.defaultEnglish"),
-    tamil: t("language.tamil"),
-    kannada: t("language.kannada"),
-    telugu: t("language.telugu"),
-    hindi: t("language.hindi"),
+    english: "Default (English)",
+    tamil: "Tamil",
+    kannada: "Kannada",
+    telugu: "Telugu",
+    hindi: "Hindi",
   } as const;
-  const selectedLanguageLabel = languageLabelByValue[language] ?? t("language.defaultEnglish");
+  const selectedLanguageLabel = languageLabelByValue[language] ?? "Default (English)";
 
   return (
     <>
@@ -302,7 +302,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             <button
               className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0 border border-border/60"
               aria-label="Select language"
-              title={`${t("language.title")}: ${selectedLanguageLabel}`}
+              title={`Language: ${selectedLanguageLabel}`}
             >
               <Languages className="w-3.5 h-3.5" />
               <span>{selectedLanguageLabel}</span>
@@ -310,7 +310,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 mt-2">
-            <DropdownMenuLabel>{t("language.title")}</DropdownMenuLabel>
+            <DropdownMenuLabel>Language</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {languageOptions.map((option) => (
               <DropdownMenuItem
