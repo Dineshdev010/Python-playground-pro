@@ -1581,7 +1581,7 @@ export default function LearnPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {selectedLesson ? (
-          <div id="tour-learn-lesson" className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+          <div id="tour-learn-lesson" className="w-full max-w-none px-4 sm:px-6 py-6 md:py-8">
             {/* Mobile back button */}
             <button 
               onClick={() => setSelectedId(null)} 

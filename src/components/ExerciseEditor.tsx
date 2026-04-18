@@ -50,12 +50,12 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
   const [isRunning, setIsRunning] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [solutionUnlocked, setSolutionUnlocked] = useState(false);
-  const { progress, completeExercise, addWallet } = useProgress();
+  const { progress, completeExercise, addWallet, unlockSolution } = useProgress();
   const timeoutSeconds = Math.round(getPythonExecutionTimeoutMs() / 1000);
 
   const exerciseKey = `${lessonId}:${level}`;
   const alreadyCompleted = progress.completedExercises.includes(exerciseKey);
+  const solutionUnlocked = progress.unlockedSolutions.includes(exerciseKey);
 
   useEffect(() => {
     setIsOpen(false);
@@ -65,7 +65,6 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
     setIsRunning(false);
     setShowHint(false);
     setShowSolution(false);
-    setSolutionUnlocked(false);
   }, [exerciseKey, exercise.starterCode]);
 
   const levelColors = {
@@ -230,29 +229,27 @@ export function ExerciseEditor({ exercise, level, lessonId, locked }: ExerciseEd
                   size="sm"
                   variant="ghost"
                   className="h-7 text-xs gap-1 text-primary/70 hover:text-primary transition-colors hover:bg-surface-2"
-                  onClick={() => { 
-                    if (showSolution) {
-                      setShowSolution(false);
-                      setShowHint(false);
-                    } else if (!solutionUnlocked) {
-                      if (progress.wallet >= 70) {
-                        addWallet(-70);
-                        setSolutionUnlocked(true);
-                        setShowSolution(true);
-                        setShowHint(false);
-                        setCode(solution);
-                        toast({ title: "Solution Unlocked!", description: "Deducted $70 from your wallet." });
+                  onClick={() => {
+                    const nextVisible = !showSolution;
+                    setShowHint(false);
+
+                    if (nextVisible && !solutionUnlocked) {
+                      if (unlockSolution(exerciseKey)) {
+                        toast({ title: "Solution Unlocked!", description: "This solution is now saved for this exercise." });
                       } else {
-                        toast({ title: "Not enough wallet cash!", description: "You need $70 to unlock the solution.", variant: "destructive" });
+                        toast({ title: "Not enough cash", description: "You need $70 to unlock this solution." });
+                        return;
                       }
-                    } else {
-                      setShowSolution(true);
-                      setShowHint(false);
+                    }
+
+                    if (nextVisible) {
                       setCode(solution);
                     }
+
+                    setShowSolution(nextVisible);
                   }}
                 >
-                  <Eye className="w-3 h-3" /> {showSolution ? "Hide Solution" : "Solution ($70)"}
+                  <Eye className="w-3 h-3" /> {showSolution ? "Hide Solution" : solutionUnlocked ? "Solution" : "Solution ($70)"}
                 </Button>
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground" onClick={() => { setCode(exercise.starterCode); setOutput(""); setPassed(false); }}>
                   <RotateCcw className="w-3 h-3" /> Reset

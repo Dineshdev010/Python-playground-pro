@@ -41,6 +41,7 @@ interface ProgressContextType {
   catchStar: (xpGain: number) => void;   // Catch a shooting star for XP
   addDailyStar: () => void;              // Catch a GTA-style daily task star
   unlockLesson: (lessonId: string, cost?: number) => boolean;   // Unlock a lesson, optionally charging wallet
+  unlockSolution: (exerciseKey: string, cost?: number) => boolean; // Unlock a solution once, optionally charging wallet
   attemptStreakRecovery: () => boolean;   // Try to restore a broken streak
   addWallet: (amount: number) => void;   // Add/subtract from wallet
   addTimeSpent: (seconds: number) => void; // Add time spent learning
@@ -315,6 +316,26 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return success;
   }, []);
 
+  // ---------- Unlock a paid solution once ----------
+  // Returns true if successful, false if not enough money
+  const unlockSolution = useCallback((exerciseKey: string, cost = 70): boolean => {
+    let success = false;
+    setProgress(prev => {
+      // Already unlocked? No cost needed
+      if (prev.unlockedSolutions.includes(exerciseKey)) { success = true; return prev; }
+      // Not enough money? Can't unlock
+      if (cost > 0 && prev.wallet < cost) { success = false; return prev; }
+      // Deduct cost and add to unlocked list
+      success = true;
+      return {
+        ...prev,
+        wallet: prev.wallet - cost,
+        unlockedSolutions: [...prev.unlockedSolutions, exerciseKey],
+      };
+    });
+    return success;
+  }, []);
+
   // ---------- Solve a coding problem ----------
   // Awards cash based on difficulty, triggers milestones & badge checks
   const solveProblem = useCallback((problemId: string, difficulty: string) => {
@@ -525,7 +546,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   // Provide all progress state and actions to child components
   return (
-    <ProgressContext.Provider value={{ progress, solveProblem, completeLesson, completeExercise, logActivity, catchStar, addDailyStar, unlockLesson, attemptStreakRecovery, addWallet, addTimeSpent, canRecover, recoveryCost, showCelebration, celebrationData, dismissCelebration, resetLesson }}>
+    <ProgressContext.Provider value={{ progress, solveProblem, completeLesson, completeExercise, logActivity, catchStar, addDailyStar, unlockLesson, unlockSolution, attemptStreakRecovery, addWallet, addTimeSpent, canRecover, recoveryCost, showCelebration, celebrationData, dismissCelebration, resetLesson }}>
       {children}
     </ProgressContext.Provider>
   );

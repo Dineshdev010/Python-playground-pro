@@ -13,6 +13,7 @@ export interface UserProgress {
   completedLessons: string[]; // Array of completed lesson IDs
   completedExercises: string[]; // Array like "lessonId:beginner", "lessonId:intermediate"
   unlockedLessons: string[]; // Lesson IDs unlocked by spending wallet cash
+  unlockedSolutions: string[]; // Exercise keys unlocked after paying once
   xp: number; // Experience points earned
   activityMap: Record<string, number>; // Maps "YYYY-MM-DD" → activity count for that day
   starsCaught: number; // How many shooting stars the user has caught
@@ -53,6 +54,7 @@ export const defaultProgress: UserProgress = {
   completedLessons: [],
   completedExercises: [],
   unlockedLessons: [],
+  unlockedSolutions: [],
   xp: 0,
   activityMap: {},
   starsCaught: 0,
@@ -87,6 +89,7 @@ export function getProgress(): UserProgress {
         completedLessons: Array.isArray(parsed.completedLessons) ? parsed.completedLessons : defaultProgress.completedLessons,
         completedExercises: Array.isArray(parsed.completedExercises) ? parsed.completedExercises : defaultProgress.completedExercises,
         unlockedLessons: Array.isArray(parsed.unlockedLessons) ? parsed.unlockedLessons : defaultProgress.unlockedLessons,
+        unlockedSolutions: Array.isArray(parsed.unlockedSolutions) ? parsed.unlockedSolutions : defaultProgress.unlockedSolutions,
       };
     }
   } catch {
@@ -225,6 +228,7 @@ export function mergeProgress(local: UserProgress, remote: UserProgress): UserPr
     completedLessons: Array.from(new Set([...local.completedLessons, ...remote.completedLessons])),
     completedExercises: Array.from(new Set([...local.completedExercises, ...remote.completedExercises])),
     unlockedLessons: Array.from(new Set([...local.unlockedLessons, ...remote.unlockedLessons])),
+    unlockedSolutions: Array.from(new Set([...local.unlockedSolutions, ...remote.unlockedSolutions])),
     xp: Math.max(local.xp, remote.xp),
     activityMap,
     starsCaught: Math.max(local.starsCaught, remote.starsCaught),
