@@ -61,11 +61,13 @@ export const TourSystem: React.FC = () => {
   }, [startTour]);
 
   const handleJoyrideCallback = (data: EventData) => {
-    const { status } = data;
+    const { status, action } = data;
     const finishedStatuses: string[] = ["finished", "skipped"];
 
-    if (finishedStatuses.includes(status)) {
-      markTourAsSeen(state.tourKey);
+    if (finishedStatuses.includes(status) || action === "close") {
+      if (state.tourKey) {
+        markTourAsSeen(state.tourKey);
+      }
       setState({ run: false, steps: [], tourKey: "" });
     }
   };
