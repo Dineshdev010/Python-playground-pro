@@ -8,14 +8,14 @@ import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 const Editor = React.lazy(() => import("@monaco-editor/react"));
 import confetti from "canvas-confetti";
-import { problems, getDifficultyColor, getDifficultyBg, getRecommendedSubjects } from "@/data/problems";
+import { problems, getDifficultyColor, getDifficultyBg, getRecommendedSubjects, type Problem } from "@/data/problems";
 import { useProgress } from "@/contexts/ProgressContext";
 import { getRewardForDifficulty } from "@/lib/progress";
 import { cancelActivePythonExecution, executePython, getPythonExecutionTimeoutMs } from "@/lib/piston";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck, Clock3 } from "lucide-react";
+import { Play, Send, Eye, EyeOff, ArrowLeft, CheckCircle2, XCircle, Wallet, ChevronDown, ChevronUp, Square, Building2, BookOpenCheck, Clock3, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CompanyBadge } from "@/components/CompanyBadge";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,6 +39,7 @@ function buildTestHarness(code: string, callableName: string, input: string) {
   const hasInput = input.trim().length > 0;
   return `${code}
 
+print("---PYMASTER-RESULT---")
 __payload = (${hasInput ? input : ""})
 if ${hasInput ? "isinstance(__payload, tuple)" : "False"}:
     __args = list(__payload)
@@ -119,7 +120,34 @@ export default function ProblemPage() {
   const [showDescription, setShowDescription] = useState(!isMobile);
   const [isRunning, setIsRunning] = useState(false);
   const [problemTimeLeft, setProblemTimeLeft] = useState(() => getProblemTimerSeconds(problem));
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const timeoutHandledRef = useRef(false);
+
+  const isLocked = lockedUntil !== null && now < lockedUntil;
+  const lockTimeRemaining = isLocked ? Math.ceil((lockedUntil - now) / 1000) : 0;
+
+  // ---------- Live Lock Timer ----------
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const checkLock = () => {
+      const currentNow = Date.now();
+      setNow(currentNow);
+      if (currentNow >= lockedUntil) {
+        setLockedUntil(null);
+        try {
+          const locks = JSON.parse(localStorage.getItem("pymaster_problem_locks") || "{}");
+          if (problem) {
+            delete locks[problem.id];
+            localStorage.setItem("pymaster_problem_locks", JSON.stringify(locks));
+          }
+        } catch {}
+      }
+    };
+    checkLock();
+    const timer = setInterval(checkLock, 1000);
+    return () => clearInterval(timer);
+  }, [lockedUntil, problem]);
 
   // ---------- Reset all state when problem changes ----------
   useEffect(() => {
@@ -133,6 +161,12 @@ export default function ProblemPage() {
       setIsRunning(false);
       setProblemTimeLeft(getProblemTimerSeconds(problem));
       timeoutHandledRef.current = false;
+      try {
+        const locks = JSON.parse(localStorage.getItem("pymaster_problem_locks") || "{}");
+        setLockedUntil(locks[problem.id] || null);
+      } catch {
+        setLockedUntil(null);
+      }
     }
   }, [id, problem]);
 
@@ -164,9 +198,18 @@ export default function ProblemPage() {
     setIsRunning(false);
     setProblemTimeLeft(getProblemTimerSeconds(problem));
 
+    const lockTime = Date.now() + 60 * 60 * 1000;
+    setLockedUntil(lockTime);
+    setNow(Date.now());
+    try {
+      const locks = JSON.parse(localStorage.getItem("pymaster_problem_locks") || "{}");
+      locks[problem.id] = lockTime;
+      localStorage.setItem("pymaster_problem_locks", JSON.stringify(locks));
+    } catch {}
+
     toast({
-      title: "Time is up",
-      description: "Your current attempt was cleared. Fresh attempt started.",
+      title: "Time is up!",
+      description: "You have been locked out of this problem for 1 hour due to timeout.",
       variant: "destructive",
     });
   }, [problem, problemTimeLeft]);
@@ -219,22 +262,26 @@ export default function ProblemPage() {
     const results: { passed: boolean; input: string; expected: string }[] = [];
     let combinedOutput = "";
 
-    if (callableName) {
+    const method = problem.validationMethod || (callableName ? 'harness' : 'script');
+    const isPatternProblem = problem.id.includes("star") || problem.id.includes("pattern") || problem.id.includes("square") || problem.id.includes("pyramid");
+    const mode = problem.comparisonMode || (isPatternProblem ? 'exact' : 'fuzzy');
+
+    if (method === 'harness' && callableName) {
       for (const testCase of problem.testCases) {
         const result = await executePython(buildTestHarness(code, callableName, testCase.input));
-        const actualOutput = normalizeOutput(result.output);
+        
+        // Extract only the output after the delimiter to avoid capturing user's print() calls
+        const parts = result.output.split("---PYMASTER-RESULT---");
+        const rawOutput = parts.length > 1 ? parts[parts.length - 1] : result.output;
+        
+        const actualOutput = normalizeOutput(rawOutput);
         const expectedOutput = normalizeOutput(testCase.expected);
         
-        // Pattern problems require exact whitespace (especially newlines).
-        // Basic/Junior problems should be more lenient with space vs newline.
-        const isPatternProblem = problem.id.includes("star") || problem.id.includes("pattern") || problem.id.includes("square") || problem.id.includes("pyramid");
-        
-        let passed = !result.error && actualOutput === expectedOutput;
-        
-        // Fuzzy fallback for non-pattern problems
-        if (!passed && !result.error && !isPatternProblem) {
-          passed = actualOutput.replace(/\s+/g, " ") === expectedOutput.replace(/\s+/g, " ");
-        }
+        let passed = !result.error && (
+          mode === 'exact' 
+            ? actualOutput === expectedOutput 
+            : actualOutput.replace(/\s+/g, " ") === expectedOutput.replace(/\s+/g, " ")
+        );
 
         results.push({ passed, input: testCase.input, expected: testCase.expected });
 
@@ -252,12 +299,11 @@ export default function ProblemPage() {
       const actualOutput = normalizeOutput(result.output);
       const expectedOutput = normalizeOutput(problem.testCases[0]?.expected || "");
       
-      const isPatternProblem = problem.id.includes("star") || problem.id.includes("pattern") || problem.id.includes("square") || problem.id.includes("pyramid");
-      let passed = actualOutput === expectedOutput;
-
-      if (!passed && !isPatternProblem) {
-        passed = actualOutput.replace(/\s+/g, " ") === expectedOutput.replace(/\s+/g, " ");
-      }
+      let passed = !result.error && (
+        mode === 'exact' 
+          ? actualOutput === expectedOutput 
+          : actualOutput.replace(/\s+/g, " ") === expectedOutput.replace(/\s+/g, " ")
+      );
 
       if (result.error && !result.output) {
         setOutput(`❌ Error:\n${result.error}`);
@@ -492,7 +538,54 @@ export default function ProblemPage() {
         )}
 
         {/* Right: Editor + Output */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {isLocked ? (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm px-6 text-center">
+              <Lock className="w-16 h-16 text-muted-foreground mb-6 opacity-30" />
+              <h2 className="text-2xl font-bold text-foreground mb-2">Problem Locked</h2>
+              <p className="text-sm text-muted-foreground max-w-sm mb-8">
+                Your time ran out for this problem. You must wait for the cooldown before attempting it again.
+              </p>
+              
+              <div className="bg-surface-1 border border-border rounded-xl p-6 mb-8 w-full max-w-[240px] shadow-lg">
+                <div className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-2">Time Remaining</div>
+                <div className="text-4xl font-mono text-foreground tracking-tight">
+                  {formatCountdown(lockTimeRemaining)}
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => {
+                  if (progress.wallet >= 50) {
+                    addWallet(-50);
+                    setLockedUntil(null);
+                    try {
+                      const locks = JSON.parse(localStorage.getItem("pymaster_problem_locks") || "{}");
+                      if (problem) {
+                        delete locks[problem.id];
+                        localStorage.setItem("pymaster_problem_locks", JSON.stringify(locks));
+                      }
+                    } catch {}
+                    toast({
+                      title: "Lock Bypassed",
+                      description: "Paid $50 to unlock the problem immediately.",
+                    });
+                  } else {
+                    toast({
+                      title: "Not enough wallet cash!",
+                      description: "You need $50 to skip the lock timer.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="gap-2 bg-reward-gold hover:bg-reward-gold/90 text-black font-semibold min-w-[200px]"
+              >
+                <Wallet className="w-4 h-4" />
+                Pay $50 to Unlock Now
+              </Button>
+            </div>
+          ) : null}
+
             <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-surface-0"><span className="text-sm font-semibold tracking-wider text-muted-foreground animate-pulse">{t.loadingCompiler}</span></div>}>
               <Editor
                 key={id}

@@ -177,7 +177,7 @@ export default function CareerLearnPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:flex-row">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col md:flex-row overflow-hidden">
       {/* Sidebar */}
       <aside className="w-72 border-r border-border bg-surface-1 overflow-y-auto shrink-0 hidden md:block">
         <div className="p-4 border-b border-border">
@@ -225,19 +225,20 @@ export default function CareerLearnPage() {
       </aside>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto relative">
-        <div
-          className="pointer-events-none absolute inset-0 transition-all duration-500"
-          style={{
-            backgroundImage: lessonWallpaper,
-            backgroundSize: "cover, 220px 220px",
-            backgroundPosition: "center, center",
-            opacity: 0.55,
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-background/25 to-background/70" />
-        <div className="relative z-10">
-        {selectedLesson ? (
+      <div className="flex-1 overflow-y-auto">
+        <div className="relative min-h-full">
+          <div
+            className="pointer-events-none absolute inset-0 transition-all duration-500"
+            style={{
+              backgroundImage: lessonWallpaper,
+              backgroundSize: "cover, 220px 220px",
+              backgroundPosition: "center, center",
+              opacity: 0.55,
+            }}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-background/25 to-background/70" />
+          <div className="relative z-10">
+          {selectedLesson ? (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-8">
             {/* Mobile back button */}
             <button 
@@ -535,6 +536,7 @@ export default function CareerLearnPage() {
             </div>
           </div>
         )}
+        </div>
         </div>
       </div>
     </div>

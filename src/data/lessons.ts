@@ -410,6 +410,31 @@ export const lessons: Lesson[] = [
       },
     },
   },
+  {
+    id: "builtin-functions",
+    title: "All Python Built-in Functions",
+    category: "Beginner",
+    description: "Learn all the essential functions Python provides out of the box",
+    content: `## Python Built-in Functions\n\nPython provides many functions natively without needing to \`import\` any modules.\n\n### Math & Numbers\n- **\`abs(x)\`**: Returns the absolute value.\n- **\`round(x, n)\`**: Rounds a number to \`n\` decimal places.\n- **\`sum(iterable)\`**: Sums the items (e.g., a list).\n- **\`max(...)\` / \`min(...)\`**: Returns the largest/smallest item.\n- **\`divmod(a, b)\`**: Returns \`(quotient, remainder)\`.\n- **\`pow(base, exp)\`**: Returns base to the power of exp.\n\n### Type & Object Info\n- **\`type(obj)\`**: Returns the type of an object.\n- **\`isinstance(obj, class)\`**: Checks if an object is of a specific type.\n- **\`id(obj)\`**: Returns the unique memory address.\n- **\`len(s)\`**: Returns the length (number of items).\n\n### Iterables & Sequences\n- **\`sorted(iterable)\`**: Returns a new sorted list.\n- **\`reversed(seq)\`**: Returns a reverse iterator.\n- **\`enumerate(iterable)\`**: Adds a counter to an iterable.\n- **\`zip(*iterables)\`**: Iterates over multiple iterables in parallel.\n- **\`any(iter)\` / \`all(iter)\`**: Checks if any/all elements are True.\n- **\`map(func, iter)\` / \`filter(func, iter)\`**: Applies a function or filters items.\n\n### IO & Conversions\n- **\`print(...)\` / \`input(prompt)\`**: Standard output and input.\n- **\`int()\`, \`float()\`, \`str()\`, \`bool()\`, \`list()\`, \`dict()\`, \`set()\`, \`tuple()\`**: Type conversions.\n- **\`chr(i)\` / \`ord(c)\`**: Converts between integer Unicode and a character.\n- **\`hex(x)\`, \`bin(x)\`, \`oct(x)\`**: Converts int to hex/binary/octal strings.\n\n### Advanced\n- **\`eval(expr)\` / \`exec(code)\`**: Evaluates/executes dynamic Python strings.\n- **\`globals()\` / \`locals()\`**: Returns current global/local symbol dictionaries.\n- **\`help(obj)\`**: Invokes the built-in help system.`,
+    codeExample: `# Math\nprint(abs(-10))         # 10\nprint(round(3.1415, 2)) # 3.14\nprint(sum([1, 2, 3]))   # 6\nprint(max(7, 3, 10))    # 10\n\n# Types & Iterables\nnames = ["Alice", "Bob"]\nprint(len(names))       # 2\nprint(sorted([5, 1, 3])) # [1, 3, 5]\n\nfor i, name in enumerate(names):\n    print(f"{i}: {name}")\n\n# Conversions\nprint(int("42") + 8)    # 50\nprint(bin(10))          # '0b1010'\nprint(chr(65))          # 'A'`,
+    exercises: {
+      beginner: {
+        prompt: "Use len() to print the length of 'PyMaster', abs() to print the absolute value of -42, and type() to print the type of 3.14.",
+        starterCode: `# Print the 3 results on separate lines\n`,
+        expectedOutput: "8\n42\n<class 'float'>",
+      },
+      intermediate: {
+        prompt: "Given nums = [15, 2, 8, 20, 5], print the max(), min(), and sum() on separate lines.",
+        starterCode: `nums = [15, 2, 8, 20, 5]\n\n# Print max, min, sum\n`,
+        expectedOutput: "20\n2\n50",
+      },
+      advanced: {
+        prompt: "Given unsorted = [9, 1, 4], use sorted() to print the sorted list. Then use bin() to print the binary representation of 15.",
+        starterCode: `unsorted = [9, 1, 4]\n\n# Sort and print list\n# Print binary of 15\n`,
+        expectedOutput: "[1, 4, 9]\n0b1111",
+      },
+    },
+  },
 
   // INTERMEDIATE
   // ═══════════════════════════════════════

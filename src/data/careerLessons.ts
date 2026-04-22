@@ -1023,17 +1023,17 @@ function sqlLessons(): CareerLesson[] {
         beginner: {
           prompt: "Select all customers (id, name) ordered by id.",
           starterCode: "-- Write your SQL here\n",
-          expectedOutput: "id,name\n1,Alice\n2,Bob\n3,Charlie\n4,Diana\n5,Ethan",
+          expectedOutput: "id,name\n1,Alice Johnson\n2,Bob Sharma\n3,Charlie Dave\n4,Diana Prince\n5,Ethan Hunt",
         },
         intermediate: {
           prompt: "List Electronics products (name, price) ordered by price DESC.",
           starterCode: "-- Write your SQL here\n",
-          expectedOutput: "name,price\nKeyboard,2500\nHeadphones,1500\nMouse,800",
+          expectedOutput: "name,price\nDell 24\" Monitor,12000\nSony Headphones,4500\nMechanical Keyboard,2500\nLogitech Mouse,800",
         },
         advanced: {
           prompt: "Show the top 3 most expensive products (name, price).",
           starterCode: "-- Write your SQL here\n",
-          expectedOutput: "name,price\nKeyboard,2500\nHeadphones,1500\nMouse,800",
+          expectedOutput: "name,price\nDell 24\" Monitor,12000\nSony Headphones,4500\nMechanical Keyboard,2500",
         },
       },
     },
@@ -1080,19 +1080,19 @@ function sqlLessons(): CareerLesson[] {
         beginner: {
           prompt: "List customers from Mumbai (name, city) ordered by name.",
           starterCode: "-- Write your SQL here\n",
-          expectedOutput: "name,city\nAlice,Mumbai\nDiana,Mumbai",
+          expectedOutput: "name,city\nAlice Johnson,Mumbai\nDiana Prince,Mumbai\nJulia Roberts,Mumbai",
         },
         intermediate: {
           prompt: "Show March 2026 orders (id, order_date, status) ordered by order_date.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "id,order_date,status\n4,2026-03-12,completed\n5,2026-03-15,completed",
+          expectedOutput: "id,order_date,status\n4,2026-03-12,completed\n5,2026-03-15,completed\n6,2026-03-18,processing\n7,2026-03-20,completed\n8,2026-03-25,shipped\n9,2026-03-28,completed",
         },
         advanced: {
           prompt: "List products priced between 100 and 2000 (name, price) ordered by price.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,price\nCoffee,120\nMouse,800\nHeadphones,1500",
+          expectedOutput: "name,price\nOrganic Tea,250\nCushion Cover,300\nNescafe Coffee,350\nAlgorithmic Socks,400\nResistance Band,400\nSteelo Water Bottle,450\nParker Pen,500\nData Science Cap,600\nLogitech Mouse,800\nPython Book,800\nYoga Mat,900\nTable Lamp,1100\nMoleskine Diary,1200\nSQL Masterclass,1200\nDumbbell 5kg,1500",
         },
       },
     },
@@ -1140,19 +1140,19 @@ function sqlLessons(): CareerLesson[] {
           prompt: "Count orders by status (status, count) ordered by status.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "status,count\ncancelled,1\ncompleted,4",
+          expectedOutput: "status,count\ncancelled,1\ncompleted,13\npending,1\nprocessing,3\nshipped,2",
         },
         intermediate: {
           prompt: "For completed orders only, compute total quantity sold per product (name, total_qty) ordered by total_qty DESC then name.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,total_qty\nPen,5\nCoffee,4\nHeadphones,3\nNotebook,3\nKeyboard,1",
+          expectedOutput: "name,total_qty\nLays Chips,10\nPython Book,4\nAlgorithmic Socks,3\nNescafe Coffee,3\nSony Headphones,3\nDumbbell 5kg,2\nMechanical Keyboard,2\nMoleskine Diary,2\nParker Pen,2\nPyMaster Hoodie,2\nSteelo Water Bottle,2\nTable Lamp,2\nData Science Cap,1\nLogitech Mouse,1\nOrganic Tea,1\nResistance Band,1\nSQL Masterclass,1\nYoga Mat,1",
         },
         advanced: {
           prompt: "Compute revenue per completed order (order_id, revenue) ordered by order_id.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_id,revenue\n1,270\n2,1500\n4,2860\n5,3050",
+          expectedOutput: "order_id,revenue\n1,2000\n2,7000\n4,2000\n5,1150\n7,3400\n9,6700\n10,550\n12,3900\n14,2800\n16,7000\n17,2400\n18,2900\n20,400",
         },
       },
     },
@@ -1200,19 +1200,19 @@ function sqlLessons(): CareerLesson[] {
           prompt: "List all orders with customer name (order_id, name, status) ordered by order_id.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_id,name,status\n1,Alice,completed\n2,Bob,completed\n3,Alice,cancelled\n4,Charlie,completed\n5,Diana,completed",
+          expectedOutput: "order_id,name,status\n1,Alice Johnson,completed\n2,Bob Sharma,completed\n3,Alice Johnson,cancelled\n4,Charlie Dave,completed\n5,Diana Prince,completed\n6,Ethan Hunt,processing\n7,Fiona Apple,completed\n8,George Miller,shipped\n9,Hannah Abbott,completed\n10,Ian Wright,completed\n11,Julia Roberts,processing\n12,Kevin Hart,completed\n13,Laura Palmer,shipped\n14,Mike Ross,completed\n15,Nina Simone,pending\n16,Alice Johnson,completed\n17,Bob Sharma,completed\n18,Oscar Wilde,completed\n19,Charlie Dave,processing\n20,Fiona Apple,completed",
         },
         intermediate: {
           prompt: "For order_id=1, list items (order_id, product, quantity) ordered by product.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_id,product,quantity\n1,Coffee,1\n1,Notebook,2\n1,Pen,5",
+          expectedOutput: "order_id,product,quantity\n1,Logitech Mouse,1\n1,Nescafe Coffee,2\n1,Parker Pen,1",
         },
         advanced: {
           prompt: "Total spent per customer on completed orders (include customers with 0). Output (name, total_spent) ordered by total_spent DESC.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,total_spent\nDiana,3050\nCharlie,2860\nBob,1500\nAlice,270\nEthan,0",
+          expectedOutput: "name,total_spent\nBob Sharma,9400\nAlice Johnson,9000\nHannah Abbott,6700\nKevin Hart,3900\nFiona Apple,3800\nOscar Wilde,2900\nMike Ross,2800\nCharlie Dave,2000\nDiana Prince,1150\nIan Wright,550\nEthan Hunt,0\nGeorge Miller,0\nJulia Roberts,0\nLaura Palmer,0\nNina Simone,0",
         },
       },
     },
@@ -1260,13 +1260,13 @@ function sqlLessons(): CareerLesson[] {
           prompt: "Find customers who have a cancelled order (name).",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name\nAlice",
+          expectedOutput: "name\nAlice Johnson",
         },
         intermediate: {
           prompt: "Find products that were never ordered (name) ordered by name.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name\nMouse",
+          expectedOutput: "name\nCushion Cover",
         },
         advanced: {
           prompt: "Find customers whose completed total_spent is greater than the average total_spent across all customers (include 0). Output (name, total_spent) ordered by total_spent DESC.",
@@ -1320,19 +1320,19 @@ function sqlLessons(): CareerLesson[] {
           prompt: "Using a CTE, compute completed order revenue (order_id, revenue) ordered by order_id.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_id,revenue\n1,270\n2,1500\n4,2860\n5,3050",
+          expectedOutput: "order_id,revenue\n1,2000\n2,7000\n4,2000\n5,1150\n7,3400\n9,6700\n10,550\n12,3900\n14,2800\n16,7000\n17,2400\n18,2900\n20,400",
         },
         intermediate: {
           prompt: "Compute monthly completed revenue (month, revenue) ordered by month.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "month,revenue\n2026-01,1770\n2026-03,5910",
+          expectedOutput: "month,revenue\n2026-01,9000\n2026-03,13250\n2026-04,19950",
         },
         advanced: {
           prompt: "Find the top customer by completed total_spent (name, total_spent).",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,total_spent\nDiana,3050",
+          expectedOutput: "name,total_spent\nBob Sharma,9400",
         },
       },
     },
@@ -1381,19 +1381,19 @@ function sqlLessons(): CareerLesson[] {
           starterCode:
             "-- Write your SQL here\n",
           expectedOutput:
-            "category,name,price,price_rank\nElectronics,Headphones,1500,2\nElectronics,Keyboard,2500,1\nElectronics,Mouse,800,3\nGrocery,Coffee,120,1\nStationery,Notebook,50,1\nStationery,Pen,10,2",
+            "category,name,price,price_rank\nApparel,Algorithmic Socks,400,3\nApparel,Data Science Cap,600,2\nApparel,PyMaster Hoodie,2200,1\nBooks,Python Book,800,2\nBooks,SQL Masterclass,1200,1\nElectronics,Dell 24\" Monitor,12000,1\nElectronics,Logitech Mouse,800,4\nElectronics,Mechanical Keyboard,2500,3\nElectronics,Sony Headphones,4500,2\nFitness,Dumbbell 5kg,1500,1\nFitness,Resistance Band,400,3\nFitness,Yoga Mat,900,2\nGrocery,Lays Chips,20,3\nGrocery,Nescafe Coffee,350,1\nGrocery,Organic Tea,250,2\nHome,Cushion Cover,300,3\nHome,Steelo Water Bottle,450,2\nHome,Table Lamp,1100,1\nStationery,Moleskine Diary,1200,1\nStationery,Parker Pen,500,2",
         },
         intermediate: {
           prompt: "Show completed daily revenue and running_total (order_date, revenue, running_total) ordered by order_date.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_date,revenue,running_total\n2026-01-05,270,270\n2026-01-06,1500,1770\n2026-03-12,2860,4630\n2026-03-15,3050,7680",
+          expectedOutput: "order_date,revenue,running_total\n2026-01-05,2000,2000\n2026-01-06,7000,9000\n2026-03-12,2000,11000\n2026-03-15,1150,12150\n2026-03-20,3400,15550\n2026-03-28,6700,22250\n2026-04-01,550,22800\n2026-04-05,3900,26700\n2026-04-10,2800,29500\n2026-04-15,7000,36500\n2026-04-18,2400,38900\n2026-04-20,2900,41800\n2026-04-25,400,42200",
         },
         advanced: {
           prompt: "Top 2 customers by completed total_spent with rank (name, total_spent, spend_rank) ordered by spend_rank.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,total_spent,spend_rank\nDiana,3050,1\nCharlie,2860,2",
+          expectedOutput: "name,total_spent,spend_rank\nBob Sharma,9400,1\nAlice Johnson,9000,2",
         },
       },
     },
@@ -1498,7 +1498,7 @@ function sqlLessons(): CareerLesson[] {
       },
       exercises: {
         beginner: {
-          prompt: "Insert a customer (id=6, Farah, Delhi) then select (name, city) for id=6.",
+          prompt: "Insert a customer (id=101, Farah, Delhi) then select (name, city) for id=101.",
           starterCode:
             "-- Write your SQL here\n",
           expectedOutput: "name,city\nFarah,Delhi",
@@ -1558,16 +1558,16 @@ function sqlLessons(): CareerLesson[] {
       },
       exercises: {
         beginner: {
-          prompt: "BEGIN; insert a customer (id=6); ROLLBACK; then count customers (count).",
+          prompt: "BEGIN; insert a customer (id=101); ROLLBACK; then count customers (count).",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "count\n5",
+          expectedOutput: "count\n15",
         },
         intermediate: {
           prompt: "BEGIN; update Pen price to 9999; ROLLBACK; then select Pen price (price).",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "price\n10",
+          expectedOutput: "price\n500",
         },
         advanced: {
           prompt: "BEGIN; update Pen price to 15; COMMIT; then select Pen price (price).",
@@ -1681,13 +1681,13 @@ function sqlLessons(): CareerLesson[] {
           prompt: "Create view v_completed_orders (orders + customers for completed) then select first 2 rows (order_id, name) ordered by order_id.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "order_id,name\n1,Alice\n2,Bob",
+          expectedOutput: "order_id,name\n1,Alice Johnson\n2,Bob Sharma",
         },
         intermediate: {
           prompt: "Create view v_customer_spend (name,total_spent for completed) then list customers with total_spent > 2000 ordered by total_spent DESC.",
           starterCode:
             "-- Write your SQL here\n",
-          expectedOutput: "name,total_spent\nDiana,3050\nCharlie,2860",
+          expectedOutput: "name,total_spent\nBob Sharma,9400\nAlice Johnson,9000\nHannah Abbott,6700\nKevin Hart,3900\nFiona Apple,3800\nOscar Wilde,2900\nMike Ross,2800",
         },
         advanced: {
           prompt: "Create then DROP view v_customer_spend, then verify it no longer exists (count).",
