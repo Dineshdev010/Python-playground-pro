@@ -24,6 +24,7 @@ import { TrophyHall } from "@/components/TrophyHall";
 import { getDynamicMemers } from "@/data/dummyMemers";
 import { Helmet } from "react-helmet-async";
 import { playSuccessSound, playClickSound } from "@/lib/sounds";
+import { cn } from "@/lib/utils";
 
 
 
@@ -118,9 +119,13 @@ function readSocialLinks(): SocialLinks {
 }
 
 function formatCountdown(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}m ${seconds}s`;
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 const TIME_GIFT_INTERVAL_SECONDS = 60 * 60;
@@ -740,9 +745,30 @@ export default function DashboardPage() {
             >
               {dashboardDensity === "focus" ? "Performance Mode On" : "Performance Mode Off"}
             </button>
-            <div className="rounded-full border border-border bg-surface-1 px-3 py-1 text-xs font-medium text-muted-foreground">
-              Streak resets in {streakResetLabel}
-            </div>
+            {(() => {
+              const isCritical = streakResetSeconds < 3600; // < 1 hour
+              const isWarning = streakResetSeconds < 7200;  // < 2 hours
+              return (
+                <div 
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-500 backdrop-blur-sm",
+                    isCritical 
+                      ? "border-orange-500/50 bg-orange-500/10 text-orange-500 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.2)]" 
+                      : isWarning
+                        ? "border-yellow-500/50 bg-yellow-500/10 text-yellow-500"
+                        : "border-border bg-surface-1/50 text-muted-foreground"
+                  )}
+                >
+                  <Flame 
+                    className={cn(
+                      "w-3.5 h-3.5 transition-colors", 
+                      isCritical ? "fill-orange-500 text-orange-500" : isWarning ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"
+                    )} 
+                  />
+                  <span>Streak resets in <span className="tabular-nums font-bold">{streakResetLabel}</span></span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
