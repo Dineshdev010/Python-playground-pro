@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Check, ChevronDown, Clock, HeartHandshake, Languages, LogIn, LogOut, Menu, Moon, Settings, Sun, 
-  User, Volume2, VolumeX, Medal, Wallet, Focus
+  User, Volume2, VolumeX, Medal, Wallet, Focus, RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -129,6 +129,30 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
       navigate("/");
     } catch {
       toast({ title: "Error", description: "Failed to sign out.", variant: "destructive" });
+    }
+  };
+
+  const handleHardRefresh = async () => {
+    try {
+      // Unregister all service workers
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+      // Clear caches
+      if ("caches" in window) {
+        const cacheNames = await caches.keys();
+        for (const name of cacheNames) {
+          await caches.delete(name);
+        }
+      }
+      // Force reload
+      window.location.reload();
+    } catch (error) {
+      console.error("Hard refresh failed:", error);
+      window.location.reload();
     }
   };
 
@@ -442,6 +466,10 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
                   <User className="mr-2 h-4 w-4" />
                   <span>{t("common.profileDashboard")}</span>
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleHardRefresh} className="cursor-pointer">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                <span>Refresh & Update</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
                 {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}

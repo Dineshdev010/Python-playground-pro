@@ -23,6 +23,7 @@ import { ProgressProvider } from "@/contexts/ProgressContext";
 import { FocusProvider } from "./contexts/FocusContext";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { GlobalConfetti } from "@/components/GlobalConfetti";
+import { PwaUpdater } from "@/components/PwaUpdater";
 
 // --- Lazy-loaded Pages ---
 // Each page is loaded on-demand when the user visits its route
@@ -140,6 +141,7 @@ const App = () => (
                       <LanguageProvider>
                         <Toaster />
                         <Sonner />
+                        <PwaUpdater />
                         <GlobalConfetti />
                         <AppLayout>
                           <Routes>

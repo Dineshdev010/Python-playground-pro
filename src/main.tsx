@@ -5,7 +5,6 @@
 // ============================================================
 
 import { createRoot } from "react-dom/client"; // React 18's method to create a root
-import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx"; // The main App component
 import "./index.css"; // Global styles (Tailwind CSS + custom styles)
 import { initSentry } from "./lib/sentry";
@@ -130,29 +129,6 @@ window.addEventListener("error", (event) => {
 
 // Mount the App component into the <div id="root"> in index.html
 try {
-  let waitingForServiceWorkerActivation = false;
-  const updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      waitingForServiceWorkerActivation = true;
-      updateSW(true).catch((error) => {
-        console.warn("Service worker refresh warning:", error);
-        reloadOnceForUpdate(SW_RELOAD_KEY);
-      });
-    },
-    onOfflineReady() {
-      sessionStorage.removeItem(SW_RELOAD_KEY);
-    },
-    onRegisterError(error) {
-      console.warn("Service worker registration warning:", error);
-    },
-  });
-
-  navigator.serviceWorker?.addEventListener("controllerchange", () => {
-    if (!waitingForServiceWorkerActivation) return;
-    reloadOnceForUpdate(SW_RELOAD_KEY);
-  });
-
   createRoot(document.getElementById("root")!).render(<App />);
   appMounted = true;
   sessionStorage.removeItem(CHUNK_RELOAD_KEY);
