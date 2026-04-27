@@ -65,7 +65,7 @@ function TimeTracker() {
     : `${minutes}m ${secs}s`;
 
   return (
-    <div className="hidden xl:flex items-center">
+    <div className="hidden lg:flex items-center">
       <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono px-2 py-1 rounded-md bg-secondary/50 border border-border/50 shadow-[0_0_10px_rgba(59,130,246,0.1)]" title="Total Code Time">
         <Clock className="w-3.5 h-3.5 text-primary animate-pulse" />
         <span className="text-foreground tracking-wider font-semibold">{displayTime}</span>
@@ -253,7 +253,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
             ))}
           </span>
         </Link>
-        <nav id="tour-nav-links" className="ml-1 hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex xl:ml-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <nav id="tour-nav-links" className="ml-1 hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto md:flex xl:ml-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex shrink-0 items-center gap-0.5">
           {primaryNavItems.map((item) => {
             const navLabel = item.to === "/quick-prep"
@@ -412,7 +412,7 @@ export function TopNavbar({ onMenuToggle }: TopNavbarProps) {
           </span>
         </button>
         <div 
-          className={`hidden xl:flex relative items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-full border backdrop-blur-md overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95 group cursor-default shadow-sm ${xpLevel.color} ${xpLevel.bg} ${xpLevel.border}`}
+          className={`hidden lg:flex relative items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-full border backdrop-blur-md overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95 group cursor-default shadow-sm ${xpLevel.color} ${xpLevel.bg} ${xpLevel.border}`}
           title={`${Math.round(xpLevel.progressPercentage)}% to level ${xpLevel.level + 1}`}
         >
           {isHighRank && (
